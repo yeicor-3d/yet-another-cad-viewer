@@ -1,0 +1,20 @@
+{
+  "name": "yet-another-cad-viewer",
+  "version": "0.0.1",
+  "description": "",
+  "license": "MIT",
+  "author": "Yeicor",
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  },
+  "dependencies": {
+    "stats.js": "^0.17.0",
+    "three": "^0.160.1",
+    "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "parcel": "^2.11.0"
+  }
+}
