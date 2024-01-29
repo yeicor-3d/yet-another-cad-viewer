@@ -1,15 +1,15 @@
-import {Camera} from "three";
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
-import THREE = require("three");
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import * as THREE from "three";
+import {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 
 window.THREE = THREE // HACK: Required for the gizmo to work
 
 export class OrientationGizmo {
     element: OrientationGizmoRaw
 
-    constructor(camera: Camera, controls: OrbitControls) {
-        this.element = new OrientationGizmoRaw(camera, {
+    constructor(scene: ModelScene) {
+        // noinspection SpellCheckingInspection
+        this.element = new OrientationGizmoRaw(scene.camera, {
             size: 120,
             bubbleSizePrimary: 12,
             bubbleSizeSeconday: 10,
@@ -30,12 +30,16 @@ export class OrientationGizmo {
             this.element.bubbles[indexB].direction.copy(dirA);
         }
         // Append and listen for events
-        this.element.onAxisSelected = (axis) => {
-            let magnitude = camera.position.clone().sub(controls.target).length()
+        this.element.onAxisSelected = (axis: { direction: { x: any; y: any; z: any; }; }) => {
+            let lookFrom = scene.getCamera().position.clone();
+            let lookAt = scene.getTarget().clone().add(scene.target.position);
+            let magnitude = lookFrom.clone().sub(lookAt).length()
             let direction = new THREE.Vector3(axis.direction.x, axis.direction.y, axis.direction.z);
-            direction.normalize();
-            console.log(controls.target, direction, magnitude)
-            camera.position.copy(controls.target.clone().add(direction.multiplyScalar(magnitude)));
+            let newLookFrom = lookAt.clone().add(direction.clone().multiplyScalar(magnitude));
+            //console.log("New camera position", newLookFrom)
+            scene.getCamera().position.copy(newLookFrom);
+            scene.getCamera().lookAt(lookAt);
+            scene.queueRender();
         }
     }
 
