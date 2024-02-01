@@ -317,6 +317,16 @@
     lightningcss "^1.22.1"
     nullthrows "^1.1.1"
 
+"@parcel/optimizer-data-url@2.11.0":
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/@parcel/optimizer-data-url/-/optimizer-data-url-2.11.0.tgz#db0681ff38b356b29ddc40d059126bb4641d3ed8"
+  integrity sha512-k/BCJMNhqN+3vykp1jVR8AvCrbV8sYBC3gYh/qNzeS+mcmWaF4VIeoJj/nwIu7qYgb6LIC1Ib0ph6i16YmcRFg==
+  dependencies:
+    "@parcel/plugin" "2.11.0"
+    "@parcel/utils" "2.11.0"
+    isbinaryfile "^4.0.2"
+    mime "^2.4.4"
+
 "@parcel/optimizer-htmlnano@2.11.0":
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/@parcel/optimizer-htmlnano/-/optimizer-htmlnano-2.11.0.tgz#2d62e5a0f15a58feeee67cdd23bf54da528d0207"
@@ -589,6 +599,13 @@
     "@parcel/utils" "2.11.0"
     "@parcel/workers" "2.11.0"
     nullthrows "^1.1.1"
+
+"@parcel/transformer-inline-string@2.11.0":
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/@parcel/transformer-inline-string/-/transformer-inline-string-2.11.0.tgz#36ef8add36ac45b48df6db379def2f920ade6a09"
+  integrity sha512-yLLjVqS7/P/ySOOjwdl2mElNHmCtJK81+7mnoA2oLEsf4kTKlW3JnIvX5BqJj6Dy6Ek0V1M48E86T9U3fwzWzg==
+  dependencies:
+    "@parcel/plugin" "2.11.0"
 
 "@parcel/transformer-js@2.11.0":
   version "2.11.0"
@@ -1290,6 +1307,11 @@ is-promise@^2.1.0:
   resolved "https://registry.yarnpkg.com/is-promise/-/is-promise-2.2.2.tgz#39ab959ccbf9a774cf079f7b40c7a26f763135f1"
   integrity sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==
 
+isbinaryfile@^4.0.2:
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/isbinaryfile/-/isbinaryfile-4.0.10.tgz#0c5b5e30c2557a2f06febd37b7322946aaee42b3"
+  integrity sha512-iHrqe5shvBUcFbmZq9zOQHBoeOhZJu6RQGrDpBgenUm/Am+F3JM2MgQj+rK3Z601fzrL5gLZWtAPH2OBaSVcyw==
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -1453,6 +1475,11 @@ micromatch@^4.0.5:
   dependencies:
     braces "^3.0.2"
     picomatch "^2.3.1"
+
+mime@^2.4.4:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-2.6.0.tgz#a2a682a95cd4d0cb1d6257e28f83da7e35800367"
+  integrity sha512-USPkMeET31rOMiarsBNIHZKLGgvKc/LrjofAnBlOttf5ajRvqiRA8QsenbcooctK6d6Ts6aqZXBA+XbkKthiQg==
 
 msgpackr-extract@^3.0.2:
   version "3.0.2"

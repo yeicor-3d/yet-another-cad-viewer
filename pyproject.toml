@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yacv_server"
+version = "0.0.1"
+authors = [
+    { name = "Yeicor" },
+]
+description = "Yet Another CAD Viewer (server)"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/yeicor-3d/yet-another-cad-viewer"
+Issues = "https://github.com/yeicor-3d/yet-another-cad-viewer/issues"
