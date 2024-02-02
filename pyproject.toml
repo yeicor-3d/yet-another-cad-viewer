@@ -1,22 +1,25 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "yacv_server"
-version = "0.0.1"
-authors = [
-    { name = "Yeicor" },
-]
+[tool.poetry]
+name = "yacv-server"
+version = "0.1.0"
 description = "Yet Another CAD Viewer (server)"
+authors = ["Yeicor <4929005+Yeicor@users.noreply.github.com>"]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
 
-[project.urls]
-Homepage = "https://github.com/yeicor-3d/yet-another-cad-viewer"
-Issues = "https://github.com/yeicor-3d/yet-another-cad-viewer/issues"
+[tool.poetry.dependencies]
+python = "^3.9"
+
+# CAD
+build123d = "^0.3.0"
+partcad = "^0.3.84"
+
+# Web
+aiohttp = "^3.9.3"
+pygltflib = "^1.16.1"
+
+[tool.poetry.group.dev.dependencies]
+aiohttp-devtools = "^1.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

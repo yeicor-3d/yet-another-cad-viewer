@@ -13,15 +13,6 @@ from build123d import Face, Vector, Shape
 from partcad.wrappers import cq_serialize
 
 
-class UVMode(Enum):
-    """UV mode for tesselation"""
-
-    TRIPLANAR = 0
-    """Triplanar UV mapping"""
-    FACE = 1
-    """Use UV coordinates from each face"""
-
-
 @dataclass
 class TessellationUpdate:
     """Tessellation update"""
@@ -39,6 +30,10 @@ class TessellationUpdate:
     """List of vertices"""
     indices: Optional[list[Tuple[int, int, int]]]
     """List of indices (only for faces)"""
+
+    @property
+    def is_face(self):
+        return isinstance(self.shape, TopoDS_Face)
 
 
 progress_callback_t = Callable[[TessellationUpdate], None]
@@ -58,7 +53,6 @@ def tessellate(
         progress_callback: progress_callback_t = None,
         tolerance: float = 0.1,
         angular_tolerance: float = 0.1,
-        uv: Optional[UVMode] = None,
         executor: Executor = ProcessPoolExecutor(),  # Set to ThreadPoolExecutor if pickling fails...
 ):
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices.
@@ -72,9 +66,9 @@ def tessellate(
 
         # Submit tessellation tasks
         for face in shape.faces():
-            futures.append(executor.submit(_tessellate_element, face.wrapped, tolerance, angular_tolerance, uv))
+            futures.append(executor.submit(_tessellate_element, face.wrapped, tolerance, angular_tolerance))
         for edge in shape.edges():
-            futures.append(executor.submit(_tessellate_element, edge.wrapped, tolerance, angular_tolerance, uv))
+            futures.append(executor.submit(_tessellate_element, edge.wrapped, tolerance, angular_tolerance))
 
         # Collect results as they come in
         for i, future in enumerate(concurrent.futures.as_completed(futures)):
@@ -102,9 +96,9 @@ def _register_pickle_if_needed():
 
 
 # Define the function that will tessellate each element in parallel
-def _tessellate_element(element: TopoDS_Shape, tolerance, angular_tolerance, uv):
+def _tessellate_element(element: TopoDS_Shape, tolerance: float, angular_tolerance: float):
     if isinstance(element, TopoDS_Face):
-        return _tessellate_face(element, tolerance, angular_tolerance, uv), element
+        return _tessellate_face(element, tolerance, angular_tolerance), element
     elif isinstance(element, TopoDS_Edge):
         return _tessellate_edge(element, angular_tolerance, angular_tolerance), element
 
@@ -115,14 +109,13 @@ TriMesh = Tuple[list[Vector], list[Tuple[int, int, int]]]
 def _tessellate_face(
         ocp_face: TopoDS_Face,
         tolerance: float = 0.1,
-        angular_tolerance: float = 0.1,
-        uv: Optional[UVMode] = None,
+        angular_tolerance: float = 0.1
 ) -> TriMesh:
     """Tessellate a face into a list of triangle vertices and a list of triangle indices"""
     face = Face(ocp_face)
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
 
-    # TODO: UV mapping
+    # TODO: UV mapping of each face
 
     return tri_mesh
 

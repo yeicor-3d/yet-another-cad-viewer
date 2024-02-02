@@ -1,6 +1,7 @@
 from build123d import *
 
-from tessellate import tessellate
+from gltf import create_gltf_from_update
+from tessellate import tessellate, TessellationUpdate
 
 
 def logo() -> Compound:
@@ -12,4 +13,15 @@ def logo() -> Compound:
 
 if __name__ == "__main__":
     obj = logo()
-    tessellate(obj.wrapped, lambda *args: print(args))
+
+
+    def progress(update: TessellationUpdate):
+        gltf = create_gltf_from_update(update)
+        print(gltf)
+        if update.is_face:
+            gltf.save("logo_face.glb")
+        else:
+            gltf.save("logo_edge.glb")
+
+
+    tessellate(obj.wrapped, progress)
