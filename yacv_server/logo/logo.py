@@ -1,7 +1,7 @@
 from build123d import *
+from tqdm import tqdm
 
-from gltf import create_gltf_from_update
-from tessellate import tessellate, TessellationUpdate
+from tessellate import tessellate, tessellate_count
 
 
 def logo() -> Compound:
@@ -14,14 +14,6 @@ def logo() -> Compound:
 if __name__ == "__main__":
     obj = logo()
 
-
-    def progress(update: TessellationUpdate):
-        gltf = create_gltf_from_update(update)
-        print(gltf)
-        if update.is_face:
-            gltf.save("logo_face.glb")
-        else:
-            gltf.save("logo_edge.glb")
-
-
-    tessellate(obj.wrapped, progress)
+    for update in tqdm(tessellate(obj.wrapped), total=tessellate_count(obj.wrapped)):
+        # print(update.gltf)
+        update.gltf.save(f'logo_{update.kind}.glb')  # Will overwrite the file for each update

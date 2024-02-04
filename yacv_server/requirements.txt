@@ -1,3 +1,0 @@
-build123d==0.3.0
-aiohttp==3.9.3
-partcad==0.3.84

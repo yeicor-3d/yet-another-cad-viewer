@@ -10,6 +10,7 @@
 # TODO: Figure out if we want to keep a big default skybox image in the repo
 /assets/st_peters_square_night_8k.jpg
 /assets/fox.glb
+/yacv_server/logo/*.glb
 
 *.iml
 venv/

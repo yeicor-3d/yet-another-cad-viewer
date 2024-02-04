@@ -13,12 +13,9 @@ python = "^3.9"
 build123d = "^0.3.0"
 partcad = "^0.3.84"
 
-# Web
-aiohttp = "^3.9.3"
+# Misc
 pygltflib = "^1.16.1"
-
-[tool.poetry.group.dev.dependencies]
-aiohttp-devtools = "^1.1.2"
+tqdm = "^4.66.1"
 
 [build-system]
 requires = ["poetry-core"]
