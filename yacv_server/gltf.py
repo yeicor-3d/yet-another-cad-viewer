@@ -1,9 +1,13 @@
 import numpy as np
 from pygltflib import *
 
+_checkerboard_image = Image(uri='data:image/png;base64,'
+                                'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAF0lEQVQI12N49OjR////Gf'
+                                '/////48WMATwULS8tcyj8AAAAASUVORK5CYII=')
+
 
 def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray, mode: int = TRIANGLES,
-                material: Optional[Material] = None, add_checkerboard_image: bool = False) -> GLTF2:
+                material: Optional[Material] = None, images: Optional[List[Image]] = None) -> GLTF2:
     """Create a glTF object from vertices and optionally indices.
 
     If indices are not set, vertices are interpreted as line_strip."""
@@ -22,11 +26,19 @@ def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray
     tex_coord_blob = tex_coord.tobytes()
     # print(tex_coord)
 
+    if images is None:
+        images = []
     image_blob = b''
-    if add_checkerboard_image:
-        image_blob = base64.decodebytes(
-            b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX'
-            b'////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==')
+    image_blob_pointers = []
+    for img in images:
+        assert img.bufferView is None
+        assert img.uri is not None
+        assert img.uri.startswith('data:')
+        image_blob_pointers.append(len(image_blob))
+        image_blob += base64.decodebytes(img.uri.split('base64,', maxsplit=1)[1].encode('ascii'))
+        img.mimeType = img.uri.split(';', maxsplit=1)[0].split(':', maxsplit=1)[1]
+        img.uri = None
+        img.bufferView = 3 + len(image_blob_pointers) - 1
 
     gltf = GLTF2(
         scene=0,
@@ -98,17 +110,20 @@ def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray
                             BufferView(
                                 buffer=0,
                                 byteOffset=len(indices_blob) + len(
-                                    vertices_blob) + len(tex_coord_blob),
-                                byteLength=len(image_blob),
-                            ),
-                        ] if add_checkerboard_image else []),
+                                    vertices_blob) + len(tex_coord_blob) + image_blob_pointers[i],
+                                byteLength=image_blob_pointers[i + 1] - image_blob_pointers[i] if i + 1 < len(
+                                    image_blob_pointers) else len(image_blob) - image_blob_pointers[i],
+                            )
+                            for i, img in enumerate(images)
+                        ] if len(images) > 0 else []),
         buffers=[
             Buffer(
                 byteLength=len(indices_blob) + len(vertices_blob) + len(tex_coord_blob) + len(image_blob),
             )
         ],
-        textures=[Texture(source=0)] if add_checkerboard_image else [],
-        images=[Image(bufferView=3, mimeType=IMAGEPNG, )] if add_checkerboard_image else [],
+        samplers=[Sampler(magFilter=NEAREST, minFilter=NEAREST_MIPMAP_NEAREST)] if len(images) > 0 else [],
+        textures=[Texture(source=i, sampler=0) for i, _ in enumerate(images)],
+        images=images,
     )
 
     gltf.set_binary_blob(indices_blob + vertices_blob + tex_coord_blob + image_blob)

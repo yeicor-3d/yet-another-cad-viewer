@@ -15,7 +15,7 @@ from build123d import Face, Vector, Shape, Vertex
 from partcad.wrappers import cq_serialize
 from pygltflib import LINE_STRIP, GLTF2, Material, PbrMetallicRoughness, TRIANGLES, POINTS, TextureInfo
 
-from gltf import create_gltf
+from gltf import create_gltf, _checkerboard_image
 
 
 @dataclass
@@ -145,7 +145,7 @@ def _tessellate_face(
     material = Material(pbrMetallicRoughness=PbrMetallicRoughness(
         baseColorFactor=[0.3, 1.0, 0.2, 1.0], roughnessFactor=0.1, baseColorTexture=TextureInfo(index=0)),
         alphaCutoff=None)
-    return create_gltf(vertices, indices, tex_coord, mode, material, add_checkerboard_image=True)
+    return create_gltf(vertices, indices, tex_coord, mode, material, images=[_checkerboard_image])
 
 
 def _tessellate_edge(

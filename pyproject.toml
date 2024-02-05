@@ -16,6 +16,8 @@ partcad = "^0.3.84"
 # Misc
 pygltflib = "^1.16.1"
 tqdm = "^4.66.1"
+aiohttp = "^3.9.3"
+aiohttp-devtools = "^1.1.2"
 
 [build-system]
 requires = ["poetry-core"]
