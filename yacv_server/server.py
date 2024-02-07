@@ -3,18 +3,31 @@ import atexit
 import os
 import signal
 import sys
+import time
+from dataclasses import dataclass
 from threading import Thread
-from typing import Optional, Tuple
+from typing import Optional
 
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
+from dataclasses_json import dataclass_json
 
 from pubsub import BufferedPubSub
 from tessellate import _hashcode
 
 FRONTEND_BASE_PATH = os.getenv('FRONTEND_BASE_PATH', '../dist')
 UPDATES_API_PATH = '/api/updates'
-OBJECTS_API_PATH = '/api/objects'  # /{name}
+OBJECTS_API_PATH = '/api/object'  # /{name}
+
+
+@dataclass_json
+@dataclass
+class UpdatesApiData:
+    """Data sent to the client through the updates API"""
+    name: str
+    """Name of the object. Should be unique unless you want to overwrite the previous object"""
+    hash: str
+    """Hash of the object, to detect changes without rebuilding the object"""
 
 
 # noinspection PyUnusedLocal
@@ -27,7 +40,7 @@ class Server:
     runner: web.AppRunner
     thread: Optional[Thread] = None
     do_shutdown = asyncio.Event()
-    show_events = BufferedPubSub[Tuple[TopoDS_Shape, str]]()
+    show_events = BufferedPubSub[UpdatesApiData]()
 
     def __init__(self, *args, **kwargs):
         # --- Routes ---
@@ -86,14 +99,31 @@ class Server:
         ws = web.WebSocketResponse()
         await ws.prepare(request)
 
-        print('New client connected')
-        async for (obj, name) in self.show_events.subscribe():
-            hash_code = _hashcode(obj)
-            url = f'{UPDATES_API_PATH}/{name}'
-            print('New object:', name, hash_code, url)
-            await ws.send_json({'name': name, 'hash': hash_code, 'url': url})
+        async def _send_api_updates():
+            subscription = self.show_events.subscribe()
+            try:
+                first = True
+                async for data in subscription:
+                    if first:
+                        print('Started sending updates to client (%d subscribers)' % len(self.show_events._subscribers))
+                        first = False
+                    # noinspection PyUnresolvedReferences
+                    await ws.send_str(data.to_json())
+            finally:
+                print('Stopped sending updates to client (%d subscribers)' % len(self.show_events._subscribers))
+                await subscription.aclose()
 
-        # TODO: Start previous loop in a separate task and detect connection close to stop it
+        # Start sending updates to the client automatically
+        send_task = asyncio.create_task(_send_api_updates())
+        try:
+            print('Client connected: %s' % request.remote)
+            # Wait for the client to close the connection (or send a message)
+            await ws.receive()
+        finally:
+            # Make sure to stop sending updates to the client and close the connection
+            send_task.cancel()
+            await ws.close()
+            print('Client disconnected: %s' % request.remote)
 
         return ws
 
@@ -101,17 +131,12 @@ class Server:
 
     def show_object(self, obj: TopoDS_Shape, name: Optional[str] = None):
         """Publishes a CAD object to the server"""
+        start = time.time()
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
-        self.show_events.publish_nowait((obj, name))
+        precomputed_info = UpdatesApiData(name=name, hash=_hashcode(obj))
+        print(f'show_object {precomputed_info} took {time.time() - start:.3f} seconds')
+        self.show_events.publish_nowait(precomputed_info)
 
     async def api_objects(self, request: web.Request) -> web.Response:
         return web.Response(body='TODO: Serve the object file here')
-
-
-def get_app() -> web.Application:
-    """Required by aiohttp-devtools"""
-    from logo.logo import build_logo
-    server = Server()
-    server.show_object(build_logo())
-    return server.app

@@ -2,6 +2,7 @@ import os
 import time
 
 from OCP.TopoDS import TopoDS_Shape
+from aiohttp import web
 
 from server import Server
 
@@ -14,16 +15,20 @@ if 'YACV_DISABLE_SERVER' not in os.environ:
     server.start()
 
 
+def get_app() -> web.Application:
+    """Required by aiohttp-devtools"""
+    from logo.logo import build_logo
+    server.show_object(build_logo())
+    return server.app
+
+
 def show_object(obj: TopoDS_Shape):
     """Show a CAD object in the default server"""
     server.show_object(obj)
 
 
 if __name__ == '__main__':
-    # Publish the logo to the server
-    from logo.logo import build_logo
-
-    assert server is not None
-    server.show_object(build_logo())
-
+    # Publish the logo to the server (reusing code from the aiohttp-devtools)
+    get_app()
+    # Keep the server running for testing
     time.sleep(60)
