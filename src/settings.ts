@@ -8,7 +8,8 @@ export const settings = {
     preloadModel: logo,
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',
-    shadowIntensity: 1,
+    exposure: 1,
+    shadowIntensity: 0,
     background: skyboxUrl,
 }
 
