@@ -2,6 +2,8 @@ import asyncio
 from typing import List, TypeVar, \
     Generic, AsyncGenerator
 
+from mylogger import logger
+
 T = TypeVar('T')
 
 
@@ -11,44 +13,48 @@ class BufferedPubSub(Generic[T]):
     _buffer: List[T]
     _subscribers: List[asyncio.Queue[T]]
     _lock = asyncio.Lock()
+    max_buffer_size = 1000
 
     def __init__(self):
         self._buffer = []
         self._subscribers = []
 
-    async def publish(self, event: T):
-        """Publishes an event"""
-        async with self._lock:
-            self._buffer.append(event)
-            for q in self._subscribers:
-                await q.put(event)
-
     def publish_nowait(self, event: T):
-        """Publishes an event without blocking"""
+        """Publishes an event without blocking (synchronous API does not require locking)"""
         self._buffer.append(event)
+        if len(self._buffer) > self.max_buffer_size:
+            self._buffer.pop(0)
         for q in self._subscribers:
             q.put_nowait(event)
 
-    async def _subscribe(self, include_buffered: bool = True) -> asyncio.Queue[T]:
+    async def _subscribe(self, include_buffered: bool = True, include_future: bool = True) -> asyncio.Queue[T]:
         """Subscribes to events"""
         q = asyncio.Queue()
         async with self._lock:
             self._subscribers.append(q)
-            if include_buffered:
-                for event in self._buffer:
-                    await q.put(event)
+        logger.debug(f"Subscribed to %s (%d subscribers)", self, len(self._subscribers))
+        if include_buffered:
+            for event in self._buffer:
+                await q.put(event)
+            if not include_future:
+                await q.put(None)
         return q
 
     async def _unsubscribe(self, q: asyncio.Queue[T]):
         """Unsubscribes from events"""
         async with self._lock:
             self._subscribers.remove(q)
+        logger.debug(f"Unsubscribed from %s (%d subscribers)", self, len(self._subscribers))
 
-    async def subscribe(self, include_buffered: bool = True) -> AsyncGenerator[T, None]:
+    async def subscribe(self, include_buffered: bool = True, include_future: bool = True) -> AsyncGenerator[T, None]:
         """Subscribes to events as an async generator that yields events and automatically unsubscribes"""
-        q = await self._subscribe(include_buffered)
+        q = await self._subscribe(include_buffered, include_future)
         try:
             while True:
-                yield await q.get()
-        finally:
+                v = await q.get()
+                # include_future is incompatible with None values as they are used to signal the end of the stream
+                if v is None and not include_future:
+                    break
+                yield v
+        finally:  # When aclose() is called
             await self._unsubscribe(q)

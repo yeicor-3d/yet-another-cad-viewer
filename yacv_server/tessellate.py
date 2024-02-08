@@ -1,13 +1,11 @@
 import concurrent
-import copyreg
 import hashlib
 import io
 import re
-from concurrent.futures import ProcessPoolExecutor, Executor
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
-from typing import Tuple, Callable, Generator
+from typing import Tuple, Generator
 
-import OCP
 import numpy as np
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
@@ -17,7 +15,6 @@ from OCP.TopLoc import TopLoc_Location
 from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Face, Vector, Shape, Vertex
-from partcad.wrappers import cq_serialize
 from pygltflib import LINE_STRIP, GLTF2, Material, PbrMetallicRoughness, TRIANGLES, POINTS, TextureInfo
 
 from gltf import create_gltf, _checkerboard_image
@@ -48,18 +45,6 @@ class TessellationUpdate:
             raise ValueError(f"Unknown shape type: {self.shape}")
 
 
-progress_callback_t = Callable[[TessellationUpdate], None]
-
-
-def _inflate_vec(*values: float):
-    pnt = OCP.gp.gp_Vec(values[0], values[1], values[2])
-    return pnt
-
-
-def _reduce_vec(pnt: OCP.gp.gp_Vec):
-    return _inflate_vec, (pnt.X(), pnt.Y(), pnt.Z())
-
-
 def tessellate_count(ocp_shape: TopoDS_Shape) -> int:
     """Count the number of elements that will be tessellated"""
     shape = Shape(ocp_shape)
@@ -70,44 +55,31 @@ def tessellate(
         ocp_shape: TopoDS_Shape,
         tolerance: float = 0.1,
         angular_tolerance: float = 0.1,
-        executor: Executor = ProcessPoolExecutor(),  # Set to ThreadPoolExecutor if pickling fails...
 ) -> Generator[TessellationUpdate, None, None]:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices.
 
-    It uses multiprocessing to speed up the process, and publishes progress updates to the callback.
+    NOTE: The logic of the method is weird because multiprocessing was tested but it seems too inefficient
+    with slow native packages.
     """
     shape = Shape(ocp_shape)
-    _register_pickle_if_needed()
-    with executor:
-        futures = []
+    futures = []
 
-        # Submit tessellation tasks
-        for face in shape.faces():
-            futures.append(executor.submit(_tessellate_element, face.wrapped, tolerance, angular_tolerance))
-        for edge in shape.edges():
-            futures.append(executor.submit(_tessellate_element, edge.wrapped, tolerance, angular_tolerance))
-        for vertex in shape.vertices():
-            futures.append(executor.submit(_tessellate_element, vertex.wrapped, tolerance, angular_tolerance))
+    # Submit tessellation tasks
+    for face in shape.faces():
+        futures.append(lambda: _tessellate_element(face.wrapped, tolerance, angular_tolerance))
+    for edge in shape.edges():
+        futures.append(lambda: _tessellate_element(edge.wrapped, tolerance, angular_tolerance))
+    for vertex in shape.vertices():
+        futures.append(lambda: _tessellate_element(vertex.wrapped, tolerance, angular_tolerance))
 
-        # Collect results as they come in
-        for i, future in enumerate(concurrent.futures.as_completed(futures)):
-            sub_shape, gltf = future.result()
-            yield TessellationUpdate(
-                progress=(i + 1) / len(futures),
-                shape=sub_shape,
-                gltf=gltf,
-            )
-
-
-_pickle_registered = False
-
-
-def _register_pickle_if_needed():
-    global _pickle_registered
-    if _pickle_registered:
-        return
-    cq_serialize.register()
-    copyreg.pickle(OCP.gp.gp_Vec, _reduce_vec)
+    # Collect results as they come in
+    for i, future in enumerate(futures):
+        sub_shape, gltf = future()
+        yield TessellationUpdate(
+            progress=(i + 1) / len(futures),
+            shape=sub_shape,
+            gltf=gltf,
+        )
 
 
 # Define the function that will tessellate each element in parallel

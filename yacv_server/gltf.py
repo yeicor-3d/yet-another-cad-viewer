@@ -30,7 +30,8 @@ def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray
         images = []
     image_blob = b''
     image_blob_pointers = []
-    for img in images:
+    for i, img in enumerate(images):
+        img = copy.deepcopy(img)  # Avoid modifying the original image
         assert img.bufferView is None
         assert img.uri is not None
         assert img.uri.startswith('data:')
@@ -39,6 +40,7 @@ def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray
         img.mimeType = img.uri.split(';', maxsplit=1)[0].split(':', maxsplit=1)[1]
         img.uri = None
         img.bufferView = 3 + len(image_blob_pointers) - 1
+        images[i] = img  # Replace the original image with the new copied and modified one
 
     gltf = GLTF2(
         scene=0,

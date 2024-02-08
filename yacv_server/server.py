@@ -1,19 +1,24 @@
 import asyncio
 import atexit
+import hashlib
 import os
 import signal
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from threading import Thread
-from typing import Optional
+from typing import Optional, Dict, Union, AsyncGenerator
 
+import tqdm.asyncio
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
-from dataclasses_json import dataclass_json
+from dataclasses_json import dataclass_json, config
+from tqdm.contrib.logging import logging_redirect_tqdm
 
+from glbs import glb_sequence_to_glbs
+from mylogger import logger
 from pubsub import BufferedPubSub
-from tessellate import _hashcode
+from tessellate import _hashcode, tessellate_count, tessellate
 
 FRONTEND_BASE_PATH = os.getenv('FRONTEND_BASE_PATH', '../dist')
 UPDATES_API_PATH = '/api/updates'
@@ -28,6 +33,8 @@ class UpdatesApiData:
     """Name of the object. Should be unique unless you want to overwrite the previous object"""
     hash: str
     """Hash of the object, to detect changes without rebuilding the object"""
+    obj: Optional[TopoDS_Shape] = field(default=None, metadata=config(exclude=lambda obj: True))
+    """The OCCT object, if any (not serialized)"""
 
 
 # noinspection PyUnusedLocal
@@ -41,12 +48,14 @@ class Server:
     thread: Optional[Thread] = None
     do_shutdown = asyncio.Event()
     show_events = BufferedPubSub[UpdatesApiData]()
+    object_events: Dict[str, BufferedPubSub[bytes]] = {}
+    object_events_lock = asyncio.Lock()
 
     def __init__(self, *args, **kwargs):
         # --- Routes ---
         # - APIs
-        self.app.router.add_route('GET', f'{UPDATES_API_PATH}', self.api_updates)
-        self.app.router.add_route('GET', f'{OBJECTS_API_PATH}/{{name}}', self.api_objects)
+        self.app.router.add_route('GET', f'{UPDATES_API_PATH}', self._api_updates)
+        self.app.router.add_route('GET', f'{OBJECTS_API_PATH}/{{name}}', self._api_object)
         # - Static files from the frontend
         self.app.router.add_get('/{path:(.*/|)}', _index_handler)  # Any folder -> index.html
         self.app.router.add_static('/', path=FRONTEND_BASE_PATH, name='static_frontend')
@@ -57,7 +66,7 @@ class Server:
         """Starts the web server in the background"""
         assert self.thread is None, "Server already started"
         # Start the server in a separate daemon thread
-        self.thread = Thread(target=self.run_server, name='yacv_server', daemon=True)
+        self.thread = Thread(target=self._run_server, name='yacv_server', daemon=True)
         signal.signal(signal.SIGINT | signal.SIGTERM, self.stop)
         atexit.register(self.stop)
         self.thread.start()
@@ -75,14 +84,14 @@ class Server:
         if len(args) >= 1 and args[0] in (signal.SIGINT, signal.SIGTERM):
             sys.exit(0)  # Exit with success
 
-    def run_server(self):
+    def _run_server(self):
         """Runs the web server"""
         asyncio.set_event_loop(self.loop)
-        self.loop.run_until_complete(self.run_server_async())
+        self.loop.run_until_complete(self._run_server_async())
         self.loop.stop()
         self.loop.close()
 
-    async def run_server_async(self):
+    async def _run_server_async(self):
         """Runs the web server (async)"""
         runner = web.AppRunner(self.app)
         await runner.setup()
@@ -94,7 +103,7 @@ class Server:
         # print('Shutting down server...')
         await runner.cleanup()
 
-    async def api_updates(self, request: web.Request) -> web.WebSocketResponse:
+    async def _api_updates(self, request: web.Request) -> web.WebSocketResponse:
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -102,41 +111,145 @@ class Server:
         async def _send_api_updates():
             subscription = self.show_events.subscribe()
             try:
-                first = True
                 async for data in subscription:
-                    if first:
-                        print('Started sending updates to client (%d subscribers)' % len(self.show_events._subscribers))
-                        first = False
                     # noinspection PyUnresolvedReferences
                     await ws.send_str(data.to_json())
             finally:
-                print('Stopped sending updates to client (%d subscribers)' % len(self.show_events._subscribers))
                 await subscription.aclose()
 
         # Start sending updates to the client automatically
         send_task = asyncio.create_task(_send_api_updates())
         try:
-            print('Client connected: %s' % request.remote)
+            logger.debug('Client connected: %s', request.remote)
             # Wait for the client to close the connection (or send a message)
             await ws.receive()
         finally:
             # Make sure to stop sending updates to the client and close the connection
             send_task.cancel()
             await ws.close()
-            print('Client disconnected: %s' % request.remote)
+            logger.debug('Client disconnected: %s', request.remote)
 
         return ws
 
     obj_counter = 0
 
-    def show_object(self, obj: TopoDS_Shape, name: Optional[str] = None):
-        """Publishes a CAD object to the server"""
-        start = time.time()
+    def _show_common(self, name: Optional[str], hash: str, start: float, obj: Optional[TopoDS_Shape] = None):
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
-        precomputed_info = UpdatesApiData(name=name, hash=_hashcode(obj))
-        print(f'show_object {precomputed_info} took {time.time() - start:.3f} seconds')
+        precomputed_info = UpdatesApiData(name=name, hash=hash, obj=obj)
         self.show_events.publish_nowait(precomputed_info)
+        logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
+        return precomputed_info
 
-    async def api_objects(self, request: web.Request) -> web.Response:
-        return web.Response(body='TODO: Serve the object file here')
+    def show_gltf(self, gltf: bytes, name: Optional[str] = None, **kwargs):
+        """Publishes any single-file GLTF object to the server (GLB format recommended)."""
+        start = time.time()
+        # Precompute the info and send it to the client as if it was a CAD object
+        precomputed_info = self._show_common(hashlib.md5(gltf).hexdigest(), name, start)
+        # Also pre-populate the GLTF data for the object API
+        publish_to = BufferedPubSub[bytes]()
+        publish_to.publish_nowait(gltf)
+        self.object_events[precomputed_info.name] = publish_to
+
+    def show_object(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
+        """Publishes a CAD object to the server"""
+        start = time.time()
+        # Try to grab a shape if a different type of object was passed
+        if not isinstance(obj, TopoDS_Shape):
+            # Build123D
+            if 'part' in dir(obj):
+                obj = obj.part
+            if 'sketch' in dir(obj):
+                obj = obj.sketch
+            if 'line' in dir(obj):
+                obj = obj.line
+            # Build123D & CadQuery
+            while 'wrapped' in dir(obj) and not isinstance(obj, TopoDS_Shape):
+                obj = obj.wrapped
+            if not isinstance(obj, TopoDS_Shape):
+                raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')
+
+        self._show_common(name, _hashcode(obj), start, obj)
+
+    async def _api_object(self, request: web.Request) -> web.StreamResponse:
+        """Returns the object file with the matching name, building it if necessary."""
+
+        # Start exporting the object (or fail if not found)
+        export_data = self.export(request.match_info['name'])
+        response = web.StreamResponse()
+        try:
+            # First exported element is the object itself, grab it to collect data
+            export_obj = await anext(export_data)
+
+            # Create a new stream response with custom content type and headers
+            response.content_type = 'model/gltf-binary-sequence'
+            response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glbs"'
+            total_parts = 1 if export_obj is None else tessellate_count(export_obj)
+            response.headers['X-Object-Parts'] = str(total_parts)
+            await response.prepare(request)
+
+            # Convert the GLB sequence to a GLBS sequence and write it to the response
+            with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
+                # noinspection PyTypeChecker
+                glb_parts = tqdm.asyncio.tqdm(export_data, total=total_parts)
+                async for chunk in glb_sequence_to_glbs(glb_parts):
+                    await response.write(chunk)
+        finally:
+            # Close the export data subscription
+            await export_data.aclose()
+            # Close the response (if not an error)
+            if response.prepared:
+                await response.write_eof()
+        return response
+
+    async def export(self, name: str) -> AsyncGenerator[Union[TopoDS_Shape, bytes], None]:
+        """Export the given previously-shown object to a sequence of GLB files, building it if necessary."""
+        start = time.time()
+        # Check that the object to build exists and grab it if it does
+        subscription = self.show_events.subscribe(include_future=False)
+        obj: Optional[TopoDS_Shape] = None
+        found = False
+        async for data in subscription:
+            if data.name == name:
+                obj = data.obj
+                found = True  # Required because obj could be None
+                break
+        await subscription.aclose()
+        if not found:
+            raise web.HTTPNotFound(text=f'No object named {name} was previously shown')
+
+        # First published element is the TopoDS_Shape, which is None for glTF objects
+        yield obj
+
+        # Use the lock to ensure that we don't build the object twice
+        async with self.object_events_lock:
+            # If there are no object events for this name, we need to build the object
+            if name not in self.object_events:
+                # Prepare the pubsub for the object
+                publish_to = BufferedPubSub[bytes]()
+                self.object_events[name] = publish_to
+
+                def _build_object():
+                    # Build the object
+                    part_count = 0
+                    for tessellation_update in tessellate(obj):
+                        # We publish the object parts as soon as we have a new tessellation
+                        list_of_bytes = tessellation_update.gltf.save_to_bytes()
+                        publish_to.publish_nowait(b''.join(list_of_bytes))
+                        part_count += 1
+                    publish_to.publish_nowait(b'')  # Signal the end of the stream
+                    logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start, part_count)
+
+                # We should build it fully even if we are cancelled, so we use a separate task
+                # Furthermore, building is CPU-bound, so we use the default executor
+                asyncio.get_running_loop().run_in_executor(None, _build_object)
+
+        # In either case return the elements of a subscription to the async generator
+        subscription = self.object_events[name].subscribe()
+        try:
+            async for chunk in subscription:
+                if chunk == b'':
+                    break
+                yield chunk
+        finally:
+            await subscription.aclose()
