@@ -12,7 +12,6 @@ onMounted(() => {
   // TODO: Custom gizmo component inside Tools window
   // Gizmo installation
   let scene: ModelScene = viewer.value[$scene];
-  console.log('Mounted ModelViewerWrapper', viewer, scene);
   let gizmo = new OrientationGizmo(scene);
   gizmo.install();
 
@@ -22,7 +21,8 @@ onMounted(() => {
   }
 
   updateGizmo();
-  console.log('Mounted ModelViewerWrapper');
+
+  // TODO: Swap camera ortho/perspective tool
 });
 </script>
 
@@ -34,3 +34,10 @@ onMounted(() => {
       :autoplay="settings.autoplay" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes"
       :skybox-image="settings.background" :environment-image="settings.background"></model-viewer>
 </template>
+
+<style scoped>
+/* This keeps child nodes hidden while the element loads */
+:not(:defined) > * {
+  display: none;
+}
+</style>

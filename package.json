@@ -12,11 +12,13 @@
     "@google/model-viewer": "^3.4.0",
     "three": "^0.160.1",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
-    "vue": "^3.4.16"
+    "vue": "^3.4.16",
+    "vuetify": "^3.5.3"
   },
   "devDependencies": {
     "@parcel/optimizer-data-url": "2.11.0",
     "@parcel/transformer-inline-string": "2.11.0",
+    "@parcel/transformer-sass": "^2.11.0",
     "@parcel/transformer-vue": "2.11.0",
     "@types/three": "^0.160.0",
     "buffer": "^5.5.0||^6.0.0",
