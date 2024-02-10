@@ -14,6 +14,7 @@ import App from './App.vue'
 
 import 'vuetify/lib/styles/main.sass';
 import { createVuetify } from 'vuetify';
+import '@mdi/font/css/materialdesignicons.css'
 
 // TODO: Only import the components and directives that are actually used
 // @ts-ignore
@@ -31,5 +32,4 @@ const vuetify = createVuetify({
 
 const app = createApp(App)
 app.use(vuetify)
-app.config.compilerOptions.isCustomElement = tag => tag === 'model-viewer'
 app.mount('body')

@@ -96,6 +96,11 @@
   resolved "https://registry.yarnpkg.com/@lmdb/lmdb-win32-x64/-/lmdb-win32-x64-2.8.5.tgz#8233e8762440b0f4632c47a09b1b6f23de8b934c"
   integrity sha512-4wvrf5BgnR8RpogHhtpCPJMKBmvyZPhhUtEwMJbXh0ni2BucpfF07jlmyM11zRqQ2XIq6PbC2j7W7UCCcm1rRQ==
 
+"@mdi/font@^7.4.47":
+  version "7.4.47"
+  resolved "https://registry.yarnpkg.com/@mdi/font/-/font-7.4.47.tgz#2ae522867da3a5c88b738d54b403eb91471903af"
+  integrity sha512-43MtGpd585SNzHZPcYowu/84Vz2a2g31TvPMTm9uTiCSWzaheQySUcSyUH/46fPnuPQWof2yd0pGBtzee/IQWw==
+
 "@mischnic/json-sourcemap@^0.1.0":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@mischnic/json-sourcemap/-/json-sourcemap-0.1.1.tgz#0ef9b015a8f575dd9a8720d9a6b4dbc988425906"
@@ -470,6 +475,15 @@
     "@parcel/diagnostic" "2.11.0"
     "@parcel/events" "2.11.0"
     chrome-trace-event "^1.0.2"
+
+"@parcel/reporter-bundle-analyzer@^2.11.0":
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/@parcel/reporter-bundle-analyzer/-/reporter-bundle-analyzer-2.11.0.tgz#3a754aa314f5298c2990e7be6d9e02ea49d377e2"
+  integrity sha512-Cqob9LbXTDmkw1hZZIMiHSJYTBBfz+DsD2m/arrBGgW20L9xJ9yZGP/+myPeoznuOBwkpST6KuU4o+zdV7JCGQ==
+  dependencies:
+    "@parcel/plugin" "2.11.0"
+    "@parcel/utils" "2.11.0"
+    nullthrows "^1.1.1"
 
 "@parcel/reporter-cli@2.11.0":
   version "2.11.0"

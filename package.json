@@ -6,7 +6,7 @@
   "author": "Yeicor",
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "parcel build src/index.html"
+    "build": "parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report"
   },
   "dependencies": {
     "@google/model-viewer": "^3.4.0",
@@ -16,12 +16,19 @@
     "vuetify": "^3.5.3"
   },
   "devDependencies": {
+    "@mdi/font": "^7.4.47",
     "@parcel/optimizer-data-url": "2.11.0",
+    "@parcel/reporter-bundle-analyzer": "^2.11.0",
     "@parcel/transformer-inline-string": "2.11.0",
     "@parcel/transformer-sass": "^2.11.0",
     "@parcel/transformer-vue": "2.11.0",
     "@types/three": "^0.160.0",
     "buffer": "^5.5.0||^6.0.0",
     "parcel": "^2.11.0"
-  }
+  },
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "not dead"
+  ]
 }
