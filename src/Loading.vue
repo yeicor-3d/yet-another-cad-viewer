@@ -1,5 +1,5 @@
 <template>
-  <v-container style="height: 100%">
+  <v-container>
     <v-row justify="center" style="height: 100%">
       <v-col align-self="center">
         <v-progress-circular indeterminate style="display: block; margin: 0 auto;"/>

@@ -1,6 +1,3 @@
-// @ts-ignore
-// import logo from "url:../assets/fox.glb";
-
 // These are the default values for the settings, which are overridden below
 export const settings = {
     // @ts-ignore
@@ -26,7 +23,7 @@ function parseSetting(name: string, value: string): any {
         } else {
             toExtend = prevValue;
         }
-        toExtend.push(parseSetting(name+".0", value));
+        toExtend.push(parseSetting(name + ".0", value));
         return toExtend;
     }
     switch (typeof prevValue) {

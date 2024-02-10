@@ -12,8 +12,6 @@ const ModelViewerWrapper = defineAsyncComponent({
 </script>
 
 <template>
-  <model-viewer-wrapper/>
-  <model-viewer-overlay/>
 </template>
 
 <style scoped>

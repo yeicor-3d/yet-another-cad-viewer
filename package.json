@@ -22,6 +22,7 @@
     "@parcel/transformer-inline-string": "2.11.0",
     "@parcel/transformer-sass": "^2.11.0",
     "@parcel/transformer-vue": "2.11.0",
+    "@types/node": "^20.11.17",
     "@types/three": "^0.160.0",
     "buffer": "^5.5.0||^6.0.0",
     "parcel": "^2.11.0"
