@@ -1,38 +1,38 @@
 <script setup lang="ts">
 import {settings} from "./settings";
-import {onMounted, ref} from "vue";
 import {ModelViewerElement} from '@google/model-viewer';
-import {OrientationGizmo} from "./orientation";
+import {onMounted, ref} from "vue";
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
 import {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 
-let _ = ModelViewerElement  // HACK: Keep the import from being removed by the bundler
-const viewer = ref(null);
+export type ModelViewerInfo = { viewer: ModelViewerElement, scene: ModelScene };
+
+let _ = ModelViewerElement; // HACK: Needed to avoid tree shaking
+
+const emit = defineEmits(['load-viewer']);
+
+let viewer = ref<ModelViewerElement | null>(null);
 onMounted(() => {
-  // TODO: Custom gizmo component inside tools sidebar
-  // Gizmo installation
-  let scene: ModelScene = viewer.value[$scene];
-  let gizmo = new OrientationGizmo(scene);
-  gizmo.install();
-
-  function updateGizmo() {
-    gizmo.update();
-    requestAnimationFrame(updateGizmo);
-  }
-
-  updateGizmo();
-
-  // TODO: Swap camera ortho/perspective tool
+  console.log('ModelViewerWrapper mounted');
+  viewer.value.addEventListener('load', () =>
+      emit('load-viewer', {
+        viewer: viewer.value,
+        scene: viewer.value[$scene] as ModelScene,
+      })
+  );
 });
+
 </script>
 
 <template>
-  <model-viewer
-      ref="viewer" style="width: 100%; height: 100%" :src="settings.preloadModels[0]" alt="The 3D model(s)" camera-controls
-      camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto" min-camera-orbit="-Infinity 0deg auto"
-      :exposure="settings.exposure" :shadow-intensity="settings.shadowIntensity" interaction-prompt="none"
-      :autoplay="settings.autoplay" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes"
-      :skybox-image="settings.background" :environment-image="settings.background"></model-viewer>
+  <!--suppress VueMissingComponentImportInspection -->
+  <model-viewer ref="viewer"
+                style="width: 100%; height: 100%" :src="settings.preloadModels[0]" alt="The 3D model(s)" camera-controls
+                camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
+                min-camera-orbit="-Infinity 0deg auto"
+                :exposure="settings.exposure" :shadow-intensity="settings.shadowIntensity" interaction-prompt="none"
+                :autoplay="settings.autoplay" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes"
+                :skybox-image="settings.background" :environment-image="settings.background"></model-viewer>
 </template>
 
 <style scoped>

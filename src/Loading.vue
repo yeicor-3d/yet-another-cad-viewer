@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import {VContainer, VRow, VCol, VProgressCircular} from "vuetify/lib/components";
+</script>
+
 <template>
   <v-container>
     <v-row justify="center" style="height: 100%">

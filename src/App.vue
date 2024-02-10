@@ -1,8 +1,19 @@
 <script setup lang="ts">
-import {defineAsyncComponent, ref} from "vue";
+import {defineAsyncComponent, ref, Ref} from "vue";
 import Sidebar from "./Sidebar.vue";
 import Loading from "./Loading.vue";
 import ModelViewerOverlay from "./ModelViewerOverlay.vue";
+import Tools from "./Tools.vue";
+import {
+  VExpansionPanel,
+  VExpansionPanels,
+  VExpansionPanelText,
+  VExpansionPanelTitle,
+  VLayout,
+  VMain,
+  VToolbarTitle
+} from "vuetify/lib/components";
+import type {ModelViewerInfo} from "./ModelViewerWrapper.vue";
 
 // NOTE: The ModelViewer library is big, so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({
@@ -12,18 +23,22 @@ const ModelViewerWrapper = defineAsyncComponent({
 });
 
 // Open models by default on wide screens
-let openSidebars = ref(window.innerWidth > 1200);
+let openSidebarsDefault: Ref<boolean> = ref(window.innerWidth > 1200);
+let modelViewerInfo: Ref<typeof ModelViewerInfo | null> = ref(null);
 </script>
 
 <template>
   <v-layout full-height>
     <!-- The main content of the app is the model-viewer with the SVG "2D" overlay -->
     <v-main id="main">
-      <model-viewer-wrapper/>
+      <model-viewer-wrapper @load-viewer="(args) => {
+        console.log('Model-Viewer finished loading:', args)
+        modelViewerInfo = args
+      }"/>
       <model-viewer-overlay/>
     </v-main>
     <!-- The left collapsible sidebar has the list of models -->
-    <sidebar :opened-init="openSidebars" side="left">
+    <sidebar :opened-init="openSidebarsDefault" side="left">
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
       </template>
@@ -37,11 +52,11 @@ let openSidebars = ref(window.innerWidth > 1200);
       </v-expansion-panels>
     </sidebar>
     <!-- The right collapsible sidebar has the list of tools -->
-    <sidebar :opened-init="openSidebars" side="right" width="150">
+    <sidebar :opened-init="openSidebarsDefault" side="right" :width="120">
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <v-btn>Camera</v-btn>
+      <tools :modelViewerInfo="modelViewerInfo"/>
     </sidebar>
   </v-layout>
 </template>

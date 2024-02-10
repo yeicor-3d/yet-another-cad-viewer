@@ -7,19 +7,12 @@ globalThis.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = process.env.NODE_ENV === "d
 import {createApp} from 'vue'
 import App from './App.vue'
 
-
+import {createVuetify} from 'vuetify';
 import 'vuetify/lib/styles/main.sass';
-import { createVuetify } from 'vuetify';
 import '@mdi/font/css/materialdesignicons.css'
-
-// TODO: Only import the components and directives that are actually used
-// @ts-ignore
-import * as components from 'vuetify/lib/components';
-// @ts-ignore
 import * as directives from 'vuetify/lib/directives';
 
 const vuetify = createVuetify({
-    components,
     directives,
     theme: {
         defaultTheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
@@ -28,4 +21,5 @@ const vuetify = createVuetify({
 
 const app = createApp(App)
 app.use(vuetify)
+// noinspection JSUnresolvedReference
 app.mount('body')
