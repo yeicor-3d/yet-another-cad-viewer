@@ -63,10 +63,8 @@ let modelViewerInfo: Ref<typeof ModelViewerInfo | null> = ref(null);
 
 <!--suppress CssUnusedSymbol -->
 <style>
-html, body, #main {
+html, body {
   height: 100%;
-  margin: 0;
-  padding: 0;
   overflow: hidden;
 }
 </style>

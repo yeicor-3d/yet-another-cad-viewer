@@ -40,6 +40,10 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
     //console.log("New camera position", newLookFrom)
     scene.getCamera().position.copy(newLookFrom);
     scene.getCamera().lookAt(lookAt);
+    if ((scene as any).__perspectiveCamera) { // HACK: Make the hacky ortho also work
+      (scene as any).__perspectiveCamera.position.copy(newLookFrom);
+      (scene as any).__perspectiveCamera.lookAt(lookAt);
+    }
     scene.queueRender();
   }
   return gizmo;
