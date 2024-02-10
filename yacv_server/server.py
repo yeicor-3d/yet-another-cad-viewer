@@ -1,13 +1,14 @@
 import asyncio
 import atexit
 import hashlib
+import logging
 import os
 import signal
 import sys
 import time
 from dataclasses import dataclass, field
 from threading import Thread
-from typing import Optional, Dict, Union, AsyncGenerator
+from typing import Optional, Dict, Union, AsyncGenerator, List
 
 import tqdm.asyncio
 from OCP.TopoDS import TopoDS_Shape
@@ -64,7 +65,7 @@ class Server:
 
     def start(self):
         """Starts the web server in the background"""
-        assert self.thread is None, "Server already started"
+        assert self.thread is None, "Server currently running, cannot start another one"
         # Start the server in a separate daemon thread
         self.thread = Thread(target=self._run_server, name='yacv_server', daemon=True)
         signal.signal(signal.SIGINT | signal.SIGTERM, self.stop)
@@ -141,17 +142,25 @@ class Server:
         logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
         return precomputed_info
 
+    def show(self, any_object: Union[bytes, TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
+        """Publishes "any" object to the server"""
+        if isinstance(any_object, bytes):
+            self.show_gltf(any_object, name, **kwargs)
+        else:
+            self.show_cad(any_object, name, **kwargs)
+
     def show_gltf(self, gltf: bytes, name: Optional[str] = None, **kwargs):
         """Publishes any single-file GLTF object to the server (GLB format recommended)."""
         start = time.time()
         # Precompute the info and send it to the client as if it was a CAD object
-        precomputed_info = self._show_common(hashlib.md5(gltf).hexdigest(), name, start)
+        precomputed_info = self._show_common(name, hashlib.md5(gltf).hexdigest(), start)
         # Also pre-populate the GLTF data for the object API
         publish_to = BufferedPubSub[bytes]()
         publish_to.publish_nowait(gltf)
+        publish_to.publish_nowait(b'')  # Signal the end of the stream
         self.object_events[precomputed_info.name] = publish_to
 
-    def show_object(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
+    def show_cad(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
         """Publishes a CAD object to the server"""
         start = time.time()
         # Try to grab a shape if a different type of object was passed
@@ -175,7 +184,7 @@ class Server:
         """Returns the object file with the matching name, building it if necessary."""
 
         # Start exporting the object (or fail if not found)
-        export_data = self.export(request.match_info['name'])
+        export_data = self._export(request.match_info['name'])
         response = web.StreamResponse()
         try:
             # First exported element is the object itself, grab it to collect data
@@ -190,9 +199,10 @@ class Server:
 
             # Convert the GLB sequence to a GLBS sequence and write it to the response
             with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
-                # noinspection PyTypeChecker
-                glb_parts = tqdm.asyncio.tqdm(export_data, total=total_parts)
-                async for chunk in glb_sequence_to_glbs(glb_parts):
+                if logger.isEnabledFor(logging.INFO):
+                    # noinspection PyTypeChecker
+                    export_data = tqdm.asyncio.tqdm(export_data, total=total_parts)
+                async for chunk in glb_sequence_to_glbs(export_data):
                     await response.write(chunk)
         finally:
             # Close the export data subscription
@@ -202,19 +212,21 @@ class Server:
                 await response.write_eof()
         return response
 
-    async def export(self, name: str) -> AsyncGenerator[Union[TopoDS_Shape, bytes], None]:
+    async def _export(self, name: str) -> AsyncGenerator[Union[TopoDS_Shape, bytes], None]:
         """Export the given previously-shown object to a sequence of GLB files, building it if necessary."""
         start = time.time()
         # Check that the object to build exists and grab it if it does
-        subscription = self.show_events.subscribe(include_future=False)
-        obj: Optional[TopoDS_Shape] = None
         found = False
-        async for data in subscription:
-            if data.name == name:
-                obj = data.obj
-                found = True  # Required because obj could be None
-                break
-        await subscription.aclose()
+        obj: Optional[TopoDS_Shape] = None
+        subscription = self.show_events.subscribe(include_future=False)
+        try:
+            async for data in subscription:
+                if data.name == name:
+                    obj = data.obj
+                    found = True  # Required because obj could be None
+                    break
+        finally:
+            await subscription.aclose()
         if not found:
             raise web.HTTPNotFound(text=f'No object named {name} was previously shown')
 
@@ -251,5 +263,53 @@ class Server:
                 if chunk == b'':
                     break
                 yield chunk
+        finally:
+            await subscription.aclose()
+
+    async def export_all(self) -> AsyncGenerator[bytes, None]:
+        """Export all previously shown objects to a single GLBS file, returned as an async generator.
+
+        This is useful for fully-static deployments where the frontend handles everything."""
+        # Check that the object to build exists and grab it if it does
+        all_object_names: List[str] = []
+        total_export_size = 0
+        subscription = self.show_events.subscribe(include_future=False)
+        try:
+            async for data in subscription:
+                all_object_names.append(data.name)
+                if data.obj is not None:
+                    total_export_size += tessellate_count(data.obj)
+                else:
+                    total_export_size += 1
+        finally:
+            await subscription.aclose()
+
+        # Create a generator that merges the export of all objects
+        async def _merge_exports() -> AsyncGenerator[bytes, None]:
+            for i, name in enumerate(all_object_names):
+                obj_subscription = self._export(name)
+                try:
+                    obj = await anext(obj_subscription)
+                    glb_parts = obj_subscription
+                    if logger.isEnabledFor(logging.INFO):
+                        total = tessellate_count(obj) if obj is not None else 1
+                        # noinspection PyTypeChecker
+                        glb_parts = tqdm.asyncio.tqdm(obj_subscription, total=total)
+                    async for glb_part in glb_parts:
+                        yield glb_part
+                finally:
+                    await obj_subscription.aclose()
+
+        # Need to have a single subscription to all objects to write a valid GLBS file
+        subscription = _merge_exports()
+        try:
+            with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
+                glbs_parts = subscription
+                if logger.isEnabledFor(logging.INFO):
+                    # noinspection PyTypeChecker
+                    glbs_parts = tqdm.asyncio.tqdm(glbs_parts, total=total_export_size, position=0)
+                glbs_parts = glb_sequence_to_glbs(glbs_parts)
+                async for glbs_part in glbs_parts:
+                    yield glbs_part
         finally:
             await subscription.aclose()

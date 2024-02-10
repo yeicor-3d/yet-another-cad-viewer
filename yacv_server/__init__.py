@@ -15,12 +15,16 @@ if 'YACV_DISABLE_SERVER' not in os.environ:
     # the environment variable YACV_DISABLE_SERVER to a non-empty value
     server.start()
 
+# Expose some nice aliases using the default server instance
+show = server.show
+show_object = show
+
 
 def _get_app() -> web.Application:
     """Required by aiohttp-devtools"""
     logging.basicConfig(level=logging.DEBUG)
     from logo.logo import build_logo
-    server.show_object(build_logo(), 'logo')
+    server.show_cad(build_logo(), 'logo')
     return server.app
 
 

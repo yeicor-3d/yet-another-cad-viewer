@@ -8,10 +8,9 @@
 /.idea/
 /parcel-bundle-reports/
 
-# TODO: Figure out if we want to keep a big default skybox image in the repo
-/assets/st_peters_square_night_8k.jpg
+# TODO: Figure out which assets to keep in the repo
 /assets/fox.glb
-/yacv_server/logo/*.glb
+/assets/logo.glbs
 
 *.iml
 venv/

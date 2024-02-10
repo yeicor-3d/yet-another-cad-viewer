@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "lib": ["ES2020", "DOM"],
-    "allowSyntheticDefaultImports": true
+    "lib": ["ES2020", "DOM"]
   }
 }
