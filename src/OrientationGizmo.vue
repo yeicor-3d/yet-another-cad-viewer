@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import {onMounted, onUpdated, ref} from "vue";
-import {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
+import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
-import * as THREE from "three";
 
-globalThis.THREE = THREE // HACK: Required for the gizmo to work
+// Optimized minimal dependencies from three to avoid more async imports
+import {Vector3} from "three/src/math/Vector3.js";
+import {Matrix4} from "three/src/math/Matrix4.js";
+
+globalThis.THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
 const props = defineProps({
-  scene: ModelScene
+  scene: Object
 });
 
 function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElement {
@@ -32,7 +35,7 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
     let lookFrom = scene.getCamera().position.clone();
     let lookAt = scene.getTarget().clone().add(scene.target.position);
     let magnitude = lookFrom.clone().sub(lookAt).length()
-    let direction = new THREE.Vector3(axis.direction.x, axis.direction.y, axis.direction.z);
+    let direction = new Vector3(axis.direction.x, axis.direction.y, axis.direction.z);
     let newLookFrom = lookAt.clone().add(direction.clone().multiplyScalar(magnitude));
     //console.log("New camera position", newLookFrom)
     scene.getCamera().position.copy(newLookFrom);
@@ -58,7 +61,7 @@ let reinstall = () => {
   if (gizmo) container.value.removeChild(gizmo);
   gizmo = createGizmo(container.value, props.scene) as typeof gizmo;
   container.value.appendChild(gizmo);
-  requestIdleCallback(updateGizmo);
+  requestIdleCallback(updateGizmo); // Low priority updates
 }
 onMounted(reinstall)
 onUpdated(reinstall);
