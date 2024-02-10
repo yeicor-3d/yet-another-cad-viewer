@@ -26,10 +26,5 @@
     "@types/three": "^0.160.0",
     "buffer": "^5.5.0||^6.0.0",
     "parcel": "^2.11.0"
-  },
-  "browserslist": [
-    "> 0.5%",
-    "last 2 versions",
-    "not dead"
-  ]
+  }
 }

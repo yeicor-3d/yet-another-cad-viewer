@@ -8,6 +8,7 @@ const props = defineProps({
 
 function toggleProjection() {
   if (!props.modelViewerInfo) return;
+  console.log('Toggling projection', props.modelViewerInfo);
 }
 
 </script>

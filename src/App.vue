@@ -35,7 +35,7 @@ let modelViewerInfo: Ref<typeof ModelViewerInfo | null> = ref(null);
         console.log('Model-Viewer finished loading:', args)
         modelViewerInfo = args
       }"/>
-      <model-viewer-overlay/>
+      <model-viewer-overlay v-if="modelViewerInfo"/>
     </v-main>
     <!-- The left collapsible sidebar has the list of models -->
     <sidebar :opened-init="openSidebarsDefault" side="left">
@@ -63,8 +63,11 @@ let modelViewerInfo: Ref<typeof ModelViewerInfo | null> = ref(null);
 
 <!--suppress CssUnusedSymbol -->
 <style>
-html, body, #app, #main {
+html, body, #main {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 </style>
 

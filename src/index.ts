@@ -8,8 +8,6 @@ import {createApp} from 'vue'
 import App from './App.vue'
 
 import {createVuetify} from 'vuetify';
-import 'vuetify/lib/styles/main.sass';
-import '@mdi/font/css/materialdesignicons.css'
 import * as directives from 'vuetify/lib/directives';
 
 const vuetify = createVuetify({
@@ -23,3 +21,7 @@ const app = createApp(App)
 app.use(vuetify)
 // noinspection JSUnresolvedReference
 app.mount('body')
+
+// Start non-blocking loading of Vuetify and icon styles
+import('vuetify/lib/styles/main.sass');
+import('@mdi/font/css/materialdesignicons.css');

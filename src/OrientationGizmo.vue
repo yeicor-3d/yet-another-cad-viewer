@@ -59,7 +59,7 @@ function updateGizmo() {
 
 let reinstall = () => {
   if (gizmo) container.value.removeChild(gizmo);
-  gizmo = createGizmo(container.value, props.scene) as typeof gizmo;
+  gizmo = createGizmo(container.value, props.scene as ModelScene) as typeof gizmo;
   container.value.appendChild(gizmo);
   requestIdleCallback(updateGizmo); // Low priority updates
 }
