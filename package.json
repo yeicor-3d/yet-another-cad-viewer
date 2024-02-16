@@ -9,6 +9,7 @@
     "build": "parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report"
   },
   "dependencies": {
+    "@gltf-transform/core": "^3.10.0",
     "@google/model-viewer": "^3.4.0",
     "three": "^0.160.1",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
