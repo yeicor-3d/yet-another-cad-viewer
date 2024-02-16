@@ -23,7 +23,7 @@ show_object = show
 def _get_app() -> web.Application:
     """Required by aiohttp-devtools"""
     logging.basicConfig(level=logging.DEBUG)
-    from logo.logo import build_logo
+    from logo import build_logo
     server.show_cad(build_logo(), 'logo')
     return server.app
 

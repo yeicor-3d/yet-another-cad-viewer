@@ -19,7 +19,6 @@ const vuetify = createVuetify({
 
 const app = createApp(App)
 app.use(vuetify)
-// noinspection JSUnresolvedReference
 app.mount('body')
 
 // Start non-blocking loading of Vuetify and icon styles

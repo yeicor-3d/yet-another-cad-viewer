@@ -202,7 +202,7 @@ class Server:
                 if logger.isEnabledFor(logging.INFO):
                     # noinspection PyTypeChecker
                     export_data = tqdm.asyncio.tqdm(export_data, total=total_parts)
-                async for chunk in glb_sequence_to_glbs(export_data):
+                async for chunk in glb_sequence_to_glbs(export_data, total_parts):
                     await response.write(chunk)
         finally:
             # Close the export data subscription
@@ -308,7 +308,7 @@ class Server:
                 if logger.isEnabledFor(logging.INFO):
                     # noinspection PyTypeChecker
                     glbs_parts = tqdm.asyncio.tqdm(glbs_parts, total=total_export_size, position=0)
-                glbs_parts = glb_sequence_to_glbs(glbs_parts)
+                glbs_parts = glb_sequence_to_glbs(glbs_parts, total_export_size)
                 async for glbs_part in glbs_parts:
                     yield glbs_part
         finally:

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {settings} from "./settings";
+import {settings} from "../tools/settings";
 import {ModelViewerElement} from '@google/model-viewer';
 import {onMounted, ref} from "vue";
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
@@ -11,14 +11,17 @@ let _ = ModelViewerElement; // HACK: Needed to avoid tree shaking
 
 const emit = defineEmits(['load-viewer']);
 
+const props = defineProps({
+  src: String
+});
+
 let viewer = ref<ModelViewerElement | null>(null);
 onMounted(() => {
-  console.log('ModelViewerWrapper mounted');
   viewer.value.addEventListener('load', () =>
       emit('load-viewer', {
         viewer: viewer.value,
         scene: viewer.value[$scene] as ModelScene,
-      })
+      } as ModelViewerInfo)
   );
 });
 
@@ -27,7 +30,7 @@ onMounted(() => {
 <template>
   <!--suppress VueMissingComponentImportInspection -->
   <model-viewer ref="viewer"
-                style="width: 100%; height: 100%" :src="settings.preloadModels[0]" alt="The 3D model(s)" camera-controls
+                style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
                 min-camera-orbit="-Infinity 0deg auto"
                 :exposure="settings.exposure" :shadow-intensity="settings.shadowIntensity" interaction-prompt="none"
