@@ -51,28 +51,24 @@ async function singleBlob(reader: ReadableStream<Uint8Array>, stopAfter: number 
     // Make sure the reader reads the entire stream at once.
     const readerImpl = reader.getReader();
     let bufferedChunks: Uint8Array = new Uint8Array();
-    try {
-        let done = false;
-        let length = 0;
-        while (!done) {
-            let {value, done: d} = await readerImpl.read();
-            if (value) {
-                // TODO: This is inefficient. We should be able to avoid copying the buffer each time. byob?
-                let oldBuffer = bufferedChunks;
-                let newLength = bufferedChunks.length + value.length;
-                if (stopAfter !== null && newLength > stopAfter) {
-                    newLength = stopAfter;
-                    value = value.slice(0, stopAfter - bufferedChunks.length);
-                }
-                bufferedChunks = new Uint8Array(newLength);
-                bufferedChunks.set(oldBuffer);
-                bufferedChunks.set(value, length);
-                length += value.length;
+    let done = false;
+    let length = 0;
+    while (!done) {
+        let {value, done: d} = await readerImpl.read();
+        if (value) {
+            // TODO: This is inefficient. We should be able to avoid copying the buffer each time. byob?
+            let oldBuffer = bufferedChunks;
+            let newLength = bufferedChunks.length + value.length;
+            if (stopAfter !== null && newLength > stopAfter) {
+                newLength = stopAfter;
+                value = value.slice(0, stopAfter - bufferedChunks.length);
             }
-            done = d;
+            bufferedChunks = new Uint8Array(newLength);
+            bufferedChunks.set(oldBuffer);
+            bufferedChunks.set(value, length);
+            length += value.length;
         }
-    } finally {
-        await readerImpl.cancel();
+        done = d;
     }
     return new ReadableStream<Uint8Array>({
         start(controller) {
