@@ -9,7 +9,7 @@ import Models from "./models/Models.vue";
 import {VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
 import {settings} from "./misc/settings";
 import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
-import {newSceneMgrData, SceneMgr, SceneManagerData} from "./misc/scene";
+import {SceneManagerData, SceneMgr} from "./misc/scene";
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({
@@ -51,7 +51,7 @@ for (let model of settings.preloadModels) {
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
-    <sidebar :opened-init="openSidebarsByDefault" side="right" :width="120">
+    <sidebar :opened-init="openSidebarsByDefault" side="right" :width="48 * 3 /* buttons */ + 1">
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>

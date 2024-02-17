@@ -18,7 +18,7 @@ export async function* splitGlbs(readerSrc: ReadableStream<Uint8Array>): AsyncGe
         finalBuffer.set(buffer4Bytes);
         finalBuffer.set(remaining, buffer4Bytes.length);
         yield finalBuffer
-    } else if (magic !== "GLBS") {
+    } else if (magic === "GLBS") {
         // First, we read the number of chunks (can be 0xFFFFFFFF if the number of chunks is unknown).
         [buffer4Bytes, buffered] = await readN(reader, buffered, 4);
         let numChunks = new DataView(buffer4Bytes.buffer).getUint32(0, true);
@@ -28,7 +28,8 @@ export async function* splitGlbs(readerSrc: ReadableStream<Uint8Array>): AsyncGe
             // - Read length
             [buffer4Bytes, buffered] = await readN(reader, buffered, 4);
             if (buffer4Bytes.length === 0) {
-                if (numChunks != 0xFFFFFFFF) throw new Error('Unexpected end of stream while reading chunk length');
+                if (numChunks != 0xFFFFFFFF) throw new Error('Unexpected end of stream while reading chunk length:'+
+                    ' expected ' + (numChunks - i) + ' more chunks');
                 else break // We reached the end of the stream of unknown length, so we stop reading chunks.
             }
             let length = new DataView(buffer4Bytes.buffer).getUint32(0, true);
@@ -41,7 +42,8 @@ export async function* splitGlbs(readerSrc: ReadableStream<Uint8Array>): AsyncGe
     reader.releaseLock()
 }
 
-/** Reads exactly `n` bytes from the reader and returns them as a Uint8Array.
+/**
+ * Reads up to `n` bytes from the reader and returns them as a Uint8Array.
  * An over-read is possible, in which case the returned array will still have `n` bytes and the over-read bytes will be
  * returned. They should be provided to the next call to `readN` to avoid losing data.
  */

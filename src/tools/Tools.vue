@@ -59,6 +59,18 @@ function centerCamera() {
   <v-btn icon="" @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
+  <v-btn icon="" @click="centerCamera">
+    <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
+  </v-btn>
+  <v-btn icon="" @click="centerCamera">
+    <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
+  </v-btn>
+  <v-btn icon="" @click="centerCamera">
+    <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
+  </v-btn>
+  <v-btn icon="" @click="centerCamera">
+    <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
+  </v-btn>
 </template>
 
 <!--suppress CssUnusedSymbol -->
