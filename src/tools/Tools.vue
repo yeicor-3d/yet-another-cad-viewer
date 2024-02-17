@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import {VBtn, VIcon} from "vuetify/lib/components";
+import {VBtn} from "vuetify/lib/components";
 import {ref} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
-import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
 import {mdiCrosshairsGps, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
+import {SceneManagerData} from "../misc/scene";
+import type {ModelViewerElement} from '@google/model-viewer';
 
-
-const props = defineProps<{
-  modelViewerInfo: { scene: ModelScene } | null
-}>();
-
+let props = defineProps<{ sceneMgrData: SceneManagerData }>();
 
 function syncOrthoCamera(force: boolean) {
-  if (!props.modelViewerInfo) return;
-  let scene = props.modelViewerInfo.scene
+  let scene = props.sceneMgrData.viewerScene;
+  if (!scene) return;
   let perspectiveCam = (scene as any).__perspectiveCamera;
   if (force || perspectiveCam && scene.camera != perspectiveCam) {
     // Get zoom level from perspective camera
@@ -31,8 +28,8 @@ function syncOrthoCamera(force: boolean) {
 
 let toggleProjectionText = ref('PERSP'); // Default to perspective camera
 function toggleProjection() {
-  if (!props.modelViewerInfo) return;
-  let scene = props.modelViewerInfo.scene
+  let scene = props.sceneMgrData.viewerScene;
+  if (!scene) return;
   let prevCam = scene.camera;
   let wasPerspectiveCamera = prevCam.isPerspectiveCamera;
   if (wasPerspectiveCamera) {
@@ -46,14 +43,20 @@ function toggleProjection() {
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
 }
 
+function centerCamera() {
+  let viewer: ModelViewerElement = props.sceneMgrData.viewer;
+  if (!viewer) return;
+  viewer.updateFraming();
+}
+
 </script>
 
 <template>
-  <orientation-gizmo v-if="props.modelViewerInfo" :scene="props.modelViewerInfo.scene"/>
+  <orientation-gizmo :scene="props.sceneMgrData.viewerScene" v-if="props.sceneMgrData.viewerScene !== null"/>
   <v-btn icon="" @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
     <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
   </v-btn>
-  <v-btn icon="" @click=""> <!-- TODO: Center camera -->
+  <v-btn icon="" @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
 </template>

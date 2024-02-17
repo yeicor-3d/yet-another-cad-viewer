@@ -9,9 +9,7 @@ import {Matrix4} from "three/src/math/Matrix4.js";
 
 globalThis.THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
-const props = defineProps({
-  scene: Object
-});
+const props = defineProps<{ scene: ModelScene }>();
 
 function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElement {
   // noinspection SpellCheckingInspection

@@ -1,3 +1,4 @@
+<!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
 import {defineAsyncComponent, ref, Ref} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
@@ -6,8 +7,9 @@ import ModelViewerOverlay from "./viewer/ModelViewerOverlay.vue";
 import Tools from "./tools/Tools.vue";
 import Models from "./models/Models.vue";
 import {VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
-import type {ModelViewerInfo} from "./viewer/ModelViewerWrapper.vue";
 import {settings} from "./misc/settings";
+import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
+import {newSceneMgrData, SceneMgr, SceneManagerData} from "./misc/scene";
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({
@@ -17,8 +19,18 @@ const ModelViewerWrapper = defineAsyncComponent({
 });
 
 let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
-let modelViewerInfo: Ref<typeof ModelViewerInfo | null> = ref(null);
-let modelSrc: Ref<string | Uint8Array> = ref(settings.preloadModels[0]);
+
+let sData: Ref<SceneManagerData> = SceneMgr.newData();
+
+// Set up the load model event listener
+let networkMgr = new NetworkManager();
+networkMgr.addEventListener('update', (model: NetworkUpdateEvent) => {
+  sData.value.viewerSrc = model.url;
+});
+// Start loading all configured models ASAP
+for (let model of settings.preloadModels) {
+  networkMgr.load(model);
+}
 </script>
 
 <template>
@@ -26,8 +38,8 @@ let modelSrc: Ref<string | Uint8Array> = ref(settings.preloadModels[0]);
 
     <!-- The main content of the app is the model-viewer with the SVG "2D" overlay -->
     <v-main id="main">
-      <model-viewer-wrapper :src="modelSrc" @load-viewer="(args) => modelViewerInfo = args"/>
-      <model-viewer-overlay v-if="modelViewerInfo"/>
+      <model-viewer-wrapper :src="sData.viewerSrc" @load="(i) => SceneMgr.onload(sData, i)"/>
+      <model-viewer-overlay v-if="sData.viewer !== null"/>
     </v-main>
 
     <!-- The left collapsible sidebar has the list of models -->
@@ -35,7 +47,7 @@ let modelSrc: Ref<string | Uint8Array> = ref(settings.preloadModels[0]);
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
       </template>
-      <models :modelViewerInfo="modelViewerInfo"/>
+      <models/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
@@ -43,7 +55,7 @@ let modelSrc: Ref<string | Uint8Array> = ref(settings.preloadModels[0]);
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :modelViewerInfo="modelViewerInfo"/>
+      <tools :scene-mgr-data="sData"/>
     </sidebar>
 
   </v-layout>
