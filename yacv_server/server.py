@@ -192,7 +192,7 @@ class Server:
             if not isinstance(obj, TopoDS_Shape):
                 raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')
 
-        # Convert Z-up (OCC convention) to Y-up (GLTF convention)
+        # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
         obj = Shape(obj).rotate(Axis.X, -90).wrapped
 
         self._show_common(name, _hashcode(obj), start, obj)
