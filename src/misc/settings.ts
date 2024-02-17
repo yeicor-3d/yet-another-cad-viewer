@@ -1,7 +1,13 @@
 // These are the default values for the settings, which are overridden below
 export const settings = {
-    // @ts-ignore
-    preloadModels: [new URL('../../assets/fox.glb', import.meta.url).href, new URL('../../assets/logo.glbs', import.meta.url).href, "ws://localhost:8080"],
+    preloadModels: [
+        // @ts-ignore
+        new URL('../../assets/fox.glb', import.meta.url).href,
+        // @ts-ignore
+        new URL('../../assets/logo.glbs', import.meta.url).href,
+        // Websocket URLs automatically listen for new models from the python backend
+        "ws://localhost:8080/"
+    ],
     // ModelViewer settings
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',

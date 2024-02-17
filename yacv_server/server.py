@@ -57,6 +57,8 @@ class Server:
         # - APIs
         self.app.router.add_route('GET', f'{UPDATES_API_PATH}', self._api_updates)
         self.app.router.add_route('GET', f'{OBJECTS_API_PATH}/{{name}}', self._api_object)
+        # - Single websocket/objects/frontend entrypoint to ease client configuration
+        self.app.router.add_get('/', self._entrypoint)
         # - Static files from the frontend
         self.app.router.add_get('/{path:(.*/|)}', _index_handler)  # Any folder -> index.html
         self.app.router.add_static('/', path=FRONTEND_BASE_PATH, name='static_frontend')
@@ -103,6 +105,16 @@ class Server:
         await self.do_shutdown.wait()
         # print('Shutting down server...')
         await runner.cleanup()
+
+    async def _entrypoint(self, request: web.Request) -> web.StreamResponse:
+        """Main entrypoint to the server, which automatically serves the frontend/updates/objects"""
+        if request.headers.get('Upgrade', '').lower() == 'websocket':  # WebSocket -> updates API
+            return await self._api_updates(request)
+        elif request.query.get('api_object', '') != '':  # ?api_object={name} -> object API
+            request.match_info['name'] = request.query['api_object']
+            return await self._api_object(request)
+        else:  # Anything else -> frontend index.html
+            return await _index_handler(request)
 
     async def _api_updates(self, request: web.Request) -> web.WebSocketResponse:
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
@@ -201,8 +213,10 @@ class Server:
             with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
                 if logger.isEnabledFor(logging.INFO):
                     # noinspection PyTypeChecker
-                    export_data = tqdm.asyncio.tqdm(export_data, total=total_parts)
-                async for chunk in glb_sequence_to_glbs(export_data, total_parts):
+                    export_data_iter = tqdm.asyncio.tqdm(export_data, total=total_parts)
+                else:
+                    export_data_iter = export_data
+                async for chunk in glb_sequence_to_glbs(export_data_iter, total_parts):
                     await response.write(chunk)
         finally:
             # Close the export data subscription
