@@ -21,6 +21,5 @@ const app = createApp(App)
 app.use(vuetify)
 app.mount('body')
 
-// Start non-blocking loading of Vuetify and icon styles
+// Start non-blocking loading of Vuetify styles
 import('vuetify/lib/styles/main.sass');
-import('@mdi/font/css/materialdesignicons.css');

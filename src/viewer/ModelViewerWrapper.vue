@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {settings} from "../tools/settings";
+import {settings} from "../misc/settings";
 import {ModelViewerElement} from '@google/model-viewer';
 import {onMounted, ref} from "vue";
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
@@ -28,7 +28,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!--suppress VueMissingComponentImportInspection -->
   <model-viewer ref="viewer"
                 style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
