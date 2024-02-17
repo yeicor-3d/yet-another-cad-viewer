@@ -1,6 +1,7 @@
 export class NetworkUpdateEvent extends Event {
     name: string;
     url: string;
+
     constructor(name: string, url: string) {
         super("update");
         this.name = name;
@@ -27,15 +28,11 @@ export class NetworkManager extends EventTarget {
             // Get the last part of the URL as the "name" of the model
             let name = url.split("/").pop();
             name = name?.split(".")[0] || `unknown-${Math.random()}`;
-            let prevHash = this.knownObjectHashes[name];
             // Use a head request to get the hash of the file
-            let response = await fetch(url, { method: "HEAD" });
+            let response = await fetch(url, {method: "HEAD"});
             let hash = response.headers.get("etag");
             // Only trigger an update if the hash has changed
-            if (hash !== prevHash) {
-                this.knownObjectHashes[name] = hash;
-                this.dispatchEvent(new NetworkUpdateEvent(name, url));
-            }
+            this.foundModel(name, hash, url);
         }
     }
 
@@ -44,13 +41,7 @@ export class NetworkManager extends EventTarget {
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
             console.debug("WebSocket message", data);
-            let name = data.name;
-            let prevHash = this.knownObjectHashes[name];
-            let hash = data.hash;
-            if (hash !== prevHash) {
-                this.knownObjectHashes[name] = hash;
-                this.dispatchEvent(new NetworkUpdateEvent(name, data.url));
-            }
+            this.foundModel(data.name, data.hash, data.url);
         };
         ws.onerror = (event) => {
             console.error("WebSocket error", event);
@@ -58,6 +49,14 @@ export class NetworkManager extends EventTarget {
         ws.onclose = () => {
             console.trace("WebSocket closed, reconnecting very soon");
             setTimeout(() => this.monitorWebSocket(url), 500);
+        }
+    }
+
+    private foundModel(name: string, hash: string, url: string) {
+        let prevHash = this.knownObjectHashes[name];
+        if (hash !== prevHash) {
+            this.knownObjectHashes[name] = hash;
+            this.dispatchEvent(new NetworkUpdateEvent(name, url));
         }
     }
 }

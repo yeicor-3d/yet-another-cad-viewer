@@ -25,7 +25,7 @@ let sData: Ref<SceneManagerData> = SceneMgr.newData();
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
 networkMgr.addEventListener('update', (model: NetworkUpdateEvent) => {
-  sData.value.viewerSrc = model.url;
+  SceneMgr.loadModel(sData.value, model.name, model.url);
 });
 // Start loading all configured models ASAP
 for (let model of settings.preloadModels) {
