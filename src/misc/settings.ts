@@ -8,6 +8,8 @@ export const settings = {
         // Websocket URLs automatically listen for new models from the python backend
         //"ws://localhost:8080/"
     ],
+    displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
+    checkServerEveryMs: 100, /* How often to check for a new server */
     // ModelViewer settings
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',

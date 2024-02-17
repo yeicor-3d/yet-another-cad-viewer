@@ -20,12 +20,12 @@ const ModelViewerWrapper = defineAsyncComponent({
 
 let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
 
-let sData: Ref<SceneManagerData> = SceneMgr.newData();
+let [refSData, sData] = SceneMgr.newData();
 
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
 networkMgr.addEventListener('update', (model: NetworkUpdateEvent) => {
-  SceneMgr.loadModel(sData.value, model.name, model.url);
+  SceneMgr.loadModel(refSData, sData, model.name, model.url);
 });
 // Start loading all configured models ASAP
 for (let model of settings.preloadModels) {
@@ -38,8 +38,8 @@ for (let model of settings.preloadModels) {
 
     <!-- The main content of the app is the model-viewer with the SVG "2D" overlay -->
     <v-main id="main">
-      <model-viewer-wrapper :src="sData.viewerSrc" @load="(i) => SceneMgr.onload(sData, i)"/>
-      <model-viewer-overlay v-if="sData.viewer !== null"/>
+      <model-viewer-wrapper :src="refSData.viewerSrc" @load="(i) => SceneMgr.onload(refSData, i)"/>
+      <model-viewer-overlay v-if="refSData.viewer !== null"/>
     </v-main>
 
     <!-- The left collapsible sidebar has the list of models -->
@@ -55,7 +55,7 @@ for (let model of settings.preloadModels) {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :scene-mgr-data="sData"/>
+      <tools :scene-mgr-data="refSData"/>
     </sidebar>
 
   </v-layout>

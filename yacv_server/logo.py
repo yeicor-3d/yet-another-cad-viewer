@@ -8,8 +8,8 @@ from build123d import *
 
 def build_logo() -> TopoDS_Shape:
     """Builds the CAD part of the logo"""
-    with BuildPart() as logo_obj:
-        Box(1, 2, 3)
+    with BuildPart(Plane.XY.offset(30)) as logo_obj:
+        Box(10, 20, 30)
     return logo_obj.part.wrapped
 
 
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # 2. Load the GLTF part of the logo
     with open(os.path.join(ASSETS_DIR, 'fox.glb'), 'rb') as f:
         gltf = f.read()
-    show_object(gltf, 'fox.glb')
+    show_object(gltf, 'fox')
 
     # 3. Save the complete logo to a GLBS file
     with open(os.path.join(ASSETS_DIR, 'logo.glbs'), 'wb') as f:

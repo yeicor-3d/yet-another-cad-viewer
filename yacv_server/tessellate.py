@@ -1,4 +1,5 @@
 import concurrent
+import copy
 import hashlib
 import io
 import re
@@ -58,25 +59,25 @@ def tessellate(
 ) -> Generator[TessellationUpdate, None, None]:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices.
 
-    NOTE: The logic of the method is weird because multiprocessing was tested but it seems too inefficient
+    NOTE: The logic of the method is weird because multiprocessing was tested, but it seems too inefficient
     with slow native packages.
     """
     shape = Shape(ocp_shape)
-    futures = []
+    features = []
 
     # Submit tessellation tasks
     for face in shape.faces():
-        futures.append(lambda: _tessellate_element(face.wrapped, tolerance, angular_tolerance))
+        features.append(_tessellate_element(face.wrapped, tolerance, angular_tolerance))
     for edge in shape.edges():
-        futures.append(lambda: _tessellate_element(edge.wrapped, tolerance, angular_tolerance))
+        features.append(_tessellate_element(edge.wrapped, tolerance, angular_tolerance))
     for vertex in shape.vertices():
-        futures.append(lambda: _tessellate_element(vertex.wrapped, tolerance, angular_tolerance))
+        features.append(_tessellate_element(vertex.wrapped, tolerance, angular_tolerance))
 
     # Collect results as they come in
-    for i, future in enumerate(futures):
-        sub_shape, gltf = future()
+    for i, future in enumerate(features):
+        sub_shape, gltf = future
         yield TessellationUpdate(
-            progress=(i + 1) / len(futures),
+            progress=(i + 1) / len(features),
             shape=sub_shape,
             gltf=gltf,
         )
@@ -105,6 +106,7 @@ def _tessellate_face(
 ) -> GLTF2:
     """Tessellate a face into a list of triangle vertices and a list of triangle indices"""
     face = Face(ocp_face)
+    print("Tessellating face", face.center())
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
 
     # Get UV of each face from the parameters
@@ -149,7 +151,7 @@ def _tessellate_edge(
     tex_coord = np.array([], dtype=np.float32)
     mode = LINE_STRIP
     material = Material(
-        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[1.0, 1.0, 0.5, 1.0]),
+        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[0.3, 0.3, 1.0, 1.0]),
         alphaCutoff=None)
     return create_gltf(np.array(vertices), indices, tex_coord, mode, material)
 

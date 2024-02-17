@@ -123,7 +123,7 @@ def create_gltf(vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray
                 byteLength=len(indices_blob) + len(vertices_blob) + len(tex_coord_blob) + len(image_blob),
             )
         ],
-        samplers=[Sampler(magFilter=NEAREST, minFilter=NEAREST_MIPMAP_NEAREST)] if len(images) > 0 else [],
+        samplers=[Sampler(magFilter=NEAREST)] if len(images) > 0 else [],
         textures=[Texture(source=i, sampler=0) for i, _ in enumerate(images)],
         images=images,
     )

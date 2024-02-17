@@ -1,11 +1,13 @@
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
-import {ref, Ref} from 'vue';
+import {Ref, ref} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {ModelViewerInfo} from "./viewer/ModelViewerWrapper.vue";
 import {splitGlbs} from "../models/glb/glbs";
+import {merge, toBuffer} from "../models/glb/merge";
+import {settings} from "./settings";
 
-type SceneManagerData = {
+export type SceneMgrRefData = {
     /** When updated, forces the viewer to load a new model replacing the current one */
     viewerSrc: string | null
 
@@ -13,9 +15,11 @@ type SceneManagerData = {
     viewer: ModelViewerElement | null
     /** The (hidden) scene of the model viewer */
     viewerScene: ModelScene | null
+}
 
+export type SceneMgrData = {
     /** The currently shown document, which must match the viewerSrc. */
-    document: Document | null
+    document: Document
 }
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
@@ -24,33 +28,59 @@ export class SceneMgr {
     }
 
     /** Creates a new SceneManagerData object */
-    static newData(): Ref<SceneManagerData> {
-        return ref({
+    static newData(): [Ref<SceneMgrRefData>, SceneMgrData]  {
+        let refData: any = ref({
             viewerSrc: null,
             viewer: null,
             viewerScene: null,
-            document: null,
         });
+        let data = {
+            document: new Document()
+        };
+        // newVar.value.document.createScene("scene");
+        // this.showCurrentDoc(newVar.value).then(r => console.log("Initial empty model loaded"));
+        return [refData, data];
     }
 
     /** Loads a GLB/GLBS model from a URL and adds it to the viewer or replaces it if the names match */
-    static async loadModel(data: SceneManagerData, name: string, url: string) {
+    static async loadModel(refData: Ref<SceneMgrRefData>, data: SceneMgrData, name: string, url: string) {
+        // Connect to the URL of the model
         let response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch model: " + response.statusText);
+
+        // Split the stream into valid GLB chunks
         let glbsSplitter = splitGlbs(response.body!);
         let {value: numChunks} = await glbsSplitter.next();
-        console.log("Loading model with", numChunks, "chunks");
+        console.log("Loading", name, "which has", numChunks, "GLB chunks");
+
+        // Start merging each chunk into the current document, replacing or adding as needed
+        let lastShow = performance.now();
         while (true) {
-            let {value: chunk, done} = await glbsSplitter.next();
+            let {value: glbData, done} = await glbsSplitter.next();
             if (done) break;
-            console.log("Got chunk", chunk);
-            // Override the current model with the new one
-            data.viewerSrc = URL.createObjectURL(new Blob([chunk], {type: 'model/gltf-binary'}));
+            data.document = await merge(glbData, name, data.document);
+
+            // Show the partial model while loading every once in a while
+            if (performance.now() - lastShow > settings.displayLoadingEveryMs) {
+                await this.showCurrentDoc(refData, data);
+                lastShow = performance.now();
+            }
         }
+
+        // Display the final fully loaded model
+        await this.showCurrentDoc(refData, data);
+    }
+
+    /** Serializes the current document into a GLB and updates the viewerSrc */
+    private static async showCurrentDoc(refData: Ref<SceneMgrRefData>, data: SceneMgrData) {
+        let buffer = await toBuffer(data.document);
+        let blob = new Blob([buffer], {type: 'model/gltf-binary'});
+        console.log("Showing current doc", data.document, "as", Array.from(buffer));
+        refData.value.viewerSrc = URL.createObjectURL(blob);
     }
 
     /** Should be called any model finishes loading successfully (after a viewerSrc update) */
-    static onload(data: SceneManagerData, info: typeof ModelViewerInfo) {
+    static onload(data: SceneMgrRefData, info: typeof ModelViewerInfo) {
         console.log("ModelViewer loaded", info);
         data.viewer = info.viewer;
         data.viewerScene = info.scene;

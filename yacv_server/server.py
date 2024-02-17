@@ -13,6 +13,7 @@ from typing import Optional, Dict, Union, AsyncGenerator, List
 import tqdm.asyncio
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
+from build123d import Shape, Axis
 from dataclasses_json import dataclass_json, config
 from tqdm.contrib.logging import logging_redirect_tqdm
 
@@ -175,6 +176,7 @@ class Server:
     def show_cad(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
         """Publishes a CAD object to the server"""
         start = time.time()
+
         # Try to grab a shape if a different type of object was passed
         if not isinstance(obj, TopoDS_Shape):
             # Build123D
@@ -189,6 +191,9 @@ class Server:
                 obj = obj.wrapped
             if not isinstance(obj, TopoDS_Shape):
                 raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')
+
+        # Convert Z-up (OCC convention) to Y-up (GLTF convention)
+        obj = Shape(obj).rotate(Axis.X, -90).wrapped
 
         self._show_common(name, _hashcode(obj), start, obj)
 

@@ -1,3 +1,5 @@
+import {settings} from "./settings";
+
 export class NetworkUpdateEvent extends Event {
     name: string;
     url: string;
@@ -48,7 +50,7 @@ export class NetworkManager extends EventTarget {
         }
         ws.onclose = () => {
             console.trace("WebSocket closed, reconnecting very soon");
-            setTimeout(() => this.monitorWebSocket(url), 500);
+            setTimeout(() => this.monitorWebSocket(url), settings.checkServerEveryMs);
         }
     }
 
