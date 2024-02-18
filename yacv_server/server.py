@@ -1,26 +1,22 @@
 import asyncio
 import atexit
 import hashlib
-import logging
 import os
 import signal
 import sys
 import time
 from dataclasses import dataclass, field
 from threading import Thread
-from typing import Optional, Dict, Union, AsyncGenerator, List
+from typing import Optional, Dict, Union
 
-import tqdm.asyncio
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
 from build123d import Shape, Axis
 from dataclasses_json import dataclass_json, config
-from tqdm.contrib.logging import logging_redirect_tqdm
 
-from glbs import glb_sequence_to_glbs
 from mylogger import logger
 from pubsub import BufferedPubSub
-from tessellate import _hashcode, tessellate_count, tessellate
+from tessellate import _hashcode, tessellate
 
 FRONTEND_BASE_PATH = os.getenv('FRONTEND_BASE_PATH', '../dist')
 UPDATES_API_PATH = '/api/updates'
@@ -197,42 +193,28 @@ class Server:
 
         self._show_common(name, _hashcode(obj), start, obj)
 
-    async def _api_object(self, request: web.Request) -> web.StreamResponse:
+    async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
 
-        # Start exporting the object (or fail if not found)
-        export_data = self._export(request.match_info['name'])
-        response = web.StreamResponse()
+        # Export the object (or fail if not found)
+        exported_glb = self.export(request.match_info['name'])
+        response = web.Response()
         try:
-            # First exported element is the object itself, grab it to collect data
-            export_obj = await anext(export_data)
-
             # Create a new stream response with custom content type and headers
-            response.content_type = 'model/gltf-binary-sequence'
-            response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glbs"'
-            total_parts = 1 if export_obj is None else tessellate_count(export_obj)
-            response.headers['X-Object-Parts'] = str(total_parts)
+            response.content_type = 'model/gltf-binary'
+            response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
             await response.prepare(request)
 
-            # Convert the GLB sequence to a GLBS sequence and write it to the response
-            with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
-                if logger.isEnabledFor(logging.INFO):
-                    # noinspection PyTypeChecker
-                    export_data_iter = tqdm.asyncio.tqdm(export_data, total=total_parts)
-                else:
-                    export_data_iter = export_data
-                async for chunk in glb_sequence_to_glbs(export_data_iter, total_parts):
-                    await response.write(chunk)
+            # Stream the export data to the response
+            response.body = exported_glb
         finally:
-            # Close the export data subscription
-            await export_data.aclose()
             # Close the response (if not an error)
             if response.prepared:
                 await response.write_eof()
         return response
 
-    async def _export(self, name: str) -> AsyncGenerator[Union[TopoDS_Shape, bytes], None]:
-        """Export the given previously-shown object to a sequence of GLB files, building it if necessary."""
+    async def export(self, name: str) -> bytes:
+        """Export the given previously-shown object to a single GLB file, building it if necessary."""
         start = time.time()
         # Check that the object to build exists and grab it if it does
         found = False
@@ -249,9 +231,6 @@ class Server:
         if not found:
             raise web.HTTPNotFound(text=f'No object named {name} was previously shown')
 
-        # First published element is the TopoDS_Shape, which is None for glTF objects
-        yield obj
-
         # Use the lock to ensure that we don't build the object twice
         async with self.object_events_lock:
             # If there are no object events for this name, we need to build the object
@@ -261,15 +240,12 @@ class Server:
                 self.object_events[name] = publish_to
 
                 def _build_object():
-                    # Build the object
-                    part_count = 0
-                    for tessellation_update in tessellate(obj):
-                        # We publish the object parts as soon as we have a new tessellation
-                        list_of_bytes = tessellation_update.gltf.save_to_bytes()
-                        publish_to.publish_nowait(b''.join(list_of_bytes))
-                        part_count += 1
-                    publish_to.publish_nowait(b'')  # Signal the end of the stream
-                    logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start, part_count)
+                    # Build and publish the object (once)
+                    gltf = tessellate(obj)  # TODO: Publish tessellate options
+                    glb_list_of_bytes = gltf.save_to_bytes()
+                    publish_to.publish_nowait(b''.join(glb_list_of_bytes))
+                    logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start,
+                                len(gltf.meshes[0].primitives))
 
                 # We should build it fully even if we are cancelled, so we use a separate task
                 # Furthermore, building is CPU-bound, so we use the default executor
@@ -278,57 +254,6 @@ class Server:
         # In either case return the elements of a subscription to the async generator
         subscription = self.object_events[name].subscribe()
         try:
-            async for chunk in subscription:
-                if chunk == b'':
-                    break
-                yield chunk
-        finally:
-            await subscription.aclose()
-
-    async def export_all(self) -> AsyncGenerator[bytes, None]:
-        """Export all previously shown objects to a single GLBS file, returned as an async generator.
-
-        This is useful for fully-static deployments where the frontend handles everything."""
-        # Check that the object to build exists and grab it if it does
-        all_object_names: List[str] = []
-        total_export_size = 0
-        subscription = self.show_events.subscribe(include_future=False)
-        try:
-            async for data in subscription:
-                all_object_names.append(data.name)
-                if data.obj is not None:
-                    total_export_size += tessellate_count(data.obj)
-                else:
-                    total_export_size += 1
-        finally:
-            await subscription.aclose()
-
-        # Create a generator that merges the export of all objects
-        async def _merge_exports() -> AsyncGenerator[bytes, None]:
-            for i, name in enumerate(all_object_names):
-                obj_subscription = self._export(name)
-                try:
-                    obj = await anext(obj_subscription)
-                    glb_parts = obj_subscription
-                    if logger.isEnabledFor(logging.INFO):
-                        total = tessellate_count(obj) if obj is not None else 1
-                        # noinspection PyTypeChecker
-                        glb_parts = tqdm.asyncio.tqdm(obj_subscription, total=total)
-                    async for glb_part in glb_parts:
-                        yield glb_part
-                finally:
-                    await obj_subscription.aclose()
-
-        # Need to have a single subscription to all objects to write a valid GLBS file
-        subscription = _merge_exports()
-        try:
-            with logging_redirect_tqdm(tqdm_class=tqdm.asyncio.tqdm):
-                glbs_parts = subscription
-                if logger.isEnabledFor(logging.INFO):
-                    # noinspection PyTypeChecker
-                    glbs_parts = tqdm.asyncio.tqdm(glbs_parts, total=total_export_size, position=0)
-                glbs_parts = glb_sequence_to_glbs(glbs_parts, total_export_size)
-                async for glbs_part in glbs_parts:
-                    yield glbs_part
+            return await anext(subscription)
         finally:
             await subscription.aclose()

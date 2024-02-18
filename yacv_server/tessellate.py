@@ -19,7 +19,7 @@ from build123d import Face, Vector, Shape, Vertex
 from pygltflib import LINE_STRIP, GLTF2, Material, PbrMetallicRoughness, TRIANGLES, POINTS, TextureInfo
 
 import mylogger
-from gltf import create_gltf, _checkerboard_image
+from gltf import GLTFMgr
 
 
 @dataclass
@@ -55,57 +55,36 @@ def tessellate_count(ocp_shape: TopoDS_Shape) -> int:
 
 def tessellate(
         ocp_shape: TopoDS_Shape,
-        tolerance: float = 0.1,
+        tolerance: float = 1e-3,
         angular_tolerance: float = 0.1,
-) -> Generator[TessellationUpdate, None, None]:
-    """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices.
-
-    NOTE: The logic of the method is weird because multiprocessing was tested, but it seems too inefficient
-    with slow native packages.
-    """
+        faces: bool = True,
+        edges: bool = True,
+        vertices: bool = True,
+) -> GLTF2:
+    """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
+    mgr = GLTFMgr()
     shape = Shape(ocp_shape)
-    features = []
 
-    # Submit tessellation tasks
-    for face in shape.faces():
-        features.append(_tessellate_element(face.wrapped, tolerance, angular_tolerance))
-    for edge in shape.edges():
-        features.append(_tessellate_element(edge.wrapped, tolerance, angular_tolerance))
-    for vertex in shape.vertices():
-        features.append(_tessellate_element(vertex.wrapped, tolerance, angular_tolerance))
+    # Perform tessellation tasks
+    if faces:
+        for face in shape.faces():
+            _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
+    if edges:
+        for edge in shape.edges():
+            _tessellate_edge(mgr, edge.wrapped, tolerance, angular_tolerance)
+    if vertices:
+        for vertex in shape.vertices():
+            _tessellate_vertex(mgr, vertex.wrapped)
 
-    # Collect results as they come in
-    for i, future in enumerate(features):
-        sub_shape, gltf = future
-        yield TessellationUpdate(
-            progress=(i + 1) / len(features),
-            shape=sub_shape,
-            gltf=gltf,
-        )
-
-
-# Define the function that will tessellate each element in parallel
-def _tessellate_element(
-        element: TopoDS_Shape, tolerance: float, angular_tolerance: float) -> Tuple[TopoDS_Shape, GLTF2]:
-    if isinstance(element, TopoDS_Face):
-        return element, _tessellate_face(element, tolerance, angular_tolerance)
-    elif isinstance(element, TopoDS_Edge):
-        return element, _tessellate_edge(element, angular_tolerance, angular_tolerance)
-    elif isinstance(element, TopoDS_Vertex):
-        return element, _tessellate_vertex(element)
-    else:
-        raise ValueError(f"Unknown element type: {element}")
-
-
-TriMesh = Tuple[list[Vector], list[Tuple[int, int, int]]]
+    return mgr.gltf
 
 
 def _tessellate_face(
+        mgr: GLTFMgr,
         ocp_face: TopoDS_Face,
-        tolerance: float = 0.1,
+        tolerance: float = 1e-3,
         angular_tolerance: float = 0.1
-) -> GLTF2:
-    """Tessellate a face into a list of triangle vertices and a list of triangle indices"""
+):
     face = Face(ocp_face)
     face.mesh(tolerance, angular_tolerance)
     loc = TopLoc_Location()
@@ -124,19 +103,15 @@ def _tessellate_face(
     vertices = np.array(list(map(lambda v: [v.X, v.Y, v.Z], tri_mesh[0])))
     indices = np.array(tri_mesh[1])
     tex_coord = np.array(uv)
-    mode = TRIANGLES
-    material = Material(pbrMetallicRoughness=PbrMetallicRoughness(
-        baseColorFactor=[0.3, 1.0, 0.2, 1.0], metallicFactor=0.1, baseColorTexture=TextureInfo(index=0)),
-        alphaCutoff=None)
-    return create_gltf(vertices, indices, tex_coord, mode, material, images=[_checkerboard_image])
+    mgr.add_face(vertices, indices, tex_coord)
 
 
 def _tessellate_edge(
+        mgr: GLTFMgr,
         ocp_edge: TopoDS_Edge,
-        angular_deflection: float = 0.1,
+        angular_deflection: float = 1e-3,
         curvature_deflection: float = 0.1,
-) -> GLTF2:
-    """Tessellate a wire or edge into a list of ordered vertices"""
+):
     curve = BRepAdaptor_Curve(ocp_edge)
     discretizer = GCPnts_TangentialDeflection(curve, angular_deflection, curvature_deflection)
     assert discretizer.NbPoints() > 1, "Edge is too small??"
@@ -151,26 +126,12 @@ def _tessellate_edge(
             for i in range(1, discretizer.NbPoints() + 1)
         )
     ]
-    indices = np.array(list(map(lambda i: [i, i + 1], range(len(vertices) - 1))), dtype=np.uint8)
-    tex_coord = np.array([], dtype=np.float32)
-    mode = LINE_STRIP
-    material = Material(
-        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[0.0, 0.0, 0.3, 1.0]),
-        alphaCutoff=None)
-    return create_gltf(np.array(vertices), indices, tex_coord, mode, material)
+    mgr.add_edge(np.array(vertices))
 
 
-def _tessellate_vertex(ocp_vertex: TopoDS_Vertex) -> GLTF2:
-    """Tessellate a vertex into a list of triangle vertices and a list of triangle indices"""
+def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex):
     c = Vertex(ocp_vertex).center()
-    vertices = np.array([[c.X, c.Y, c.Z]])
-    indices = np.array([0])
-    tex_coord = np.array([], dtype=np.float32)
-    mode = POINTS
-    material = Material(
-        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[1.0, 0.5, 0.5, 1.0]),
-        alphaCutoff=None)
-    return create_gltf(vertices, indices, tex_coord, mode, material)
+    mgr.add_vertex(c)
 
 
 def _hashcode(obj: TopoDS_Shape) -> str:

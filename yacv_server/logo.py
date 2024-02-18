@@ -30,21 +30,16 @@ if __name__ == "__main__":
     from __init__ import show_object, server
     ASSETS_DIR = os.getenv('ASSETS_DIR', os.path.join(os.path.dirname(__file__), '..', 'assets'))
 
-    # 1. Add the CAD part of the logo to the server
+    # Add the CAD part of the logo to the server
     obj = build_logo()
+    Shape(obj).export_stl(os.path.join(ASSETS_DIR, 'logo.stl'))
     show_object(obj, 'logo')
 
-    # 2. Load the GLTF part of the logo
-    with open(os.path.join(ASSETS_DIR, 'fox.glb'), 'rb') as f:
-        gltf = f.read()
-    show_object(gltf, 'fox')
-
-    # 3. Save the complete logo to a GLBS file
-    with open(os.path.join(ASSETS_DIR, 'logo.glbs'), 'wb') as f:
+    # Save the complete logo to a single GLB file
+    with open(os.path.join(ASSETS_DIR, 'logo.glb'), 'wb') as f:
         async def writer():
-            async for chunk in server.export_all():
-                f.write(chunk)
+            f.write(await server.export('logo'))
 
         asyncio.run(writer())
 
-    print('Logo saved to', os.path.join(ASSETS_DIR, 'logo.glbs'))
+    print('Logo saved to', os.path.join(ASSETS_DIR, 'logo.glb'))
