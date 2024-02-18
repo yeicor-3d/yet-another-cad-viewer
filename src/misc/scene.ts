@@ -54,11 +54,19 @@ export class SceneMgr {
         console.log("Loading", name, "which has", numChunks, "GLB chunks");
 
         // Start merging each chunk into the current document, replacing or adding as needed
+        let lastShow = performance.now();
         while (true) {
             let {value: glbData, done} = await glbsSplitter.next();
             if (done) break;
             data.document = await mergePartial(glbData, name, data.document);
+            await new Promise(r => setTimeout(r, 0)); // Yield to update the UI at 60fps
             // TODO: Report load progress
+
+            // Show the partial model while loading every once in a while
+            if (performance.now() - lastShow > settings.displayLoadingEveryMs) {
+                await this.showCurrentDoc(refData, data);
+                lastShow = performance.now();
+            }
         }
 
         // Display the final fully loaded model
