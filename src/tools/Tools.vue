@@ -51,24 +51,23 @@ function centerCamera() {
 }
 
 let selectionEnabled = ref(false);
-let prevHighlightedMaterial: Material | null = null;
+let selectedMaterials: Array<Material> = []
 let hasListener = false;
 let selectionListener = (event: MouseEvent) => {
   if (!selectionEnabled.value) return;
   let viewer: ModelViewerElement = props.refSData.viewer;
   const material = viewer.materialFromPoint(event.clientX, event.clientY);
-  if (material !== null && prevHighlightedMaterial?.index === material.index) return
-  if (prevHighlightedMaterial) {
-    prevHighlightedMaterial.pbrMetallicRoughness.setBaseColorFactor(
-        (prevHighlightedMaterial as any).__prevBaseColorFactor);
+  if(material === null) return;
+  const wasSelected = selectedMaterials.find((m) => m === material) !== undefined;
+  if (wasSelected) {
+    selectedMaterials = selectedMaterials.filter((m) => m !== material);
+    material.pbrMetallicRoughness.setBaseColorFactor(
+        (material as any).__prevBaseColorFactor);
+  } else {
+    selectedMaterials.push(material);
+    (material as any).__prevBaseColorFactor = [...material.pbrMetallicRoughness.baseColorFactor];
+    material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1] as RGBA);
   }
-  if (!material) {
-    prevHighlightedMaterial = null;
-    return;
-  }
-  (material as any).__prevBaseColorFactor = [...material.pbrMetallicRoughness.baseColorFactor];
-  material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1] as RGBA);
-  prevHighlightedMaterial = material;
 };
 
 function toggleSelection() {
@@ -77,14 +76,14 @@ function toggleSelection() {
   selectionEnabled.value = !selectionEnabled.value;
   if (selectionEnabled.value) {
     if (!hasListener) {
-      viewer.addEventListener('mousemove', selectionListener);
+      viewer.addEventListener('click', selectionListener);
       hasListener = true;
     }
   } else {
-    if (prevHighlightedMaterial) {
-      prevHighlightedMaterial.pbrMetallicRoughness.setBaseColorFactor(
-          (prevHighlightedMaterial as any).__prevBaseColorFactor);
-      prevHighlightedMaterial = null;
+    for (let material of selectedMaterials) {
+      console.log("clearing selection", material);
+      material.pbrMetallicRoughness.setBaseColorFactor(
+          (material as any).__prevBaseColorFactor);
     }
   }
 }
