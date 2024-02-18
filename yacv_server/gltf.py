@@ -21,7 +21,16 @@ class GLTFMgr:
         samplers=[Sampler(magFilter=NEAREST)],
         textures=[Texture(source=0, sampler=0)],
         images=[Image(bufferView=0, mimeType='image/png')],
-        materials=[Material(pbrMetallicRoughness=PbrMetallicRoughness(baseColorTexture=TextureInfo(index=0)))],
+        materials=[
+            Material(name="face", pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1])),
+            Material(name="edge", pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[0, 0, 0.5, 1])),
+            Material(name="vertex", pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[0.5, 0.5, 0.5, 1])),
+            Material(name="selected", pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 0, 0, 1])),
+        ],
     )
 
     def __init__(self):
@@ -29,45 +38,52 @@ class GLTFMgr:
 
     def add_face(self, vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray):
         """Add a face to the GLTF as a new primitive of the unique mesh"""
-        self._add_any(vertices, indices, tex_coord, mode=TRIANGLES)
+        self._add_any(vertices, indices, tex_coord, mode=TRIANGLES, material=0)
 
     def add_edge(self, vertices: np.ndarray):
         """Add an edge to the GLTF as a new primitive of the unique mesh"""
         indices = np.array(list(map(lambda i: [i, i + 1], range(len(vertices) - 1))), dtype=np.uint8)
-        tex_coord = np.array([[i / (len(vertices) - 1), 0] for i in range(len(vertices))], dtype=np.float32)
-        self._add_any(vertices, indices, tex_coord, mode=LINE_STRIP)
+        tex_coord = np.array([])
+        self._add_any(vertices, indices, tex_coord, mode=LINE_STRIP, material=1)
 
     def add_vertex(self, vertex: Vector):
         """Add a vertex to the GLTF as a new primitive of the unique mesh"""
         vertices = np.array([[vertex.X, vertex.Y, vertex.Z]])
-        indices = np.array([0], dtype=np.uint8)
-        tex_coord = np.array([[0, 0]], dtype=np.float32)
-        self._add_any(vertices, indices, tex_coord, mode=POINTS)
+        indices = np.array([[0]], dtype=np.uint8)
+        tex_coord = np.array([], dtype=np.float32)
+        self._add_any(vertices, indices, tex_coord, mode=POINTS, material=2)
 
-    def _add_any(self, vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray, mode: int = TRIANGLES):
+    def _add_any(self, vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray, mode: int = TRIANGLES,
+                 material: int = 0):
         assert vertices.ndim == 2
         assert vertices.shape[1] == 3
         vertices = vertices.astype(np.float32)
         vertices_blob = vertices.tobytes()
 
+        assert indices.ndim == 2
+        assert indices.shape[1] == 3 and mode == TRIANGLES or indices.shape[1] == 2 and mode == LINE_STRIP or \
+               indices.shape[1] == 1 and mode == POINTS
         indices = indices.astype(np.uint8)
         indices_blob = indices.flatten().tobytes()
 
+        assert len(tex_coord) == 0 or tex_coord.ndim == 2
+        assert len(tex_coord) == 0 or tex_coord.shape[1] == 2
         tex_coord = tex_coord.astype(np.float32)
         tex_coord_blob = tex_coord.tobytes()
 
         accessor_base = len(self.gltf.accessors)
         self.gltf.meshes[0].primitives.append(
             Primitive(
-                attributes=Attributes(POSITION=accessor_base + 1, TEXCOORD_0=accessor_base + 2),
+                attributes=Attributes(POSITION=accessor_base + 1, TEXCOORD_0=accessor_base + 2)
+                if len(tex_coord) > 0 else Attributes(POSITION=accessor_base + 1),
                 indices=accessor_base,
                 mode=mode,
-                material=0,  # TODO special selected material and face/edge/vertex default materials
+                material=material,
             )
         )
 
         buffer_view_base = len(self.gltf.bufferViews)
-        self.gltf.accessors.extend([
+        self.gltf.accessors.extend([it for it in [
             Accessor(
                 bufferView=buffer_view_base,
                 componentType=UNSIGNED_BYTE,
@@ -91,31 +107,31 @@ class GLTFMgr:
                 type=VEC2,
                 max=tex_coord.max(axis=0).tolist(),
                 min=tex_coord.min(axis=0).tolist(),
-            )
-        ])
+            ) if len(tex_coord) > 0 else None
+        ] if it is not None])
 
         binary_blob = self.gltf.binary_blob()
-        binary_blob_base = len(binary_blob)
-        self.gltf.bufferViews.extend([
+        byte_offset_base = len(binary_blob)
+        self.gltf.bufferViews.extend([it for it in [
             BufferView(
                 buffer=0,
-                byteOffset=binary_blob_base,
+                byteOffset=byte_offset_base,
                 byteLength=len(indices_blob),
                 target=ELEMENT_ARRAY_BUFFER,
             ),
             BufferView(
                 buffer=0,
-                byteOffset=binary_blob_base + len(indices_blob),
+                byteOffset=byte_offset_base + len(indices_blob),
                 byteLength=len(vertices_blob),
                 target=ARRAY_BUFFER,
             ),
             BufferView(
                 buffer=0,
-                byteOffset=binary_blob_base + len(indices_blob) + len(vertices_blob),
+                byteOffset=byte_offset_base + len(indices_blob) + len(vertices_blob),
                 byteLength=len(tex_coord_blob),
                 target=ARRAY_BUFFER,
-            )
-        ])
+            ) if len(tex_coord) > 0 else None
+        ] if it is not None])
 
         self.gltf.set_binary_blob(binary_blob + indices_blob + vertices_blob + tex_coord_blob)
 

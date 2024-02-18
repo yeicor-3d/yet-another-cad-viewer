@@ -1,56 +1,20 @@
-import concurrent
-import copy
 import hashlib
 import io
 import re
-from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass
-from typing import Tuple, Generator
 
 import numpy as np
-from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
 from OCP.GCPnts import GCPnts_TangentialDeflection
 from OCP.TopExp import TopExp
-from OCP.TopLoc import TopLoc_Location
 from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
-from build123d import Face, Vector, Shape, Vertex
-from pygltflib import LINE_STRIP, GLTF2, Material, PbrMetallicRoughness, TRIANGLES, POINTS, TextureInfo
+from build123d import Shape, Vertex
+from pygltflib import GLTF2
 
-import mylogger
 from gltf import GLTFMgr
 
 
-@dataclass
-class TessellationUpdate:
-    """Tessellation update"""
-    progress: float
-    """Progress in percent"""
-
-    # Current shape
-    shape: TopoDS_Shape
-    """(Sub)shape that was tessellated"""
-    gltf: GLTF2
-    """The valid GLTF containing only the current shape"""
-
-    @property
-    def kind(self) -> str:
-        """The kind of the shape"""
-        if isinstance(self.shape, TopoDS_Face):
-            return "face"
-        elif isinstance(self.shape, TopoDS_Edge):
-            return "edge"
-        elif isinstance(self.shape, TopoDS_Vertex):
-            return "vertex"
-        else:
-            raise ValueError(f"Unknown shape type: {self.shape}")
-
-
-def tessellate_count(ocp_shape: TopoDS_Shape) -> int:
-    """Count the number of elements that will be tessellated"""
-    shape = Shape(ocp_shape)
-    return len(shape.faces()) + len(shape.edges()) + len(shape.vertices())
+# TODO: Migrate to ocp-tessellate to reuse the tessellation logic
 
 
 def tessellate(
@@ -65,16 +29,20 @@ def tessellate(
     mgr = GLTFMgr()
     shape = Shape(ocp_shape)
 
+    # Triangulate all faces at the same time
+    # shape.mesh(tolerance, angular_tolerance)
+    _tessellate_face(mgr, shape.wrapped)
+
     # Perform tessellation tasks
-    if faces:
-        for face in shape.faces():
-            _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
-    if edges:
-        for edge in shape.edges():
-            _tessellate_edge(mgr, edge.wrapped, tolerance, angular_tolerance)
-    if vertices:
-        for vertex in shape.vertices():
-            _tessellate_vertex(mgr, vertex.wrapped)
+    # if faces:
+    #     for face in shape.faces():
+    #         _tessellate_face(mgr, face.wrapped)
+    # if edges:
+    #     for edge in shape.edges():
+    #         _tessellate_edge(mgr, edge.wrapped, angular_tolerance, angular_tolerance)
+    # if vertices:
+    #     for vertex in shape.vertices():
+    #         _tessellate_vertex(mgr, vertex.wrapped)
 
     return mgr.gltf
 
@@ -85,20 +53,20 @@ def _tessellate_face(
         tolerance: float = 1e-3,
         angular_tolerance: float = 0.1
 ):
-    face = Face(ocp_face)
-    face.mesh(tolerance, angular_tolerance)
-    loc = TopLoc_Location()
-    poly = BRep_Tool.Triangulation_s(face.wrapped, loc)
-    if poly is None:
-        mylogger.logger.warn("No triangulation found for face")
-        return GLTF2()
+    face = Shape(ocp_face)
+    # loc = TopLoc_Location()
+    # poly = BRep_Tool.Triangulation_s(face.wrapped, loc)
+    # if poly is None:
+    #     mylogger.logger.warn("No triangulation found for face")
+    #     return GLTF2()
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
 
     # Get UV of each face from the parameters
-    uv = [
-        [v.X(), v.Y()]
-        for v in (poly.UVNode(i) for i in range(1, poly.NbNodes() + 1))
-    ]
+    # uv = [
+    #     [v.X(), v.Y()]
+    #     for v in (poly.UVNode(i) for i in range(1, poly.NbNodes() + 1))
+    # ]
+    uv = []
 
     vertices = np.array(list(map(lambda v: [v.X, v.Y, v.Z], tri_mesh[0])))
     indices = np.array(tri_mesh[1])
@@ -109,7 +77,7 @@ def _tessellate_face(
 def _tessellate_edge(
         mgr: GLTFMgr,
         ocp_edge: TopoDS_Edge,
-        angular_deflection: float = 1e-3,
+        angular_deflection: float = 0.1,
         curvature_deflection: float = 0.1,
 ):
     curve = BRepAdaptor_Curve(ocp_edge)

@@ -18,7 +18,6 @@ aiohttp-devtools = "^1.1.2"
 
 # Misc
 pygltflib = "^1.16.1"
-tqdm = "^4.66.1"
 
 [build-system]
 requires = ["poetry-core"]
