@@ -4,7 +4,7 @@ import {Ref, ref} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {ModelViewerInfo} from "./viewer/ModelViewerWrapper.vue";
 import {splitGlbs} from "../models/glb/glbs";
-import {merge, toBuffer} from "../models/glb/merge";
+import {mergeFinalize, mergePartial, toBuffer} from "../models/glb/merge";
 import {settings} from "./settings";
 
 export type SceneMgrRefData = {
@@ -28,7 +28,7 @@ export class SceneMgr {
     }
 
     /** Creates a new SceneManagerData object */
-    static newData(): [Ref<SceneMgrRefData>, SceneMgrData]  {
+    static newData(): [Ref<SceneMgrRefData>, SceneMgrData] {
         let refData: any = ref({
             viewerSrc: null,
             viewer: null,
@@ -54,17 +54,11 @@ export class SceneMgr {
         console.log("Loading", name, "which has", numChunks, "GLB chunks");
 
         // Start merging each chunk into the current document, replacing or adding as needed
-        let lastShow = performance.now();
         while (true) {
             let {value: glbData, done} = await glbsSplitter.next();
             if (done) break;
-            data.document = await merge(glbData, name, data.document);
-
-            // Show the partial model while loading every once in a while
-            if (performance.now() - lastShow > settings.displayLoadingEveryMs) {
-                await this.showCurrentDoc(refData, data);
-                lastShow = performance.now();
-            }
+            data.document = await mergePartial(glbData, name, data.document);
+            // TODO: Report load progress
         }
 
         // Display the final fully loaded model
@@ -73,6 +67,7 @@ export class SceneMgr {
 
     /** Serializes the current document into a GLB and updates the viewerSrc */
     private static async showCurrentDoc(refData: Ref<SceneMgrRefData>, data: SceneMgrData) {
+        data.document = await mergeFinalize(data.document);
         let buffer = await toBuffer(data.document);
         let blob = new Blob([buffer], {type: 'model/gltf-binary'});
         console.log("Showing current doc", data.document, "as", Array.from(buffer));

@@ -7,8 +7,10 @@ let io = new WebIO();
  * Given the bytes of a GLB file and a parsed GLTF document, it parses and merges the GLB into the document.
  *
  * It can replace previous models in the document if the provided name matches the name of a previous model.
+ *
+ * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
-export async function merge(glb: Uint8Array, name: string, document: Document): Promise<Document> {
+export async function mergePartial(glb: Uint8Array, name: string, document: Document): Promise<Document> {
 
     let newDoc = await io.readBinary(glb);
 
@@ -18,12 +20,14 @@ export async function merge(glb: Uint8Array, name: string, document: Document): 
     let merged = document.merge(newDoc);
 
     // noinspection TypeScriptValidateJSTypes
-    return await merged.transform(mergeScenes(), unpartition()); // Single scene & buffer required!
+    return await merged.transform(mergeScenes()); // Single scene & buffer required!
+}
 
+export async function mergeFinalize(document: Document): Promise<Document> {
+    return await document.transform(unpartition());
 }
 
 export async function toBuffer(doc: Document): Promise<Uint8Array> {
-
     return io.writeBinary(doc);
 }
 
