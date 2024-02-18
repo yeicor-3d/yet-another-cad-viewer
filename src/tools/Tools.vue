@@ -53,22 +53,31 @@ function centerCamera() {
 let selectionEnabled = ref(false);
 let selectedMaterials: Array<Material> = []
 let hasListener = false;
+
 let selectionListener = (event: MouseEvent) => {
   if (!selectionEnabled.value) return;
   let viewer: ModelViewerElement = props.refSData.viewer;
   const material = viewer.materialFromPoint(event.clientX, event.clientY);
-  if(material === null) return;
+  if (material === null) return;
   const wasSelected = selectedMaterials.find((m) => m === material) !== undefined;
   if (wasSelected) {
-    selectedMaterials = selectedMaterials.filter((m) => m !== material);
-    material.pbrMetallicRoughness.setBaseColorFactor(
-        (material as any).__prevBaseColorFactor);
+    deselect(material)
   } else {
-    selectedMaterials.push(material);
-    (material as any).__prevBaseColorFactor = [...material.pbrMetallicRoughness.baseColorFactor];
-    material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1] as RGBA);
+    select(material)
   }
 };
+
+function select(material: Material) {
+  if(selectedMaterials.find((m) => m === material) === undefined) selectedMaterials.push(material);
+  (material as any).__prevBaseColorFactor = [...material.pbrMetallicRoughness.baseColorFactor];
+  material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1] as RGBA);
+}
+
+function deselect(material: Material, alsoRemove = true) {
+  if (alsoRemove) selectedMaterials = selectedMaterials.filter((m) => m !== material);
+  material.pbrMetallicRoughness.setBaseColorFactor(
+      (material as any).__prevBaseColorFactor);
+}
 
 function toggleSelection() {
   let viewer: ModelViewerElement = props.refSData.viewer;
@@ -79,11 +88,12 @@ function toggleSelection() {
       viewer.addEventListener('click', selectionListener);
       hasListener = true;
     }
+    for (let material of selectedMaterials) {
+      select(material);
+    }
   } else {
     for (let material of selectedMaterials) {
-      console.log("clearing selection", material);
-      material.pbrMetallicRoughness.setBaseColorFactor(
-          (material as any).__prevBaseColorFactor);
+      deselect(material, false);
     }
   }
 }
