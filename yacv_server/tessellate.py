@@ -18,6 +18,7 @@ from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Face, Vector, Shape, Vertex
 from pygltflib import LINE_STRIP, GLTF2, Material, PbrMetallicRoughness, TRIANGLES, POINTS, TextureInfo
 
+import mylogger
 from gltf import create_gltf, _checkerboard_image
 
 
@@ -106,12 +107,15 @@ def _tessellate_face(
 ) -> GLTF2:
     """Tessellate a face into a list of triangle vertices and a list of triangle indices"""
     face = Face(ocp_face)
-    print("Tessellating face", face.center())
+    face.mesh(tolerance, angular_tolerance)
+    loc = TopLoc_Location()
+    poly = BRep_Tool.Triangulation_s(face.wrapped, loc)
+    if poly is None:
+        mylogger.logger.warn("No triangulation found for face")
+        return GLTF2()
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
 
     # Get UV of each face from the parameters
-    loc = TopLoc_Location()
-    poly = BRep_Tool.Triangulation_s(face.wrapped, loc)
     uv = [
         [v.X(), v.Y()]
         for v in (poly.UVNode(i) for i in range(1, poly.NbNodes() + 1))
@@ -122,7 +126,7 @@ def _tessellate_face(
     tex_coord = np.array(uv)
     mode = TRIANGLES
     material = Material(pbrMetallicRoughness=PbrMetallicRoughness(
-        baseColorFactor=[0.3, 1.0, 0.2, 1.0], roughnessFactor=0.1, baseColorTexture=TextureInfo(index=0)),
+        baseColorFactor=[0.3, 1.0, 0.2, 1.0], metallicFactor=0.1, baseColorTexture=TextureInfo(index=0)),
         alphaCutoff=None)
     return create_gltf(vertices, indices, tex_coord, mode, material, images=[_checkerboard_image])
 
@@ -151,7 +155,7 @@ def _tessellate_edge(
     tex_coord = np.array([], dtype=np.float32)
     mode = LINE_STRIP
     material = Material(
-        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[0.3, 0.3, 1.0, 1.0]),
+        pbrMetallicRoughness=PbrMetallicRoughness(baseColorFactor=[0.0, 0.0, 0.3, 1.0]),
         alphaCutoff=None)
     return create_gltf(np.array(vertices), indices, tex_coord, mode, material)
 
