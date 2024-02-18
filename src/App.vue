@@ -55,7 +55,7 @@ for (let model of settings.preloadModels) {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :scene-mgr-data="refSData"/>
+      <tools :ref-s-data="refSData"/>
     </sidebar>
 
   </v-layout>

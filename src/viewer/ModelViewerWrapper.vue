@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {settings} from "../misc/settings";
-import {ModelViewerElement} from '@google/model-viewer';
+import {ModelViewerElement, RGBA} from '@google/model-viewer';
 import {onMounted, ref} from "vue";
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 
 export type ModelViewerInfo = { viewer: ModelViewerElement, scene: ModelScene };
 
-let _ = ModelViewerElement; // HACK: Needed to avoid tree shaking
+ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 
 const emit = defineEmits<{
   load: [info: ModelViewerInfo]
@@ -33,7 +33,8 @@ onMounted(() => {
 
 <template>
   <model-viewer ref="viewer"
-                style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls camera-orbit="30deg 75deg auto"
+                style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
+                camera-orbit="30deg 75deg auto"
                 max-camera-orbit="Infinity 180deg auto" min-camera-orbit="-Infinity 0deg auto" disable-tap
                 :exposure="settings.exposure" :shadow-intensity="settings.shadowIntensity" interaction-prompt="none"
                 :autoplay="settings.autoplay" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes"

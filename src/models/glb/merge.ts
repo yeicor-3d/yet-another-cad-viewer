@@ -15,7 +15,7 @@ export async function mergePartial(glb: Uint8Array, name: string, document: Docu
     let newDoc = await io.readBinary(glb);
 
     // noinspection TypeScriptValidateJSTypes
-    // await newDoc.transform(dropByName(name), setNames(name));
+    await newDoc.transform(dropByName(name), setNames(name));
 
     let merged = document.merge(newDoc);
 
