@@ -21,11 +21,11 @@ from gltf import GLTFMgr
 
 def tessellate(
         ocp_shape: TopoDS_Shape,
-        tolerance: float = 1e-3,
+        tolerance: float = 0.1,
         angular_tolerance: float = 0.1,
         faces: bool = True,
         edges: bool = True,
-        vertices: bool = True,
+        vertices: bool = False,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
     mgr = GLTFMgr()

@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     # Add the CAD part of the logo to the server
     obj = build_logo()
-    Shape(obj).export_stl(os.path.join(ASSETS_DIR, 'logo.stl'))
+    # DEBUG: Shape(obj).export_stl(os.path.join(ASSETS_DIR, 'logo.stl'))
     show_object(obj, 'logo')
 
     # Save the complete logo to a single GLB file

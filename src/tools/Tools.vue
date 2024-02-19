@@ -53,11 +53,30 @@ function centerCamera() {
 let selectionEnabled = ref(false);
 let selectedMaterials: Array<Material> = []
 let hasListener = false;
+let ignoreClickFrom: [number, number] | null = null;
+let selectionMoveListener = (event: MouseEvent) => {
+  if (!selectionEnabled.value) return;
+  ignoreClickFrom = [event.clientX, event.clientY];
+};
 
 let selectionListener = (event: MouseEvent) => {
-  if (!selectionEnabled.value) return;
+  if (!selectionEnabled.value) {
+    ignoreClickFrom = undefined;
+    return;
+  }
+  if (ignoreClickFrom) {
+    let [x, y] = ignoreClickFrom;
+    if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5) {
+      ignoreClickFrom = undefined;
+      return;
+    }
+    ignoreClickFrom = undefined;
+  }
   let viewer: ModelViewerElement = props.refSData.viewer;
+  // FIXME: Clicking near edges does not work...
+  // FIXME: Clicking with ORTHO camera does not work...
   const material = viewer.materialFromPoint(event.clientX, event.clientY);
+  console.log(material)
   if (material === null) return;
   const wasSelected = selectedMaterials.find((m) => m === material) !== undefined;
   if (wasSelected) {
@@ -85,7 +104,8 @@ function toggleSelection() {
   selectionEnabled.value = !selectionEnabled.value;
   if (selectionEnabled.value) {
     if (!hasListener) {
-      viewer.addEventListener('click', selectionListener);
+      viewer.addEventListener('mouseup', selectionListener);
+      viewer.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
       hasListener = true;
     }
     for (let material of selectedMaterials) {

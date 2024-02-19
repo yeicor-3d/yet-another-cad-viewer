@@ -1,3 +1,5 @@
+import importlib.metadata
+
 import numpy as np
 from pygltflib import *
 
@@ -10,6 +12,8 @@ class GLTFMgr:
     """A utility class to build our GLTF2 objects easily and incrementally"""
 
     gltf: GLTF2 = GLTF2(
+        asset=Asset(generator=f"yacv_server@{importlib.metadata.version('yacv_server')}"),
+        scene=0,
         scenes=[Scene(nodes=[0])],
         nodes=[Node(mesh=0)],
         meshes=[Mesh(primitives=[])],
@@ -19,16 +23,6 @@ class GLTFMgr:
         samplers=[Sampler(magFilter=NEAREST)],
         textures=[Texture(source=0, sampler=0)],
         images=[Image(bufferView=0, mimeType='image/png')],
-        materials=[
-            Material(name="face", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1])),
-            Material(name="edge", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorFactor=[0, 0, 0.5, 1])),
-            Material(name="vertex", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorFactor=[0.5, 0.5, 0.5, 1])),
-            # Material(name="selected", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-            #     baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 0, 0, 1])),
-        ],
     )
 
     def __init__(self):
@@ -40,24 +34,41 @@ class GLTFMgr:
         vertices = np.array([[v[0], v[1], v[2]] for v in vertices_raw], dtype=np.float32)
         indices = np.array([[i[0], i[1], i[2]] for i in indices_raw], dtype=np.uint32)
         tex_coord = np.array([[t[0], t[1]] for t in tex_coord_raw], dtype=np.float32)
-        self._add_any(vertices, indices, tex_coord, mode=TRIANGLES, material=0)
+        self._add_any(vertices, indices, tex_coord, mode=TRIANGLES, material="face")
 
     def add_edge(self, vertices_raw: List[Tuple[float, float, float]]):
         """Add an edge to the GLTF as a new primitive of the unique mesh"""
         vertices = np.array([[v[0], v[1], v[2]] for v in vertices_raw], dtype=np.float32)
         indices = np.array(list(map(lambda i: [i, i + 1], range(len(vertices) - 1))), dtype=np.uint32)
         tex_coord = np.array([])
-        self._add_any(vertices, indices, tex_coord, mode=LINE_STRIP, material=1)
+        self._add_any(vertices, indices, tex_coord, mode=LINE_STRIP, material="edge")
 
     def add_vertex(self, vertex: Tuple[float, float, float]):
         """Add a vertex to the GLTF as a new primitive of the unique mesh"""
         vertices = np.array([[vertex[0], vertex[1], vertex[2]]])
         indices = np.array([[0]], dtype=np.uint32)
         tex_coord = np.array([], dtype=np.float32)
-        self._add_any(vertices, indices, tex_coord, mode=POINTS, material=2)
+        self._add_any(vertices, indices, tex_coord, mode=POINTS, material="vertex")
+
+    def add_material(self, kind: str) -> int:
+        """It is important to use a different material for each primitive to be able to change them at runtime"""
+        new_material: Material
+        if kind == "face":
+            new_material = Material(name="face", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1]))
+        elif kind == "edge":
+            new_material = Material(name="edge", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorFactor=[0, 0, 0.5, 1]))
+        elif kind == "vertex":
+            new_material = Material(name="vertex", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorFactor=[0.5, 0.5, 0.5, 1]))
+        else:
+            raise ValueError(f"Unknown material kind {kind}")
+        self.gltf.materials.append(new_material)
+        return len(self.gltf.materials) - 1
 
     def _add_any(self, vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray, mode: int = TRIANGLES,
-                 material: int = 0):
+                 material: str = "face"):
         assert vertices.ndim == 2
         assert vertices.shape[1] == 3
         vertices = vertices.astype(np.float32)
@@ -86,7 +97,7 @@ class GLTFMgr:
                 if len(tex_coord) > 0 else Attributes(POSITION=accessor_base + 1),
                 indices=accessor_base,
                 mode=mode,
-                material=material,
+                material=self.add_material(material),
             )
         )
 
