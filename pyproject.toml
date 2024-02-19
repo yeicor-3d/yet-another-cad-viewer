@@ -11,6 +11,7 @@ python = "^3.9"
 
 # CAD
 build123d = "^0.3.0"
+ocp-tessellate = "^2.0.6"
 
 # Web
 aiohttp = "^3.9.3"

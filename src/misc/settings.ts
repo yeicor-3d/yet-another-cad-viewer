@@ -2,9 +2,9 @@
 export const settings = {
     preloadModels: [
         // @ts-ignore
-        // new URL('../../assets/fox.glb', import.meta.url).href,
+        new URL('../../assets/fox.glb', import.meta.url).href,
         // @ts-ignore
-        new URL('../../assets/logo.glbs', import.meta.url).href,
+        new URL('../../assets/logo.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
         //"ws://localhost:8080/"
     ],

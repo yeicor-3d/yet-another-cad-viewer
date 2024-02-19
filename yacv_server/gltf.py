@@ -1,5 +1,4 @@
 import numpy as np
-from build123d import Vector
 from pygltflib import *
 
 _checkerboard_image_bytes = base64.decodebytes(
@@ -15,41 +14,45 @@ class GLTFMgr:
         nodes=[Node(mesh=0)],
         meshes=[Mesh(primitives=[])],
         accessors=[],
-        bufferViews=[
-            BufferView(buffer=0, byteLength=len(_checkerboard_image_bytes), byteOffset=0, target=ELEMENT_ARRAY_BUFFER)],
+        bufferViews=[BufferView(buffer=0, byteLength=len(_checkerboard_image_bytes), byteOffset=0)],
         buffers=[Buffer(byteLength=len(_checkerboard_image_bytes))],
         samplers=[Sampler(magFilter=NEAREST)],
         textures=[Texture(source=0, sampler=0)],
         images=[Image(bufferView=0, mimeType='image/png')],
         materials=[
-            Material(name="face", pbrMetallicRoughness=PbrMetallicRoughness(
+            Material(name="face", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
                 baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1])),
-            Material(name="edge", pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorTexture=TextureInfo(index=0), baseColorFactor=[0, 0, 0.5, 1])),
-            Material(name="vertex", pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorTexture=TextureInfo(index=0), baseColorFactor=[0.5, 0.5, 0.5, 1])),
-            Material(name="selected", pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 0, 0, 1])),
+            Material(name="edge", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorFactor=[0, 0, 0.5, 1])),
+            Material(name="vertex", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorFactor=[0.5, 0.5, 0.5, 1])),
+            # Material(name="selected", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
+            #     baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 0, 0, 1])),
         ],
     )
 
     def __init__(self):
         self.gltf.set_binary_blob(_checkerboard_image_bytes)
 
-    def add_face(self, vertices: np.ndarray, indices: np.ndarray, tex_coord: np.ndarray):
+    def add_face(self, vertices_raw: List[Tuple[float, float, float]], indices_raw: List[Tuple[int, int, int]],
+                 tex_coord_raw: List[Tuple[float, float]]):
         """Add a face to the GLTF as a new primitive of the unique mesh"""
+        vertices = np.array([[v[0], v[1], v[2]] for v in vertices_raw], dtype=np.float32)
+        indices = np.array([[i[0], i[1], i[2]] for i in indices_raw], dtype=np.uint32)
+        tex_coord = np.array([[t[0], t[1]] for t in tex_coord_raw], dtype=np.float32)
         self._add_any(vertices, indices, tex_coord, mode=TRIANGLES, material=0)
 
-    def add_edge(self, vertices: np.ndarray):
+    def add_edge(self, vertices_raw: List[Tuple[float, float, float]]):
         """Add an edge to the GLTF as a new primitive of the unique mesh"""
-        indices = np.array(list(map(lambda i: [i, i + 1], range(len(vertices) - 1))), dtype=np.uint8)
+        vertices = np.array([[v[0], v[1], v[2]] for v in vertices_raw], dtype=np.float32)
+        indices = np.array(list(map(lambda i: [i, i + 1], range(len(vertices) - 1))), dtype=np.uint32)
         tex_coord = np.array([])
         self._add_any(vertices, indices, tex_coord, mode=LINE_STRIP, material=1)
 
-    def add_vertex(self, vertex: Vector):
+    def add_vertex(self, vertex: Tuple[float, float, float]):
         """Add a vertex to the GLTF as a new primitive of the unique mesh"""
-        vertices = np.array([[vertex.X, vertex.Y, vertex.Z]])
-        indices = np.array([[0]], dtype=np.uint8)
+        vertices = np.array([[vertex[0], vertex[1], vertex[2]]])
+        indices = np.array([[0]], dtype=np.uint32)
         tex_coord = np.array([], dtype=np.float32)
         self._add_any(vertices, indices, tex_coord, mode=POINTS, material=2)
 
@@ -63,8 +66,13 @@ class GLTFMgr:
         assert indices.ndim == 2
         assert indices.shape[1] == 3 and mode == TRIANGLES or indices.shape[1] == 2 and mode == LINE_STRIP or \
                indices.shape[1] == 1 and mode == POINTS
-        indices = indices.astype(np.uint8)
+        indices = indices.astype(np.uint32)
         indices_blob = indices.flatten().tobytes()
+
+        # Check that all vertices are referenced by the indices
+        assert indices.max() == len(vertices) - 1, f"{indices.max()} != {len(vertices) - 1}"
+        assert indices.min() == 0
+        assert np.unique(indices.flatten()).size == len(vertices)
 
         assert len(tex_coord) == 0 or tex_coord.ndim == 2
         assert len(tex_coord) == 0 or tex_coord.shape[1] == 2
@@ -86,7 +94,7 @@ class GLTFMgr:
         self.gltf.accessors.extend([it for it in [
             Accessor(
                 bufferView=buffer_view_base,
-                componentType=UNSIGNED_BYTE,
+                componentType=UNSIGNED_INT,
                 count=indices.size,
                 type=SCALAR,
                 max=[int(indices.max())],

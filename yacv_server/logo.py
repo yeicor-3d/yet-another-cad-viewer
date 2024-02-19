@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     # Start an offline "server" to merge the CAD part of the logo with the animated GLTF part of the logo
     os.environ['YACV_DISABLE_SERVER'] = '1'
-    from __init__ import show_object, server
+    from yacv_server import show_object, server
     ASSETS_DIR = os.getenv('ASSETS_DIR', os.path.join(os.path.dirname(__file__), '..', 'assets'))
 
     # Add the CAD part of the logo to the server

@@ -3,9 +3,7 @@ import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelSc
 import {Ref, ref} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {ModelViewerInfo} from "./viewer/ModelViewerWrapper.vue";
-import {splitGlbs} from "../models/glb/glbs";
 import {mergeFinalize, mergePartial, toBuffer} from "../models/glb/merge";
-import {settings} from "./settings";
 
 export type SceneMgrRefData = {
     /** When updated, forces the viewer to load a new model replacing the current one */
@@ -44,33 +42,20 @@ export class SceneMgr {
 
     /** Loads a GLB/GLBS model from a URL and adds it to the viewer or replaces it if the names match */
     static async loadModel(refData: Ref<SceneMgrRefData>, data: SceneMgrData, name: string, url: string) {
+        let loadStart = performance.now();
+
         // Connect to the URL of the model
         let response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch model: " + response.statusText);
 
-        // Split the stream into valid GLB chunks
-        let glbsSplitter = splitGlbs(response.body!);
-        let {value: numChunks} = await glbsSplitter.next();
-        console.log("Loading", name, "which has", numChunks, "GLB chunks");
-
-        // Start merging each chunk into the current document, replacing or adding as needed
-        let lastShow = performance.now();
-        while (true) {
-            let {value: glbData, done} = await glbsSplitter.next();
-            if (done) break;
-            data.document = await mergePartial(glbData, name, data.document);
-            await new Promise(r => setTimeout(r, 0)); // Yield to update the UI at 60fps
-            // TODO: Report load progress
-
-            // Show the partial model while loading every once in a while
-            if (performance.now() - lastShow > settings.displayLoadingEveryMs) {
-                await this.showCurrentDoc(refData, data);
-                lastShow = performance.now();
-            }
-        }
+        // Start merging into the current document, replacing or adding as needed
+        let glb = new Uint8Array(await response.arrayBuffer());
+        data.document = await mergePartial(glb, name, data.document);
 
         // Display the final fully loaded model
         await this.showCurrentDoc(refData, data);
+
+        console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
     }
 
     /** Serializes the current document into a GLB and updates the viewerSrc */

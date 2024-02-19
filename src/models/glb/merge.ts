@@ -69,7 +69,7 @@ function dropByName(name: string): Transform {
 function mergeScenes(): Transform {
     return (doc: Document) => {
         let root = doc.getRoot();
-        let scene = root.getDefaultScene();
+        let scene = root.getDefaultScene() ?? root.listScenes()[0];
         for (let dropScene of root.listScenes()) {
             if (dropScene === scene) continue;
             for (let node of dropScene.listChildren()) {
