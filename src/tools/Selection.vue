@@ -5,11 +5,14 @@ import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import {mdiCursorDefaultClick} from '@mdi/js';
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
-import type {Intersection} from "three";
+import type {Intersection, Material, Object3D} from "three";
 
 let props = defineProps<{ viewer: ModelViewerElement }>();
 let selectionEnabled = ref(false);
-let selectedMaterials = defineModel<Array<Intersection>>({default: []});
+type MObject3D = Object3D & {
+  material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
+};
+let selectedMaterials = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let hasListener = false;
 let mouseDownAt: [number, number] | null = null;
 
@@ -38,7 +41,7 @@ let selectionListener = (event: MouseEvent) => {
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
   let scene = viewer[$scene]
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
-  const hit = scene.hitFromPoint(ndcCoords);
+  const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
   console.log(hit)
   // TODO: Multiple hits to differenciate edges and faces
   if (!hit) return;
@@ -50,11 +53,11 @@ let selectionListener = (event: MouseEvent) => {
   }
 };
 
-function select(hit: Intersection) {
+function select(hit: Intersection<MObject3D>) {
   if (selectedMaterials.value.find((m) => m.object.name === hit.object.name) === undefined) {
     selectedMaterials.value.push(hit);
   }
-  (hit.object.material as any).__prevBaseColorFactor = [
+  hit.object.material.__prevBaseColorFactor = [
     hit.object.material.color.r,
     hit.object.material.color.g,
     hit.object.material.color.b,
@@ -64,12 +67,12 @@ function select(hit: Intersection) {
   hit.object.material.color.b = 0;
 }
 
-function deselect(hit: Intersection, alsoRemove = true) {
+function deselect(hit: Intersection<MObject3D>, alsoRemove = true) {
   if (alsoRemove) selectedMaterials.value = selectedMaterials.value.filter((m) => m.object.name !== hit.object.name);
-  hit.object.material.color.r = (hit.object.material as any).__prevBaseColorFactor[0]
-  hit.object.material.color.g = (hit.object.material as any).__prevBaseColorFactor[1]
-  hit.object.material.color.b = (hit.object.material as any).__prevBaseColorFactor[2]
-  delete (hit.object.material as any).__prevBaseColorFactor;
+  hit.object.material.color.r = hit.object.material.__prevBaseColorFactor[0]
+  hit.object.material.color.g = hit.object.material.__prevBaseColorFactor[1]
+  hit.object.material.color.b = hit.object.material.__prevBaseColorFactor[2]
+  delete hit.object.material.__prevBaseColorFactor;
 }
 
 function toggleSelection() {
