@@ -3,11 +3,11 @@ import {VBtn} from "vuetify/lib/components";
 import {ref} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
-import {mdiCrosshairsGps, mdiCursorDefaultClick, mdiDownload, mdiProjector} from '@mdi/js'
+import {mdiCrosshairsGps, mdiDownload, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import type {ModelViewerElement, RGBA} from '@google/model-viewer';
-import type {Material} from '@google/model-viewer/lib/features/scene-graph/material.js';
 import {SceneMgrRefData} from "../misc/scene";
+import type {ModelViewerElement} from '@google/model-viewer';
+import Selection from "./Selection.vue";
 
 let props = defineProps<{ refSData: SceneMgrRefData }>();
 
@@ -50,73 +50,6 @@ function centerCamera() {
   viewer.updateFraming();
 }
 
-let selectionEnabled = ref(false);
-let selectedMaterials: Array<Material> = []
-let hasListener = false;
-let ignoreClickFrom: [number, number] | null = null;
-let selectionMoveListener = (event: MouseEvent) => {
-  if (!selectionEnabled.value) return;
-  ignoreClickFrom = [event.clientX, event.clientY];
-};
-
-let selectionListener = (event: MouseEvent) => {
-  if (!selectionEnabled.value) {
-    ignoreClickFrom = undefined;
-    return;
-  }
-  if (ignoreClickFrom) {
-    let [x, y] = ignoreClickFrom;
-    if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5) {
-      ignoreClickFrom = undefined;
-      return;
-    }
-    ignoreClickFrom = undefined;
-  }
-  let viewer: ModelViewerElement = props.refSData.viewer;
-  // FIXME: Clicking near edges does not work...
-  // FIXME: Clicking with ORTHO camera does not work...
-  const material = viewer.materialFromPoint(event.clientX, event.clientY);
-  console.log(material)
-  if (material === null) return;
-  const wasSelected = selectedMaterials.find((m) => m === material) !== undefined;
-  if (wasSelected) {
-    deselect(material)
-  } else {
-    select(material)
-  }
-};
-
-function select(material: Material) {
-  if(selectedMaterials.find((m) => m === material) === undefined) selectedMaterials.push(material);
-  (material as any).__prevBaseColorFactor = [...material.pbrMetallicRoughness.baseColorFactor];
-  material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1] as RGBA);
-}
-
-function deselect(material: Material, alsoRemove = true) {
-  if (alsoRemove) selectedMaterials = selectedMaterials.filter((m) => m !== material);
-  material.pbrMetallicRoughness.setBaseColorFactor(
-      (material as any).__prevBaseColorFactor);
-}
-
-function toggleSelection() {
-  let viewer: ModelViewerElement = props.refSData.viewer;
-  if (!viewer) return;
-  selectionEnabled.value = !selectionEnabled.value;
-  if (selectionEnabled.value) {
-    if (!hasListener) {
-      viewer.addEventListener('mouseup', selectionListener);
-      viewer.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
-      hasListener = true;
-    }
-    for (let material of selectedMaterials) {
-      select(material);
-    }
-  } else {
-    for (let material of selectedMaterials) {
-      deselect(material, false);
-    }
-  }
-}
 
 async function downloadSceneGlb() {
   let viewer = props.refSData.viewer;
@@ -139,9 +72,7 @@ async function downloadSceneGlb() {
   <v-btn icon="" @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
-  <v-btn icon="" @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
-    <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
-  </v-btn>
+  <selection :viewer="props.refSData.viewer"/>
   <v-btn icon="" @click="downloadSceneGlb">
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
