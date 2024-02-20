@@ -3,11 +3,11 @@ import {defineModel, ref} from "vue";
 import {VBtn} from "vuetify/lib/components";
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
+import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCursorDefaultClick} from '@mdi/js';
-import {$scene} from "@google/model-viewer/lib/model-viewer-base";
 import type {Intersection, Material, Object3D} from "three";
 
-let props = defineProps<{ viewer: ModelViewerElement }>();
+let props = defineProps<{ viewer: ModelViewerElement, scene: ModelScene }>();
 let selectionEnabled = ref(false);
 type MObject3D = Object3D & {
   material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
@@ -34,16 +34,14 @@ let selectionListener = (event: MouseEvent) => {
     }
     mouseDownAt = undefined;
   }
-  let viewer: ModelViewerElement = props.viewer;
-  // FIXME: Clicking near edges does not work...
-  // FIXME: Clicking with ORTHO camera does not work...
-  //const material = viewer.materialFromPoint(event.clientX, event.clientY);
+  let scene: ModelScene = props.scene;
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
-  let scene = viewer[$scene]
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
   const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
   console.log(hit)
-  // TODO: Multiple hits to differenciate edges and faces
+  // TODO: Multiple hits to differentiate edges and faces
+  // TODO: Edge collisions too big?
+  // FIXME: Clicking with ORTHO camera does not work...
   if (!hit) return;
   const wasSelected = selectedMaterials.value.find((m) => m.object.name === hit.object.name) !== undefined;
   if (wasSelected) {

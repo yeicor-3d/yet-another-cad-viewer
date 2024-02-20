@@ -72,7 +72,7 @@ async function downloadSceneGlb() {
   <v-btn icon="" @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
-  <selection :viewer="props.refSData.viewer"/>
+  <selection :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene"/>
   <v-btn icon="" @click="downloadSceneGlb">
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
