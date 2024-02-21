@@ -10,9 +10,8 @@
 
 # TODO: Figure out which assets to keep in the repo
 /assets/fox.glb
-/assets/logo.glbs
+/assets/fox.glb.license
 /assets/logo.glb
-/assets/logo.stl
 
 *.iml
 venv/

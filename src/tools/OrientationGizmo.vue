@@ -3,7 +3,7 @@ import {onMounted, onUpdated, ref} from "vue";
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
 
-// Optimized minimal dependencies from three to avoid more async imports
+// Optimized minimal dependencies from three
 import {Vector3} from "three/src/math/Vector3.js";
 import {Matrix4} from "three/src/math/Matrix4.js";
 

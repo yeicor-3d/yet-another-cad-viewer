@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import {VBtn} from "vuetify/lib/components";
-import {ref} from "vue";
+import {VBtn, VDivider} from "vuetify/lib/components";
+import {Ref, ref, Suspense} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
+import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
-import {mdiCrosshairsGps, mdiDownload, mdiProjector} from '@mdi/js'
-import SvgIcon from '@jamescoyle/vue-icon';
+import {mdiCrosshairsGps, mdiDownload, mdiGithub, mdiProjector} from '@mdi/js'
+import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 import {SceneMgrRefData} from "../misc/scene";
 import type {ModelViewerElement} from '@google/model-viewer';
+import type {Intersection} from "three";
+import type {MObject3D} from "./Selection.vue";
 import Selection from "./Selection.vue";
 
+
 let props = defineProps<{ refSData: SceneMgrRefData }>();
+let selection: Ref<Array<Intersection<typeof MObject3D>>> = ref([]);
 
 function syncOrthoCamera(force: boolean) {
   let scene = props.refSData.viewerScene;
   if (!scene) return;
-  let perspectiveCam = (scene as any).__perspectiveCamera;
+  let perspectiveCam: PerspectiveCamera = (scene as any).__perspectiveCamera;
   if (force || perspectiveCam && scene.camera != perspectiveCam) {
     // Get zoom level from perspective camera
     let dist = scene.getTarget().distanceToSquared(perspectiveCam.position);
@@ -62,20 +67,38 @@ async function downloadSceneGlb() {
   link.click();
 }
 
+async function openGithub() {
+  window.open('https://github.com/yeicor-3d/yet-another-cad-viewer', '_blank')
+}
+
 </script>
 
 <template>
   <orientation-gizmo :scene="props.refSData.viewerScene" v-if="props.refSData.viewerScene !== null"/>
+  <v-divider/>
+  <h5>Camera</h5>
   <v-btn icon="" @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
     <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
   </v-btn>
   <v-btn icon="" @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
-  <selection :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene"/>
+  <v-divider/>
+  <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E)</h5>
+  <Suspense>
+    <selection :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene" v-model="selection"/>
+    <template #fallback>Loading...</template>
+  </Suspense>
+  <v-divider/>
+  <h5>Extras</h5>
   <v-btn icon="" @click="downloadSceneGlb">
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
+  <v-btn icon="" @click="openGithub">
+    <svg-icon type="mdi" :path="mdiGithub"/>
+  </v-btn>
+  <!-- TODO: Licenses button -->
+  <!-- TODO: Tooltips for ALL tools -->
 </template>
 
 <!--suppress CssUnusedSymbol -->

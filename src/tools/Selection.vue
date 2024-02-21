@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import {defineModel, ref} from "vue";
-import {VBtn} from "vuetify/lib/components";
-import SvgIcon from '@jamescoyle/vue-icon';
+import {VBtn, VSelect} from "vuetify/lib/components";
+import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCursorDefaultClick} from '@mdi/js';
 import type {Intersection, Material, Object3D} from "three";
 
-let props = defineProps<{ viewer: ModelViewerElement, scene: ModelScene }>();
-let selectionEnabled = ref(false);
-type MObject3D = Object3D & {
+const {Raycaster} = await import("three");
+
+export type MObject3D = Object3D & {
+  userData: { noHit?: boolean },
   material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
 };
+
+let props = defineProps<{ viewer: ModelViewerElement, scene: ModelScene }>();
+let selectionEnabled = ref(false);
 let selectedMaterials = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let hasListener = false;
 let mouseDownAt: [number, number] | null = null;
+let selectFilter = ref('Faces');
+const raycaster = new Raycaster();
 
 let selectionMoveListener = (event: MouseEvent) => {
   if (!selectionEnabled.value) return;
@@ -37,21 +43,36 @@ let selectionListener = (event: MouseEvent) => {
   let scene: ModelScene = props.scene;
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
-  const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
-  console.log(hit)
-  // TODO: Multiple hits to differentiate edges and faces
-  // TODO: Edge collisions too big?
-  // FIXME: Clicking with ORTHO camera does not work...
-  if (!hit) return;
-  const wasSelected = selectedMaterials.value.find((m) => m.object.name === hit.object.name) !== undefined;
-  if (wasSelected) {
-    deselect(hit)
+  //const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
+  raycaster.setFromCamera(ndcCoords, (scene as any).camera);
+  if ((scene as any).camera.isOrthographicCamera) {
+    // Need to fix the ray direction for ortho camera
+    // FIXME: Still buggy (but less so :)
+    raycaster.ray.direction.copy(
+        scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
+  }
+  console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', raycaster.ray);
+  const hits = raycaster.intersectObject(scene, true);
+  console.log(hits)
+  let hit = hits.find((hit) => {
+    let isFace = hit.faceIndex !== null;
+    return hit.object.visible && !hit.object.userData.noHit && isFace == (selectFilter.value === 'Faces');
+  }) as Intersection<MObject3D> | undefined;
+  if (!hit) {
+    deselectAll();
   } else {
-    select(hit)
+    // Toggle selection
+    const wasSelected = selectedMaterials.value.find((m) => m.object.name === hit.object.name) !== undefined;
+    if (wasSelected) {
+      deselect(hit)
+    } else {
+      select(hit)
+    }
   }
 };
 
 function select(hit: Intersection<MObject3D>) {
+  console.log('Selecting', hit.object.name)
   if (selectedMaterials.value.find((m) => m.object.name === hit.object.name) === undefined) {
     selectedMaterials.value.push(hit);
   }
@@ -66,11 +87,24 @@ function select(hit: Intersection<MObject3D>) {
 }
 
 function deselect(hit: Intersection<MObject3D>, alsoRemove = true) {
-  if (alsoRemove) selectedMaterials.value = selectedMaterials.value.filter((m) => m.object.name !== hit.object.name);
+  console.log('Deselecting', hit.object.name)
+  if (alsoRemove) {
+    // Remove the matching object from the selection
+    let toRemove = selectedMaterials.value.findIndex((m) => m.object.name === hit.object.name);
+    selectedMaterials.value.splice(toRemove, 1);
+  }
   hit.object.material.color.r = hit.object.material.__prevBaseColorFactor[0]
   hit.object.material.color.g = hit.object.material.__prevBaseColorFactor[1]
   hit.object.material.color.b = hit.object.material.__prevBaseColorFactor[2]
   delete hit.object.material.__prevBaseColorFactor;
+}
+
+function deselectAll(alsoRemove = true) {
+  // Clear selection (shallow copy to avoid modifying the array while iterating)
+  let toClear = selectedMaterials.value.slice();
+  for (let material of toClear) {
+    deselect(material, alsoRemove);
+  }
 }
 
 function toggleSelection() {
@@ -87,15 +121,35 @@ function toggleSelection() {
       select(material);
     }
   } else {
-    for (let material of selectedMaterials.value) {
-      deselect(material, false);
-    }
+    deselectAll(false);
   }
 }
 </script>
 
 <template>
-  <v-btn icon="" @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
-    <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
-  </v-btn>
+  <div class="select-parent">
+    <v-btn icon="" @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
+      <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
+    </v-btn>
+    <v-select class="select-only" variant="underlined" :items="['Faces', 'Edges']" v-model="selectFilter"/>
+  </div>
 </template>
+
+<style scoped>
+/* Very hacky styling... */
+.select-parent {
+  height: 48px;
+}
+
+.select-parent .v-btn {
+  position: relative;
+  top: -42px;
+}
+
+.select-only {
+  display: inline-block;
+  width: calc(100% - 48px);
+  position: relative;
+  top: -12px;
+}
+</style>

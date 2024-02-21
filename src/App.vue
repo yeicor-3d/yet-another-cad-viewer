@@ -9,7 +9,7 @@ import Models from "./models/Models.vue";
 import {VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
 import {settings} from "./misc/settings";
 import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
-import {SceneManagerData, SceneMgr} from "./misc/scene";
+import {SceneMgr} from "./misc/scene";
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({

@@ -21,6 +21,11 @@ let viewer = ref<ModelViewerElement | null>(null);
 onMounted(() => {
   viewer.value.addEventListener('load', () => {
     if (viewer.value) {
+      // Delete the initial load banner
+      // TODO: Replace with an actual poster?
+      let banner = viewer.value.querySelector('.initial-load-banner');
+      if (banner) banner.remove();
+      // Emit the load event
       emit('load', {
         viewer: viewer.value,
         scene: viewer.value[$scene] as ModelScene,
@@ -39,6 +44,7 @@ onMounted(() => {
                 :autoplay="settings.autoplay" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes"
                 :skybox-image="settings.background" :environment-image="settings.background">
     <slot></slot> <!-- Controls, annotations, etc. -->
+    <div class="annotation initial-load-banner">Loading models...</div>
   </model-viewer>
 </template>
 
