@@ -1,76 +1,37 @@
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
-import {Ref, ref} from 'vue';
+import {Ref} from 'vue';
 import {Document} from '@gltf-transform/core';
-import {ModelViewerInfo} from "./viewer/ModelViewerWrapper.vue";
-import {mergeFinalize, mergePartial, toBuffer} from "../models/glb/merge";
-
-export type SceneMgrRefData = {
-    /** When updated, forces the viewer to load a new model replacing the current one */
-    viewerSrc: string | null
-
-    /** The model viewer HTML element with all APIs */
-    viewer: ModelViewerElement | null
-    /** The (hidden) scene of the model viewer */
-    viewerScene: ModelScene | null
-}
-
-export type SceneMgrData = {
-    /** The currently shown document, which must match the viewerSrc. */
-    document: Document
-}
+import {mergeFinalize, mergePartial, toBuffer} from "./gltf";
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
-    private constructor() {
-    }
-
-    /** Creates a new SceneManagerData object */
-    static newData(): [Ref<SceneMgrRefData>, SceneMgrData] {
-        let refData: any = ref({
-            viewerSrc: null,
-            viewer: null,
-            viewerScene: null,
-        });
-        let data = {
-            document: new Document()
-        };
-        // newVar.value.document.createScene("scene");
-        // this.showCurrentDoc(newVar.value).then(r => console.log("Initial empty model loaded"));
-        return [refData, data];
-    }
-
-    /** Loads a GLB/GLBS model from a URL and adds it to the viewer or replaces it if the names match */
-    static async loadModel(refData: Ref<SceneMgrRefData>, data: SceneMgrData, name: string, url: string) {
+    /** Loads a GLB model from a URL and adds it to the viewer or replaces it if the names match */
+    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string): Promise<Document> {
         let loadStart = performance.now();
 
-        // Connect to the URL of the model
-        let response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch model: " + response.statusText);
-
         // Start merging into the current document, replacing or adding as needed
-        let glb = new Uint8Array(await response.arrayBuffer());
-        data.document = await mergePartial(glb, name, data.document);
+        document = await mergePartial(url, name, document);
 
         // Display the final fully loaded model
-        await this.showCurrentDoc(refData, data);
+        document = await this.showCurrentDoc(sceneUrl, document);
 
         console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
+        return document;
     }
 
     /** Serializes the current document into a GLB and updates the viewerSrc */
-    private static async showCurrentDoc(refData: Ref<SceneMgrRefData>, data: SceneMgrData) {
-        data.document = await mergeFinalize(data.document);
-        let buffer = await toBuffer(data.document);
-        let blob = new Blob([buffer], {type: 'model/gltf-binary'});
-        console.log("Showing current doc", data.document, "as", Array.from(buffer));
-        refData.value.viewerSrc = URL.createObjectURL(blob);
-    }
+    private static async showCurrentDoc(sceneUrl: Ref<string>, document: Document): Promise<Document> {
+        // Make sure the document is fully loaded and ready to be shown
+        document = await mergeFinalize(document);
 
-    /** Should be called any model finishes loading successfully (after a viewerSrc update) */
-    static onload(data: SceneMgrRefData, info: typeof ModelViewerInfo) {
-        console.log("ModelViewer loaded", info);
-        data.viewer = info.viewer;
-        data.viewerScene = info.scene;
+        // Serialize the document into a GLB and update the viewerSrc
+        let buffer = await toBuffer(document);
+        let blob = new Blob([buffer], {type: 'model/gltf-binary'});
+        //console.log("Showing current doc", document, "as", Array.from(buffer));
+        sceneUrl.value = URL.createObjectURL(blob);
+
+        // Return the updated document
+        return document;
     }
 }

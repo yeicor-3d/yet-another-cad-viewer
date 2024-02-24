@@ -4,15 +4,15 @@ import {unpartition} from "@gltf-transform/functions";
 let io = new WebIO();
 
 /**
- * Given the bytes of a GLB file and a parsed GLTF document, it parses and merges the GLB into the document.
+ * Loads a GLB model from a URL and adds it to the document or replaces it if the names match.
  *
  * It can replace previous models in the document if the provided name matches the name of a previous model.
  *
  * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
-export async function mergePartial(glb: Uint8Array, name: string, document: Document): Promise<Document> {
+export async function mergePartial(url: string, name: string, document: Document): Promise<Document> {
     // Load the new document
-    let newDoc = await io.readBinary(glb);
+    let newDoc = await io.read(url);
 
     // Remove any previous model with the same name and ensure consistent names
     // noinspection TypeScriptValidateJSTypes

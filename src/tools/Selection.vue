@@ -7,19 +7,20 @@ import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelSc
 import {mdiCursorDefaultClick} from '@mdi/js';
 import type {Intersection, Material, Object3D} from "three";
 import {Raycaster} from "three";
+import type ModelViewerWrapperT from "./ModelViewerWrapper.vue";
 
 export type MObject3D = Object3D & {
   userData: { noHit?: boolean },
   material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
 };
 
-let props = defineProps<{ viewer: ModelViewerElement, scene: ModelScene }>();
+let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let selectionEnabled = ref(false);
 let selectedMaterials = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let hasListener = false;
 let mouseDownAt: [number, number] | null = null;
 let selectFilter = ref('Faces');
-const raycaster = new Raycaster();
+const ray_caster = new Raycaster();
 
 let selectionMoveListener = (event: MouseEvent) => {
   if (!selectionEnabled.value) return;
@@ -39,19 +40,19 @@ let selectionListener = (event: MouseEvent) => {
     }
     mouseDownAt = undefined;
   }
-  let scene: ModelScene = props.scene;
+  let scene: ModelScene = props.viewer?.scene;
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
   //const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
-  raycaster.setFromCamera(ndcCoords, (scene as any).camera);
+  ray_caster.setFromCamera(ndcCoords, (scene as any).camera);
   if ((scene as any).camera.isOrthographicCamera) {
     // Need to fix the ray direction for ortho camera
     // FIXME: Still buggy (but less so :)
-    raycaster.ray.direction.copy(
+    ray_caster.ray.direction.copy(
         scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
   }
-  console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', raycaster.ray);
-  const hits = raycaster.intersectObject(scene, true);
+  console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', ray_caster.ray);
+  const hits = ray_caster.intersectObject(scene, true);
   console.log(hits)
   let hit = hits.find((hit) => {
     let isFace = hit.faceIndex !== null;
@@ -68,6 +69,7 @@ let selectionListener = (event: MouseEvent) => {
       select(hit)
     }
   }
+  scene.queueRender() // Force rerender of model-viewer
 };
 
 function select(hit: Intersection<MObject3D>) {
@@ -107,7 +109,7 @@ function deselectAll(alsoRemove = true) {
 }
 
 function toggleSelection() {
-  let viewer: ModelViewerElement = props.viewer;
+  let viewer: ModelViewerElement = props.viewer?.elem;
   if (!viewer) return;
   selectionEnabled.value = !selectionEnabled.value;
   if (selectionEnabled.value) {
@@ -122,6 +124,7 @@ function toggleSelection() {
   } else {
     deselectAll(false);
   }
+  props.viewer.scene.queueRender() // Force rerender of model-viewer
 }
 </script>
 

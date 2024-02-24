@@ -16,7 +16,7 @@ export class NetworkManager extends EventTarget {
     private knownObjectHashes: { [name: string]: string } = {};
 
     /**
-     * Tries to load a new model (.glb or .glbs) from the given URL.
+     * Tries to load a new model (.glb) from the given URL.
      *
      * If the URL uses the websocket protocol (ws:// or wss://), the server will be continuously monitored for changes.
      * In this case, it will only trigger updates if the name or hash of any model changes.
@@ -56,7 +56,7 @@ export class NetworkManager extends EventTarget {
 
     private foundModel(name: string, hash: string, url: string) {
         let prevHash = this.knownObjectHashes[name];
-        if (hash !== prevHash) {
+        if (!hash || hash !== prevHash) {
             this.knownObjectHashes[name] = hash;
             this.dispatchEvent(new NetworkUpdateEvent(name, url));
         }

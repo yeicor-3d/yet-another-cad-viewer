@@ -15,6 +15,7 @@ ocp-tessellate = "^2.0.6"
 
 # Web
 aiohttp = "^3.9.3"
+aiohttp-cors = "^0.7.0"
 aiohttp-devtools = "^1.1.2"
 
 # Misc

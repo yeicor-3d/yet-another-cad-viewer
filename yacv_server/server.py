@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from threading import Thread
 from typing import Optional, Dict, Union
 
+import aiohttp_cors
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
 from build123d import Shape, Axis
@@ -59,6 +60,16 @@ class Server:
         # - Static files from the frontend
         self.app.router.add_get('/{path:(.*/|)}', _index_handler)  # Any folder -> index.html
         self.app.router.add_static('/', path=FRONTEND_BASE_PATH, name='static_frontend')
+        # --- CORS ---
+        cors = aiohttp_cors.setup(self.app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            )
+        })
+        for route in list(self.app.router.routes()):
+            cors.add(route)
         # --- Misc ---
         self.loop = asyncio.new_event_loop()
 
@@ -197,7 +208,7 @@ class Server:
         """Returns the object file with the matching name, building it if necessary."""
 
         # Export the object (or fail if not found)
-        exported_glb = self.export(request.match_info['name'])
+        exported_glb = await self.export(request.match_info['name'])
         response = web.Response()
         try:
             # Create a new stream response with custom content type and headers

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import {VExpansionPanel, VExpansionPanels, VExpansionPanelText, VExpansionPanelTitle} from "vuetify/lib/components";
+import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
+import Loading from "../misc/Loading.vue";
+
+let props = defineProps<{ viewer: typeof ModelViewerWrapper | null }>();
 </script>
 
 <template>
-  <v-expansion-panels>
+  <Loading v-if="!props.viewer"/>
+  <v-expansion-panels v-else>
     <v-expansion-panel key="model-id">
       <v-expansion-panel-title>? F ? E ? V | Model Name</v-expansion-panel-title>
       <v-expansion-panel-text>Content</v-expansion-panel-text>

@@ -6,7 +6,7 @@ export const settings = {
         // @ts-ignore
         new URL('../../assets/logo.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
-        //"ws://localhost:8080/"
+        // "ws://localhost:32323/"
     ],
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     checkServerEveryMs: 100, /* How often to check for a new server */

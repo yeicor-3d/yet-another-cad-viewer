@@ -16,11 +16,11 @@ import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
 import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
-import {SceneMgrRefData} from "../misc/scene";
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
+import type ModelViewerWrapper from "./viewer/ModelViewerWrapper.vue";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -35,11 +35,11 @@ const LicensesDialogContent = defineAsyncComponent({
 });
 
 
-let props = defineProps<{ refSData: SceneMgrRefData }>();
+let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 let selection: Ref<Array<Intersection<typeof MObject3D>>> = ref([]);
 
 function syncOrthoCamera(force: boolean) {
-  let scene = props.refSData.viewerScene;
+  let scene = props.viewer?.scene;
   if (!scene) return;
   let perspectiveCam: PerspectiveCamera = (scene as any).__perspectiveCamera;
   if (force || perspectiveCam && scene.camera != perspectiveCam) {
@@ -50,13 +50,14 @@ function syncOrthoCamera(force: boolean) {
     (scene as any).camera = new OrthographicCamera(-w, w, h, -h, perspectiveCam.near, perspectiveCam.far);
     scene.camera.position.copy(perspectiveCam.position);
     scene.camera.lookAt(scene.getTarget().clone().add(scene.target.position));
+    if (force) props.viewer.scene.queueRender() // Force rerender of model-viewer
     requestAnimationFrame(() => syncOrthoCamera(false));
   }
 }
 
 let toggleProjectionText = ref('PERSP'); // Default to perspective camera
 function toggleProjection() {
-  let scene = props.refSData.viewerScene;
+  let scene = props.viewer?.scene;
   if (!scene) return;
   let prevCam = scene.camera;
   let wasPerspectiveCamera = prevCam.isPerspectiveCamera;
@@ -67,21 +68,23 @@ function toggleProjection() {
   } else {
     // Restore the default perspective camera
     scene.camera = (scene as any).__perspectiveCamera;
+    props.viewer.scene.queueRender() // Force rerender of model-viewer
   }
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
 }
 
 function centerCamera() {
-  let viewer: ModelViewerElement = props.refSData.viewer;
-  if (!viewer) return;
-  viewer.updateFraming();
+  console.log('Centering camera', props.viewer);
+  let viewerEl: ModelViewerElement = props.viewer?.elem;
+  if (!viewerEl) return;
+  viewerEl.updateFraming();
 }
 
 
 async function downloadSceneGlb() {
-  let viewer = props.refSData.viewer;
-  if (!viewer) return;
-  const glTF = await viewer.exportScene();
+  let viewerEl: ModelViewerElement = props.viewer?.elem;
+  if (!viewerEl) return;
+  const glTF = await viewerEl.exportScene();
   const file = new File([glTF], "export.glb");
   const link = document.createElement("a");
   link.download = file.name;
@@ -96,7 +99,7 @@ async function openGithub() {
 </script>
 
 <template>
-  <orientation-gizmo :scene="props.refSData.viewerScene" v-if="props.refSData.viewerScene !== null"/>
+  <orientation-gizmo :scene="props.viewer.scene" v-if="props.viewer?.scene"/>
   <v-divider/>
   <h5>Camera</h5>
   <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
@@ -111,7 +114,7 @@ async function openGithub() {
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E ?V)</h5>
-  <selection-component :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene" v-model="selection"/>
+  <selection-component :viewer="props.viewer" v-model="selection"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>

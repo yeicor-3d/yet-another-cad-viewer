@@ -97,6 +97,20 @@ yarl = ">=1.0,<2.0"
 speedups = ["Brotli", "aiodns", "brotlicffi"]
 
 [[package]]
+name = "aiohttp-cors"
+version = "0.7.0"
+description = "CORS support for aiohttp"
+optional = false
+python-versions = "*"
+files = [
+    {file = "aiohttp-cors-0.7.0.tar.gz", hash = "sha256:4d39c6d7100fd9764ed1caf8cebf0eb01bf5e3f24e2e073fda6234bc48b19f5d"},
+    {file = "aiohttp_cors-0.7.0-py3-none-any.whl", hash = "sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e"},
+]
+
+[package.dependencies]
+aiohttp = ">=1.1"
+
+[[package]]
 name = "aiohttp-devtools"
 version = "1.1.2"
 description = "Dev tools for aiohttp"
@@ -1597,4 +1611,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "950e4ebfaa15d8cc389403d0f931a63b2c2685aa1afbf3624e5806152acd6c83"
+content-hash = "92566c9fc24a286eea553f28b583fe6de53d7ecb595be508a0ce4ae9ca9f58c6"
