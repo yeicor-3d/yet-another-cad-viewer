@@ -61,7 +61,7 @@ class GLTFMgr:
                 baseColorFactor=[0, 0, 0.5, 1]))
         elif kind == "vertex":
             new_material = Material(name="vertex", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorFactor=[0.5, 0.5, 0.5, 1]))
+                baseColorFactor=[0, 0.2, 0, 1]))
         else:
             raise ValueError(f"Unknown material kind {kind}")
         self.gltf.materials.append(new_material)

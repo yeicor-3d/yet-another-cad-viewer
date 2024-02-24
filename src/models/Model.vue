@@ -40,7 +40,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
       let childIsEdge = child.type == 'Line'
-      let childIsVertex = child.type == 'Point'
+      let childIsVertex = child.type == 'Points'
       if (childIsFace || childIsEdge || childIsVertex) {
         let visible = newEnabledFeatures.includes(childIsFace ? 0 : childIsEdge ? 1 : childIsVertex ? 2 : -1);
         if (child.visible !== visible) {
@@ -51,6 +51,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   });
   scene.queueRender()
 }
+
 watch(enabledFeatures, onEnabledFeaturesChange);
 
 function onOpacityChange(newOpacity: number) {
@@ -63,8 +64,7 @@ function onOpacityChange(newOpacity: number) {
   console.log('Opacity may have changed', newOpacity)
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
-      if (child.material) {
-        console.log('Setting opacity of', child)
+      if (child.material && child.material.opacity !== newOpacity) {
         child.material.transparent = newOpacity < 1;
         child.material.opacity = newOpacity;
         child.material.needsUpdate = true;
@@ -73,15 +73,42 @@ function onOpacityChange(newOpacity: number) {
   });
   scene.queueRender()
 }
+
 watch(opacity, onOpacityChange);
 
-// props.viewer.elem is already available as a model has been loaded...
-props.viewer.elem.addEventListener('load', () => {
+function onModelLoad() {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+  // Iterate all primitives of the mesh and set their visibility based on the enabled features
+  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
+  // of not actually removing the primitives from the scene graph
+  sceneModel.traverse((child) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      // if (child.type == 'Line') child.material.linewidth = 2; // Not supported in WebGL2
+      if (child.type == 'Points') {
+        child.material.size = 5;
+      }
+    }
+  });
+  scene.queueRender()
+
+  // Furthermore...
+
   // Enabled features may have been reset after a reload
   onEnabledFeaturesChange(enabledFeatures.value)
   // Opacity may have been reset after a reload
   onOpacityChange(opacity.value)
-});
+}
+
+// props.viewer.elem may not yet be available, so we need to wait for it
+if (props.viewer.elem) {
+  props.viewer.elem.addEventListener('load', onModelLoad);
+} else {
+  watch(() => props.viewer?.elem, (elem) => {
+    if (elem) elem.addEventListener('load', onModelLoad);
+  });
+}
 </script>
 
 <template>
@@ -158,6 +185,7 @@ props.viewer.elem.addEventListener('load', () => {
 .v-expansion-panel-text__wrapper {
   padding: 0 !important;
 }
+
 .hide-this-icon {
   display: none !important;
 }
