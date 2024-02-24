@@ -1,0 +1,10 @@
+{
+  "append": [
+    "assets/fox.glb.license",
+    "LICENSE"
+  ],
+  "replace": {
+    "bare-path@2.1.0": "./node_modules/bare-path/LICENSE",
+    "rc@1.2.8": "./node_modules/rc/LICENSE.MIT"
+  }
+}

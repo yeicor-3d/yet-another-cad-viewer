@@ -128,7 +128,7 @@ function toggleSelection() {
 
 <template>
   <div class="select-parent">
-    <v-btn icon="" @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
+    <v-btn icon @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
       <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
     </v-btn>
     <v-select class="select-only" variant="underlined" :items="['Faces', 'Edges', 'Vertices']" v-model="selectFilter"/>

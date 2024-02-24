@@ -11,20 +11,20 @@ let io = new WebIO();
  * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
 export async function mergePartial(glb: Uint8Array, name: string, document: Document): Promise<Document> {
-
+    // Load the new document
     let newDoc = await io.readBinary(glb);
 
+    // Remove any previous model with the same name and ensure consistent names
     // noinspection TypeScriptValidateJSTypes
     await newDoc.transform(dropByName(name), setNames(name));
 
-    let merged = document.merge(newDoc);
-
-    // noinspection TypeScriptValidateJSTypes
-    return await merged.transform(mergeScenes()); // Single scene & buffer required!
+    // Merge the new document into the current one
+    return document.merge(newDoc);
 }
 
 export async function mergeFinalize(document: Document): Promise<Document> {
-    return await document.transform(unpartition());
+    // Single scene & buffer required before loading & rendering
+    return await document.transform(mergeScenes(), unpartition());
 }
 
 export async function toBuffer(doc: Document): Promise<Uint8Array> {

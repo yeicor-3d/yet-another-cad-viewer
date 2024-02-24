@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import {VBtn, VDivider} from "vuetify/lib/components";
+import {
+  VBtn,
+  VCard,
+  VCardText,
+  VDialog,
+  VDivider,
+  VSpacer,
+  VToolbar,
+  VToolbarTitle
+} from "vuetify/lib/components";
 import {Ref, ref, Suspense} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
-import {mdiCrosshairsGps, mdiDownload, mdiGithub, mdiProjector} from '@mdi/js'
+import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 import {SceneMgrRefData} from "../misc/scene";
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
 import Selection from "./Selection.vue";
+import LicensesDialogContent from "./LicensesDialogContent.vue";
 
 
 let props = defineProps<{ refSData: SceneMgrRefData }>();
@@ -77,10 +87,10 @@ async function openGithub() {
   <orientation-gizmo :scene="props.refSData.viewerScene" v-if="props.refSData.viewerScene !== null"/>
   <v-divider/>
   <h5>Camera</h5>
-  <v-btn icon="" @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
+  <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
     <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
   </v-btn>
-  <v-btn icon="" @click="centerCamera">
+  <v-btn icon @click="centerCamera">
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
   <v-divider/>
@@ -90,11 +100,37 @@ async function openGithub() {
     <template #fallback>Loading...</template>
   </Suspense>
   <v-divider/>
+  <v-spacer></v-spacer>
   <h5>Extras</h5>
-  <v-btn icon="" @click="downloadSceneGlb">
+  <v-btn icon @click="downloadSceneGlb">
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
-  <v-btn icon="" @click="openGithub">
+  <v-dialog id="licenses-dialog" fullscreen>
+    <template v-slot:activator="{ props }">
+      <v-btn icon v-bind="props">
+        <svg-icon type="mdi" :path="mdiLicense"/>
+      </v-btn>
+    </template>
+    <template v-slot:default="{ isActive }">
+      <v-card>
+        <v-toolbar>
+          <v-toolbar-title>Licenses</v-toolbar-title>
+          <v-spacer>
+          </v-spacer>
+          <v-btn icon @click="isActive.value = false">
+            <svg-icon type="mdi" :path="mdiClose"/>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          <Suspense>
+            <licenses-dialog-content/>
+            <template #fallback>Loading...</template>
+          </Suspense>
+        </v-card-text>
+      </v-card>
+    </template>
+  </v-dialog>
+  <v-btn icon @click="openGithub">
     <svg-icon type="mdi" :path="mdiGithub"/>
   </v-btn>
   <!-- TODO: Licenses button -->

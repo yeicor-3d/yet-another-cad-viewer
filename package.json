@@ -6,7 +6,8 @@
   "author": "Yeicor",
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report"
+    "build": "yarn update-licenses && parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report",
+    "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
   },
   "dependencies": {
     "@gltf-transform/core": "^3.10.0",
@@ -29,6 +30,7 @@
     "@types/node": "^20.11.17",
     "@types/three": "^0.160.0",
     "buffer": "^5.5.0||^6.0.0",
+    "generate-license-file": "^3.0.1",
     "parcel": "^2.11.0"
   }
 }
