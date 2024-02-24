@@ -24,6 +24,10 @@ import {VExpansionPanel, VExpansionPanels, VExpansionPanelText, VExpansionPanelT
   background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M7 10l5 5 5-5H7z"/></svg>');
 }
 
+.mdi-chevron-up, .mdi-menu-up { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M7 14l5-5 5 5H7z"/></svg>');
+}
+
 .v-overlay--active > .v-overlay__content {
   display: block !important; /* HACK: Fix buggy tooltips not showing? */
 }
