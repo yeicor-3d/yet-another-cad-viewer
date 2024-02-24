@@ -131,7 +131,7 @@ function toggleSelection() {
     <v-btn icon="" @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
       <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
     </v-btn>
-    <v-select class="select-only" variant="underlined" :items="['Faces', 'Edges']" v-model="selectFilter"/>
+    <v-select class="select-only" variant="underlined" :items="['Faces', 'Edges', 'Vertices']" v-model="selectFilter"/>
   </div>
 </template>
 
@@ -151,5 +151,11 @@ function toggleSelection() {
   width: calc(100% - 48px);
   position: relative;
   top: -12px;
+}
+</style>
+
+<style>
+.mdi-chevron-down, .mdi-menu-down { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M7 10l5 5 5-5H7z"/></svg>');
 }
 </style>
