@@ -162,7 +162,7 @@ class Server:
         """Publishes any single-file GLTF object to the server (GLB format recommended)."""
         start = time.time()
         # Precompute the info and send it to the client as if it was a CAD object
-        precomputed_info = self._show_common(name, hashlib.md5(gltf).hexdigest(), start)
+        precomputed_info = self._show_common(name, _hashcode(gltf, **kwargs), start)
         # Also pre-populate the GLTF data for the object API
         publish_to = BufferedPubSub[bytes]()
         publish_to.publish_nowait(gltf)
@@ -191,7 +191,7 @@ class Server:
         # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
         obj = Shape(obj).rotate(Axis.X, -90).wrapped
 
-        self._show_common(name, _hashcode(obj), start, obj)
+        self._show_common(name, _hashcode(obj, **kwargs), start, obj)
 
     async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
