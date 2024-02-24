@@ -7,9 +7,10 @@ import {
   VDivider,
   VSpacer,
   VToolbar,
-  VToolbarTitle
+  VToolbarTitle,
+  VTooltip,
 } from "vuetify/lib/components";
-import {Ref, ref, Suspense} from "vue";
+import {defineAsyncComponent, ref, Ref} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
@@ -19,8 +20,19 @@ import {SceneMgrRefData} from "../misc/scene";
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
-import Selection from "./Selection.vue";
-import LicensesDialogContent from "./LicensesDialogContent.vue";
+import Loading from "../misc/Loading.vue";
+
+const SelectionComponent = defineAsyncComponent({
+  loader: () => import("./Selection.vue"),
+  loadingComponent: () => "Loading...",
+  delay: 0,
+});
+
+const LicensesDialogContent = defineAsyncComponent({
+  loader: () => import("./LicensesDialogContent.vue"),
+  loadingComponent: Loading,
+  delay: 0,
+});
 
 
 let props = defineProps<{ refSData: SceneMgrRefData }>();
@@ -95,10 +107,7 @@ async function openGithub() {
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E)</h5>
-  <Suspense>
-    <selection :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene" v-model="selection"/>
-    <template #fallback>Loading...</template>
-  </Suspense>
+  <selection-component :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene" v-model="selection"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
@@ -122,18 +131,18 @@ async function openGithub() {
           </v-btn>
         </v-toolbar>
         <v-card-text>
-          <Suspense>
-            <licenses-dialog-content/>
-            <template #fallback>Loading...</template>
-          </Suspense>
+          <licenses-dialog-content/>
         </v-card-text>
       </v-card>
     </template>
   </v-dialog>
-  <v-btn icon @click="openGithub">
-    <svg-icon type="mdi" :path="mdiGithub"/>
-  </v-btn>
-  <!-- TODO: Licenses button -->
+  <v-tooltip text="Tooltip">
+    <template v-slot:activator="{ props }">
+      <v-btn v-bind="props" icon @click="openGithub">
+        <svg-icon type="mdi" :path="mdiGithub"/>
+      </v-btn>
+    </template>
+  </v-tooltip>
   <!-- TODO: Tooltips for ALL tools -->
 </template>
 

@@ -6,8 +6,7 @@ import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCursorDefaultClick} from '@mdi/js';
 import type {Intersection, Material, Object3D} from "three";
-
-const {Raycaster} = await import("three");
+import {Raycaster} from "three";
 
 export type MObject3D = Object3D & {
   userData: { noHit?: boolean },

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // License text for all dependencies, only downloaded when/if needed
 // @ts-ignore
-const licenseText = await import("bundle-text:../../assets/licenses.txt");
+import licenseText from "bundle-text:../../assets/licenses.txt";
 </script>
 
 <template>
