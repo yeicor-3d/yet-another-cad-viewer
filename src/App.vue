@@ -1,6 +1,6 @@
 <!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
-import {defineAsyncComponent, ref, Ref} from "vue";
+import {defineAsyncComponent, ref, Ref, shallowRef} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
@@ -23,13 +23,21 @@ let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
 
 let sceneUrl = ref("")
 let viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
-let document = new Document();
+let document = shallowRef(new Document());
+
+async function onModelLoadRequest(model: NetworkUpdateEvent) {
+  await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);
+  document.value = document.value.clone(); // Force update from this component!
+}
+
+function onModelRemoveRequest(name: string) {
+  SceneMgr.removeModel(sceneUrl, document, name);
+  document.value = document.value.clone(); // Force update from this component!
+}
 
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
-networkMgr.addEventListener('update', async (model: NetworkUpdateEvent) => {
-  document = await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);
-});
+networkMgr.addEventListener('update', onModelLoadRequest);
 // Start loading all configured models ASAP
 for (let model of settings.preloadModels) {
   networkMgr.load(model);
@@ -49,7 +57,7 @@ for (let model of settings.preloadModels) {
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
       </template>
-      <models :viewer="viewer"/>
+      <models :viewer="viewer" :document="document" @remove="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->

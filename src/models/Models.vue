@@ -1,28 +1,34 @@
 <script setup lang="ts">
-import {VExpansionPanel, VExpansionPanels, VExpansionPanelText, VExpansionPanelTitle} from "vuetify/lib/components";
+import {VExpansionPanels} from "vuetify/lib/components";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import Loading from "../misc/Loading.vue";
+import {Document, Mesh} from "@gltf-transform/core";
+import {extrasNameKey} from "../misc/gltf";
+import Model from "./Model.vue";
+import {watch, ref} from "vue";
 
-let props = defineProps<{ viewer: typeof ModelViewerWrapper | null }>();
+const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
+const emit = defineEmits<{ remove: [string] }>()
+
+function meshList(document: Document) {
+  return document.getRoot().listMeshes();
+}
+
+function meshName(mesh: Mesh) {
+  return mesh.getExtras()[extrasNameKey]?.toString() ?? 'Unnamed';
+}
+
+function onRemove(mesh: Mesh) {
+  emit('remove', meshName(mesh))
+}
 </script>
 
 <template>
-  <Loading v-if="!props.viewer"/>
-  <v-expansion-panels v-else>
-    <v-expansion-panel key="model-id">
-      <v-expansion-panel-title>? F ? E ? V | Model Name</v-expansion-panel-title>
-      <v-expansion-panel-text>Content</v-expansion-panel-text>
-    </v-expansion-panel>
+  <Loading v-if="!props.document"/>
+  <v-expansion-panels v-else v-for="mesh in meshList(props.document)" :key="meshName(mesh)">
+    <model :mesh="mesh" :viewer="props.viewer" :document="props.document" @remove="onRemove(mesh)"/>
   </v-expansion-panels>
 </template>
-
-<!--suppress CssUnusedSymbol -->
-<style scoped>
-/* Fix bug in hidden expansion panel text next to active expansion panel */
-.v-expansion-panel-title--active + .v-expansion-panel-text {
-  display: flex !important;
-}
-</style>
 
 <style>
 .mdi-chevron-down, .mdi-menu-down { /* HACK: mdi is not fully imported, only required icons... */

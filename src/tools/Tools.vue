@@ -74,7 +74,6 @@ function toggleProjection() {
 }
 
 function centerCamera() {
-  console.log('Centering camera', props.viewer);
   let viewerEl: ModelViewerElement = props.viewer?.elem;
   if (!viewerEl) return;
   viewerEl.updateFraming();

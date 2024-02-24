@@ -130,7 +130,7 @@ function toggleSelection() {
 
 <template>
   <div class="select-parent">
-    <v-btn icon @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
+    <v-btn icon @click="toggleSelection" :color="selectionEnabled ? 'surface-light' : ''">
       <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable Selection Mode' : 'Enable Selection Mode' }}
       </v-tooltip>
       <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>

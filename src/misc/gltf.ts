@@ -1,7 +1,8 @@
-import {Document, Scene, Transform, WebIO} from "@gltf-transform/core";
+import {Document, Scene, Transform, WebIO, Buffer} from "@gltf-transform/core";
 import {unpartition} from "@gltf-transform/functions";
 
 let io = new WebIO();
+export let extrasNameKey = "__yacv_name";
 
 /**
  * Loads a GLB model from a URL and adds it to the document or replaces it if the names match.
@@ -31,32 +32,27 @@ export async function toBuffer(doc: Document): Promise<Uint8Array> {
     return io.writeBinary(doc);
 }
 
+export async function removeModel(name: string, document: Document): Promise<Document> {
+    return await document.transform(dropByName(name));
+}
+
 /** Given a parsed GLTF document and a name, it forces the names of all elements to be identified by the name (or derivatives) */
 function setNames(name: string): Transform {
     return (doc: Document, _: any) => {
         // Do this automatically for all elements changing any name
         for (let elem of doc.getGraph().listEdges().map(e => e.getChild())) {
-            // If setName is available, use it (preserving original names)
-            elem.setName(name + "/" + elem.getName());
-        }
-
-        // Special cases, specify the kind and number ID of primitives
-        let i = 0;
-        for (let mesh of doc.getRoot().listMeshes()) {
-            for (let prim of mesh.listPrimitives()) {
-                let kind = (prim.getMode() === WebGL2RenderingContext.POINTS ? "vertex" :
-                    (prim.getMode() === WebGL2RenderingContext.LINES ? "edge" : "face"));
-                prim.setName(name + "/" + kind + "/" + (i++));
-            }
+            if (!elem.getExtras()) elem.setExtras({});
+            elem.getExtras()[extrasNameKey] = name;
         }
     }
 }
 
 /** Ensures that all elements with the given name are removed from the document */
-function dropByName(name: string): Transform {
+export function dropByName(name: string): Transform {
     return (doc: Document, _: any) => {
         for (let elem of doc.getGraph().listEdges().map(e => e.getChild())) {
-            if (elem.getName().startsWith(name + "/") && !(elem instanceof Scene)) {
+            if (elem.getExtras() == null || elem instanceof Scene || elem instanceof Buffer) continue;
+            if ((elem.getExtras()[extrasNameKey]?.toString() ?? "") == name) {
                 elem.dispose();
             }
         }
