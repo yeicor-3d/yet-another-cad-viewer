@@ -36,7 +36,11 @@ const LicensesDialogContent = defineAsyncComponent({
 
 
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
+
 let selection: Ref<Array<Intersection<typeof MObject3D>>> = ref([]);
+let selectionFaceCount = () => selection.value.filter((s) => s.object.type == "Mesh" || s.object.type == "SkinnedMesh").length
+let selectionEdgeCount = () => selection.value.filter((s) => s.object.type == "Line").length
+let selectionVertexCount = () => selection.value.filter((s) => s.object.type == "Points").length
 
 function syncOrthoCamera(force: boolean) {
   let scene = props.viewer?.scene;
@@ -93,7 +97,6 @@ async function downloadSceneGlb() {
 async function openGithub() {
   window.open('https://github.com/yeicor-3d/yet-another-cad-viewer', '_blank')
 }
-
 </script>
 
 <template>
@@ -111,7 +114,7 @@ async function openGithub() {
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
   <v-divider/>
-  <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E ?V)</h5>
+  <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
   <selection-component :viewer="props.viewer" v-model="selection"/>
   <v-divider/>
   <v-spacer></v-spacer>

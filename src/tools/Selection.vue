@@ -19,7 +19,7 @@ let selectionEnabled = ref(false);
 let selectedMaterials = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let hasListener = false;
 let mouseDownAt: [number, number] | null = null;
-let selectFilter = ref('Faces');
+let selectFilter = ref('Any');
 const ray_caster = new Raycaster();
 
 let selectionMoveListener = (event: MouseEvent) => {
@@ -51,13 +51,17 @@ let selectionListener = (event: MouseEvent) => {
     ray_caster.ray.direction.copy(
         scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
   }
-  console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', ray_caster.ray);
+  // console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', ray_caster.ray);
   const hits = ray_caster.intersectObject(scene, true);
-  console.log(hits)
   let hit = hits.find((hit) => {
-    let isFace = hit.faceIndex !== null;
-    return hit.object.visible && !hit.object.userData.noHit && isFace == (selectFilter.value === 'Faces');
+    const kind = hit.object.type
+    const kindOk = (selectFilter.value === 'Any') ||
+        ((kind === 'Mesh' || kind === 'SkinnedMesh') && selectFilter.value === 'Faces') ||
+        (kind === 'Line' && selectFilter.value === 'Edges') ||
+        (kind === 'Points' && selectFilter.value === 'Vertices');
+    return hit.object.visible && !hit.object.userData.noHit && kindOk;
   }) as Intersection<MObject3D> | undefined;
+  console.log('Hit', hit)
   if (!hit) {
     deselectAll();
   } else {
@@ -137,7 +141,8 @@ function toggleSelection() {
     </v-btn>
     <v-tooltip :text="'Select Only '  + selectFilter" :open-on-click="false">
       <template v-slot:activator="{ props }">
-        <v-select v-bind="props" class="select-only" variant="underlined" :items="['Faces', 'Edges', 'Vertices']"
+        <!-- TODO: Keyboard shortcuts for fast selection (& other tools) -->
+        <v-select v-bind="props" class="select-only" variant="underlined" :items="['Any', 'Faces', 'Edges', 'Vertices']"
                   v-model="selectFilter"/>
       </template>
     </v-tooltip>
