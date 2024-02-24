@@ -73,17 +73,16 @@ function toggleProjection() {
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
 }
 
-function centerCamera() {
-  let viewerEl: ModelViewerElement = props.viewer?.elem;
-  if (!viewerEl) return;
-  viewerEl.updateFraming();
+async function centerCamera() {
+  let viewerEl: ModelViewerElement = props.viewer.elem;
+  await viewerEl.updateFraming();
+  viewerEl.zoom(3);
 }
 
 
 async function downloadSceneGlb() {
-  let viewerEl: ModelViewerElement = props.viewer?.elem;
-  if (!viewerEl) return;
-  const glTF = await viewerEl.exportScene();
+  let viewerEl: ModelViewerElement = props.viewer.elem;
+  const glTF = await viewerEl.exportScene({onlyVisible: true, binary: true});
   const file = new File([glTF], "export.glb");
   const link = document.createElement("a");
   link.download = file.name;

@@ -5,7 +5,6 @@ import Loading from "../misc/Loading.vue";
 import {Document, Mesh} from "@gltf-transform/core";
 import {extrasNameKey} from "../misc/gltf";
 import Model from "./Model.vue";
-import {watch, ref} from "vue";
 
 const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [string] }>()

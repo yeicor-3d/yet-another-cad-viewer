@@ -5,6 +5,7 @@ import {
   VExpansionPanel,
   VExpansionPanelText,
   VExpansionPanelTitle,
+  VSlider,
   VSpacer,
   VTooltip
 } from "vuetify/lib/components";
@@ -12,9 +13,8 @@ import {extrasNameKey} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
 import {watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
-import {mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
+import {mdiCircleOpacity, mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
-import type {ModelViewerElement, RGBA} from '@google/model-viewer';
 
 const props = defineProps<{ mesh: Mesh, viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [] }>()
@@ -26,22 +26,17 @@ let edgeCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2Re
 let vertexCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length
 
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
-
-let hasListener = false;
+const opacity = defineModel<number>("opacity", {default: 1});
 
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   //console.log('Enabled features may have changed', newEnabledFeatures)
   let scene = props.viewer?.scene;
-  let elem = props.viewer?.elem;
-  if (!scene || !scene._model || !elem) return;
-  if (!hasListener) { // Make sure we listen for reloads and re-apply enabled features
-    elem.addEventListener('load', () => onEnabledFeaturesChange(enabledFeatures.value));
-    hasListener = true;
-  }
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
-  scene._model.traverse((child) => {
+  sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
       let childIsEdge = child.type == 'Line'
@@ -56,8 +51,37 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   });
   scene.queueRender()
 }
-
 watch(enabledFeatures, onEnabledFeaturesChange);
+
+function onOpacityChange(newOpacity: number) {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+  // Iterate all primitives of the mesh and set their opacity based on the enabled features
+  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
+  // of not actually removing the primitives from the scene graph
+  console.log('Opacity may have changed', newOpacity)
+  sceneModel.traverse((child) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      if (child.material) {
+        console.log('Setting opacity of', child)
+        child.material.transparent = newOpacity < 1;
+        child.material.opacity = newOpacity;
+        child.material.needsUpdate = true;
+      }
+    }
+  });
+  scene.queueRender()
+}
+watch(opacity, onOpacityChange);
+
+// props.viewer.elem is already available as a model has been loaded...
+props.viewer.elem.addEventListener('load', () => {
+  // Enabled features may have been reset after a reload
+  onEnabledFeaturesChange(enabledFeatures.value)
+  // Opacity may have been reset after a reload
+  onOpacityChange(opacity.value)
+});
 </script>
 
 <template>
@@ -85,7 +109,11 @@ watch(enabledFeatures, onEnabledFeaturesChange);
       </v-btn>
     </v-expansion-panel-title>
     <v-expansion-panel-text>
-      TODO: Settings...
+      <v-slider v-model="opacity" hide-details min="0" max="1" :step="0.1">
+        <template v-slot:prepend>
+          <svg-icon type="mdi" :path="mdiCircleOpacity"></svg-icon>
+        </template>
+      </v-slider>
     </v-expansion-panel-text>
   </v-expansion-panel>
 </template>
@@ -97,6 +125,10 @@ watch(enabledFeatures, onEnabledFeaturesChange);
 }
 
 /* More compact accordions */
+.v-expansion-panel {
+  margin-top: 0 !important;
+}
+
 .v-expansion-panel-title {
   padding: 0;
 }
@@ -123,6 +155,9 @@ watch(enabledFeatures, onEnabledFeaturesChange);
 </style>
 
 <style>
+.v-expansion-panel-text__wrapper {
+  padding: 0 !important;
+}
 .hide-this-icon {
   display: none !important;
 }
