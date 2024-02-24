@@ -100,23 +100,29 @@ async function openGithub() {
   <v-divider/>
   <h5>Camera</h5>
   <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
+    <v-tooltip activator="parent">Toggle Projection<br/>(currently
+      {{ toggleProjectionText === 'PERSP' ? 'perspective' : 'orthographic' }})
+    </v-tooltip>
     <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
   </v-btn>
   <v-btn icon @click="centerCamera">
+    <v-tooltip activator="parent">Recenter Camera</v-tooltip>
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
   <v-divider/>
-  <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E)</h5>
+  <h5>Selection ({{ selection.filter((s) => s.face).length }}F {{ selection.filter((s) => !s.face).length }}E ?V)</h5>
   <selection-component :viewer="props.refSData.viewer" :scene="props.refSData.viewerScene" v-model="selection"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
   <v-btn icon @click="downloadSceneGlb">
+    <v-tooltip activator="parent">Download Scene</v-tooltip>
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
   <v-dialog id="licenses-dialog" fullscreen>
     <template v-slot:activator="{ props }">
       <v-btn icon v-bind="props">
+        <v-tooltip activator="parent">Show Licenses</v-tooltip>
         <svg-icon type="mdi" :path="mdiLicense"/>
       </v-btn>
     </template>
@@ -136,14 +142,10 @@ async function openGithub() {
       </v-card>
     </template>
   </v-dialog>
-  <v-tooltip text="Tooltip">
-    <template v-slot:activator="{ props }">
-      <v-btn v-bind="props" icon @click="openGithub">
-        <svg-icon type="mdi" :path="mdiGithub"/>
-      </v-btn>
-    </template>
-  </v-tooltip>
-  <!-- TODO: Tooltips for ALL tools -->
+  <v-btn icon @click="openGithub">
+    <v-tooltip activator="parent">Open GitHub</v-tooltip>
+    <svg-icon type="mdi" :path="mdiGithub"/>
+  </v-btn>
 </template>
 
 <!--suppress CssUnusedSymbol -->

@@ -22,4 +22,5 @@ app.use(vuetify)
 app.mount('body')
 
 // Start non-blocking loading of Vuetify styles
-import('vuetify/lib/styles/main.sass');
+// @ts-ignore
+import('vuetify/dist/vuetify.css');

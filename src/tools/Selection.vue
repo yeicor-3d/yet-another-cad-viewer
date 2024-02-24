@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {defineModel, ref} from "vue";
-import {VBtn, VSelect} from "vuetify/lib/components";
+import {VBtn, VSelect, VTooltip} from "vuetify/lib/components";
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
@@ -128,9 +128,16 @@ function toggleSelection() {
 <template>
   <div class="select-parent">
     <v-btn icon @click="toggleSelection" :variant="selectionEnabled ? 'tonal' : 'elevated'">
+      <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable Selection Mode' : 'Enable Selection Mode' }}
+      </v-tooltip>
       <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
     </v-btn>
-    <v-select class="select-only" variant="underlined" :items="['Faces', 'Edges', 'Vertices']" v-model="selectFilter"/>
+    <v-tooltip :text="'Select Only '  + selectFilter" :open-on-click="false">
+      <template v-slot:activator="{ props }">
+        <v-select v-bind="props" class="select-only" variant="underlined" :items="['Faces', 'Edges', 'Vertices']"
+                  v-model="selectFilter"/>
+      </template>
+    </v-tooltip>
   </div>
 </template>
 
@@ -150,11 +157,5 @@ function toggleSelection() {
   width: calc(100% - 48px);
   position: relative;
   top: -12px;
-}
-</style>
-
-<style>
-.mdi-chevron-down, .mdi-menu-down { /* HACK: mdi is not fully imported, only required icons... */
-  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M7 10l5 5 5-5H7z"/></svg>');
 }
 </style>

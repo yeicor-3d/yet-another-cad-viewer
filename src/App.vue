@@ -6,7 +6,7 @@ import Loading from "./misc/Loading.vue";
 import ModelViewerOverlay from "./viewer/ModelViewerOverlay.vue";
 import Tools from "./tools/Tools.vue";
 import Models from "./models/Models.vue";
-import {VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
+import {VLayout, VMain, VToolbarTitle, VTooltip, VBtn} from "vuetify/lib/components";
 import {settings} from "./misc/settings";
 import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
 import {SceneMgr} from "./misc/scene";
