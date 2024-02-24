@@ -49,7 +49,7 @@ export class NetworkManager extends EventTarget {
             console.error("WebSocket error", event);
         }
         ws.onclose = () => {
-            console.trace("WebSocket closed, reconnecting very soon");
+            //console.trace("WebSocket closed, reconnecting very soon");
             setTimeout(() => this.monitorWebSocket(url), settings.checkServerEveryMs);
         }
     }

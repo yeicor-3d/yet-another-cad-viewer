@@ -15,9 +15,12 @@ export async function mergePartial(url: string, name: string, document: Document
     // Load the new document
     let newDoc = await io.read(url);
 
-    // Remove any previous model with the same name and ensure consistent names
+    // Remove any previous model with the same name
+    await document.transform(dropByName(name));
+
+    // Ensure consistent names
     // noinspection TypeScriptValidateJSTypes
-    await newDoc.transform(dropByName(name), setNames(name));
+    await newDoc.transform(setNames(name));
 
     // Merge the new document into the current one
     return document.merge(newDoc);
@@ -38,18 +41,19 @@ export async function removeModel(name: string, document: Document): Promise<Doc
 
 /** Given a parsed GLTF document and a name, it forces the names of all elements to be identified by the name (or derivatives) */
 function setNames(name: string): Transform {
-    return (doc: Document, _: any) => {
+    return (doc: Document) => {
         // Do this automatically for all elements changing any name
         for (let elem of doc.getGraph().listEdges().map(e => e.getChild())) {
             if (!elem.getExtras()) elem.setExtras({});
             elem.getExtras()[extrasNameKey] = name;
         }
+        return doc;
     }
 }
 
 /** Ensures that all elements with the given name are removed from the document */
-export function dropByName(name: string): Transform {
-    return (doc: Document, _: any) => {
+function dropByName(name: string): Transform {
+    return (doc: Document) => {
         for (let elem of doc.getGraph().listEdges().map(e => e.getChild())) {
             if (elem.getExtras() == null || elem instanceof Scene || elem instanceof Buffer) continue;
             if ((elem.getExtras()[extrasNameKey]?.toString() ?? "") == name) {

@@ -5,12 +5,14 @@ import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
 import Models from "./models/Models.vue";
-import {VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
+import {VBtn, VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
 import {settings} from "./misc/settings";
 import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
 import {SceneMgr} from "./misc/scene";
 import {Document} from "@gltf-transform/core";
 import type ModelViewerWrapperT from "./viewer/ModelViewerWrapper.vue";
+import {mdiPlus} from '@mdi/js'
+import SvgIcon from '@jamescoyle/vue-icon';
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({
@@ -42,6 +44,11 @@ networkMgr.addEventListener('update', onModelLoadRequest);
 for (let model of settings.preloadModels) {
   networkMgr.load(model);
 }
+
+async function loadModelManual() {
+  const modelUrl = prompt("For an improved experience in viewing CAD/GLTF models with automatic updates, it's recommended to use the official yacv_server Python package. This ensures seamless serving of models and automatic updates.\n\nOtherwise, enter the URL of the model to load:");
+  if (modelUrl) await networkMgr.load(modelUrl);
+}
 </script>
 
 <template>
@@ -56,6 +63,11 @@ for (let model of settings.preloadModels) {
     <sidebar :opened-init="openSidebarsByDefault" side="left">
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
+      </template>
+      <template #toolbar-items>
+        <v-btn icon="" @click="loadModelManual">
+          <svg-icon type="mdi" :path="mdiPlus"/>
+        </v-btn>
       </template>
       <models :viewer="viewer" :document="document" @remove="onModelRemoveRequest"/>
     </sidebar>

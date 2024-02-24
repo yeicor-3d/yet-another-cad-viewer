@@ -26,7 +26,7 @@ def tessellate(
         angular_tolerance: float = 0.1,
         faces: bool = True,
         edges: bool = True,
-        vertices: bool = False,
+        vertices: bool = True,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
     mgr = GLTFMgr()
@@ -40,16 +40,17 @@ def tessellate(
             _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
             if edges:
                 for edge in face.edges():
-                    edge_to_faces[edge] = edge_to_faces.get(edge, []) + [face.wrapped]
+                    edge_to_faces[edge.wrapped] = edge_to_faces.get(edge.wrapped, []) + [face.wrapped]
             if vertices:
                 for vertex in face.vertices():
                     vertex_to_faces[vertex.wrapped] = vertex_to_faces.get(vertex.wrapped, []) + [face.wrapped]
     if edges:
         for edge in shape.edges():
-            _tessellate_edge(mgr, edge.wrapped, edge_to_faces[edge], angular_tolerance, angular_tolerance)
+            _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), angular_tolerance,
+                             angular_tolerance)
     if vertices:
         for vertex in shape.vertices():
-            _tessellate_vertex(mgr, vertex_to_faces[vertex], vertex.wrapped)
+            _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []))
 
     return mgr.gltf
 

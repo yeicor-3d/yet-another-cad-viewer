@@ -11,10 +11,10 @@ import {
 import {extrasNameKey} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
 import {watch} from "vue";
-
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
+import type {ModelViewerElement, RGBA} from '@google/model-viewer';
 
 const props = defineProps<{ mesh: Mesh, viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [] }>()
@@ -32,9 +32,10 @@ let hasListener = false;
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   //console.log('Enabled features may have changed', newEnabledFeatures)
   let scene = props.viewer?.scene;
-  if (!scene || !scene._model) return;
+  let elem = props.viewer?.elem;
+  if (!scene || !scene._model || !elem) return;
   if (!hasListener) { // Make sure we listen for reloads and re-apply enabled features
-    props.viewer.elem.addEventListener('load', () => onEnabledFeaturesChange(enabledFeatures.value));
+    elem.addEventListener('load', () => onEnabledFeaturesChange(enabledFeatures.value));
     hasListener = true;
   }
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
