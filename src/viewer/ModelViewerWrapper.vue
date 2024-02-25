@@ -4,18 +4,16 @@
 <script setup lang="ts">
 import {settings} from "../misc/settings";
 import {onMounted} from "vue";
-import {$scene} from "@google/model-viewer/lib/model-viewer-base";
+import {$scene, $renderer} from "@google/model-viewer/lib/model-viewer-base";
 import Loading from "../misc/Loading.vue";
 import {ref} from "vue";
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
+import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer";
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 
-const emit = defineEmits<{
-  // noinspection ThisExpressionReferencesGlobalObjectJS
-  load: []
-}>()
+const emit = defineEmits<{ load: [] }>()
 
 const props = defineProps({
   src: String
@@ -23,7 +21,8 @@ const props = defineProps({
 
 const elem = ref<ModelViewerElement | null>(null);
 const scene = ref<ModelScene | null>(null);
-defineExpose({elem, scene});
+const renderer = ref<Renderer | null>(null);
+defineExpose({elem, scene, renderer});
 
 onMounted(() => {
   elem.value.addEventListener('load', () => {
@@ -34,6 +33,7 @@ onMounted(() => {
       if (banner) banner.remove();
       // Set the scene
       scene.value = elem.value[$scene] as ModelScene;
+      renderer.value = elem.value[$renderer] as Renderer;
       // Emit the load event
       emit('load')
     }

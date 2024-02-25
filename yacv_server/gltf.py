@@ -55,7 +55,7 @@ class GLTFMgr:
         new_material: Material
         if kind == "face":
             new_material = Material(name="face", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
-                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1]))
+                baseColorTexture=TextureInfo(index=0), baseColorFactor=[1, 1, 0.5, 1]), doubleSided=True)
         elif kind == "edge":
             new_material = Material(name="edge", alphaCutoff=None, pbrMetallicRoughness=PbrMetallicRoughness(
                 baseColorFactor=[0, 0, 0.5, 1]))

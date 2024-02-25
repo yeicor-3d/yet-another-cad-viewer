@@ -10,7 +10,6 @@ import {
   VToolbarTitle,
   VTooltip,
 } from "vuetify/lib/components";
-import {defineAsyncComponent, ref, Ref} from "vue";
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
@@ -21,6 +20,7 @@ import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "./viewer/ModelViewerWrapper.vue";
+import {defineAsyncComponent, Ref, ref} from "vue";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -150,6 +150,7 @@ async function openGithub() {
     <v-tooltip activator="parent">Open GitHub</v-tooltip>
     <svg-icon type="mdi" :path="mdiGithub"/>
   </v-btn>
+  <div ref="statsHolder"></div>
 </template>
 
 <!--suppress CssUnusedSymbol -->

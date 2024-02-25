@@ -15,6 +15,7 @@ import {watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {mdiCircleOpacity, mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
+import type {WebGLProgramParametersWithUniforms, WebGLRenderer} from "three";
 
 const props = defineProps<{ mesh: Mesh, viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [] }>()
@@ -85,9 +86,13 @@ function onModelLoad() {
   // of not actually removing the primitives from the scene graph
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
-      // if (child.type == 'Line') child.material.linewidth = 2; // Not supported in WebGL2
+      // if (child.type == 'Line') {
+      // child.material.linewidth = 3; // Not supported in WebGL2
+      // If wide lines are really needed, we need https://threejs.org/examples/?q=line#webgl_lines_fat
+      // }
       if (child.type == 'Points') {
         child.material.size = 5;
+        child.material.needsUpdate = true;
       }
     }
   });
