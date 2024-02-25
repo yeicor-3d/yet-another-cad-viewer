@@ -19,7 +19,7 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
     bubbleSizeSeconday: expectedParent.clientWidth / 14,
     fontSize: (expectedParent.clientWidth / 10) + "px"
   });
-  // HACK: Swap axes to match A-Frame
+  // HACK: Swap axes to fake the CAD orientation
   for (let swap of [["y", "-z"], ["z", "-y"], ["z", "-z"]]) {
     let indexA = gizmo.bubbles.findIndex((bubble) => bubble.axis == swap[0])
     let indexB = gizmo.bubbles.findIndex((bubble) => bubble.axis == swap[1])

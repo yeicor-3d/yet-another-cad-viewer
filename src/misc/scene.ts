@@ -1,6 +1,8 @@
 import {Ref, ShallowRef} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
+import {newAxes} from "./helpers";
+import { Matrix4, Vector3 } from 'three';
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
@@ -15,6 +17,16 @@ export class SceneMgr {
         await this.showCurrentDoc(sceneUrl, document);
 
         console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
+
+        if (name !== "__helpers") {
+            // Add a helper axes to the scene
+            let helpersDoc = new Document();
+            // TODO: Get bounding box of the model and use it to set the size of the helpers
+            newAxes(helpersDoc, new Vector3(10, 10, 10), new Matrix4());
+            let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
+            await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
+        }
+
         return document;
     }
 

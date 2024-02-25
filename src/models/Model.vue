@@ -15,7 +15,6 @@ import {watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {mdiCircleOpacity, mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
-import type {WebGLProgramParametersWithUniforms, WebGLRenderer} from "three";
 
 const props = defineProps<{ mesh: Mesh, viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [] }>()
@@ -23,7 +22,7 @@ const emit = defineEmits<{ remove: [] }>()
 let modelName = props.mesh.getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
 
 let faceCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length
-let edgeCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.LINE_STRIP).length
+let edgeCount = props.mesh.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]).length
 let vertexCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length
 
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
@@ -40,7 +39,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
-      let childIsEdge = child.type == 'Line'
+      let childIsEdge = child.type == 'Line' || child.type == 'LineSegments'
       let childIsVertex = child.type == 'Points'
       if (childIsFace || childIsEdge || childIsVertex) {
         let visible = newEnabledFeatures.includes(childIsFace ? 0 : childIsEdge ? 1 : childIsVertex ? 2 : -1);
@@ -62,7 +61,7 @@ function onOpacityChange(newOpacity: number) {
   // Iterate all primitives of the mesh and set their opacity based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
-  console.log('Opacity may have changed', newOpacity)
+  // console.log('Opacity may have changed', newOpacity)
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material && child.material.opacity !== newOpacity) {
@@ -86,7 +85,7 @@ function onModelLoad() {
   // of not actually removing the primitives from the scene graph
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
-      // if (child.type == 'Line') {
+      // if (child.type == 'Line' || child.type == 'LineSegments') {
       // child.material.linewidth = 3; // Not supported in WebGL2
       // If wide lines are really needed, we need https://threejs.org/examples/?q=line#webgl_lines_fat
       // }
