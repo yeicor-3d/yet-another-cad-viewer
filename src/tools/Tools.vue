@@ -36,6 +36,7 @@ const LicensesDialogContent = defineAsyncComponent({
 
 
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
+const emit = defineEmits<{ findModel: [string] }>()
 
 let selection: Ref<Array<Intersection<typeof MObject3D>>> = ref([]);
 let selectionFaceCount = () => selection.value.filter((s) => s.object.type == "Mesh" || s.object.type == "SkinnedMesh").length
@@ -115,7 +116,7 @@ async function openGithub() {
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
-  <selection-component :viewer="props.viewer" v-model="selection"/>
+  <selection-component :viewer="props.viewer" v-model="selection" @findModel="(name) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>

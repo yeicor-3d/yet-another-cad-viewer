@@ -25,17 +25,22 @@ const emit = defineEmits<{ remove: [] }>()
 
 let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
 
+// Reactive properties
+const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
+const opacity = defineModel<number>("opacity", {default: 1});
+// TODO: Clipping planes (+ stencil!)
+
+// Count the number of faces, edges and vertices
 let faceCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length).reduce((a, b) => a + b, 0)
 let edgeCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]).length).reduce((a, b) => a + b, 0)
 let vertexCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length).reduce((a, b) => a + b, 0)
 
-const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
-const opacity = defineModel<number>("opacity", {default: 1});
-
+// Set initial defaults for the enabled features
 if (faceCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
 if (edgeCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
 if (vertexCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
 
+// Listeners for changes in the properties (or viewer reloads)
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   //console.log('Enabled features may have changed', newEnabledFeatures)
   let scene = props.viewer?.scene;
@@ -106,7 +111,6 @@ function onModelLoad() {
   scene.queueRender()
 
   // Furthermore...
-
   // Enabled features may have been reset after a reload
   onEnabledFeaturesChange(enabledFeatures.value)
   // Opacity may have been reset after a reload
@@ -124,7 +128,7 @@ if (props.viewer.elem) {
 </script>
 
 <template>
-  <v-expansion-panel>
+  <v-expansion-panel :value="modelName">
     <v-expansion-panel-title expand-icon="hide-this-icon" collapse-icon="hide-this-icon">
       <v-btn-toggle v-model="enabledFeatures" multiple @click.stop color="surface-light">
         <v-btn icon>

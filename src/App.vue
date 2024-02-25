@@ -26,6 +26,7 @@ let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
 let sceneUrl = ref("")
 let viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
 let document = shallowRef(new Document());
+let models: Ref<InstanceType<typeof Models> | null> = ref(null)
 
 async function onModelLoadRequest(model: NetworkUpdateEvent) {
   await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);
@@ -35,6 +36,10 @@ async function onModelLoadRequest(model: NetworkUpdateEvent) {
 function onModelRemoveRequest(name: string) {
   SceneMgr.removeModel(sceneUrl, document, name);
   document.value = document.value.clone(); // Force update from this component!
+}
+
+function onFindModel(name: string) {
+  Models.value.findModel(name);
 }
 
 // Set up the load model event listener
@@ -69,7 +74,7 @@ async function loadModelManual() {
           <svg-icon type="mdi" :path="mdiPlus"/>
         </v-btn>
       </template>
-      <models :viewer="viewer" :document="document" @remove="onModelRemoveRequest"/>
+      <models ref="models" :viewer="viewer" :document="document" @remove="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
@@ -77,7 +82,7 @@ async function loadModelManual() {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :viewer="viewer"/>
+      <tools :viewer="viewer" @findModel="(name) => models.findModel(name)"/>
     </sidebar>
 
   </v-layout>

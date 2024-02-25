@@ -5,9 +5,12 @@ import Loading from "../misc/Loading.vue";
 import {Document, Mesh} from "@gltf-transform/core";
 import {extrasNameKey} from "../misc/gltf";
 import Model from "./Model.vue";
+import {ref} from "vue";
 
 const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [string] }>()
+
+let expandedNames = ref<Array<string>>([]);
 
 function meshesList(document: Document): Array<Array<Mesh>> {
   // Grouped by shared name
@@ -30,11 +33,19 @@ function meshName(mesh: Mesh) {
 function onRemove(mesh: Mesh) {
   emit('remove', meshName(mesh))
 }
+
+function findModel(name: string) {
+  console.log('Find model', name);
+  if (!expandedNames.value.includes(name)) expandedNames.value.push(name);
+  console.log('Expanded', expandedNames.value);
+}
+
+defineExpose({findModel})
 </script>
 
 <template>
   <Loading v-if="!props.document"/>
-  <v-expansion-panels v-else v-for="meshes in meshesList(props.document)" :key="meshName(meshes[0])">
+  <v-expansion-panels v-else v-for="meshes in meshesList(props.document)" :key="meshName(meshes[0])" v-model="expandedNames" multiple>
     <model :meshes="meshes" :viewer="props.viewer" :document="props.document" @remove="onRemove(meshes[0])"/>
   </v-expansion-panels>
 </template>
