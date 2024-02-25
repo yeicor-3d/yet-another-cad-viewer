@@ -1,8 +1,8 @@
 import {Ref, ShallowRef} from 'vue';
 import {Document} from '@gltf-transform/core';
-import {mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
-import {newAxes} from "./helpers";
-import { Matrix4, Vector3 } from 'three';
+import {extrasNameKey, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
+import {newAxes, newGridBox} from "./helpers";
+import {Matrix4, Vector3} from 'three';
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
@@ -13,21 +13,47 @@ export class SceneMgr {
         // Start merging into the current document, replacing or adding as needed
         document.value = await mergePartial(url, name, document.value);
 
-        // Display the final fully loaded model
-        await this.showCurrentDoc(sceneUrl, document);
+        if (name !== "__helpers") {
+            // Reload the helpers to fit the new model
+            await this.reloadHelpers(sceneUrl, document);
+        } else {
+            // Display the final fully loaded model
+            await this.showCurrentDoc(sceneUrl, document);
+        }
 
         console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
 
-        if (name !== "__helpers") {
-            // Add a helper axes to the scene
-            let helpersDoc = new Document();
-            // TODO: Get bounding box of the model and use it to set the size of the helpers
-            newAxes(helpersDoc, new Vector3(10, 10, 10), new Matrix4());
-            let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-            await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
-        }
-
         return document;
+    }
+
+    private static async reloadHelpers(sceneUrl: Ref<string>, document: ShallowRef<Document>) {
+        // Get bounding box of the model and use it to set the size of the helpers
+        let bbMin: number[] = [1e6, 1e6, 1e6];
+        let bbMax: number[] = [-1e6, -1e6, -1e6];
+        document.value.getRoot().listNodes().forEach(node => {
+            if ((node.getExtras()[extrasNameKey] ?? "__helpers") === "__helpers") return;
+            let transform = new Matrix4(...node.getWorldMatrix());
+            for (let prim of node.getMesh()?.listPrimitives() ?? []) {
+                let accessor = prim.getAttribute('POSITION');
+                if (!accessor) continue;
+                let objMin = new Vector3(...accessor.getMin([0, 0, 0]))
+                    .applyMatrix4(transform);
+                let objMax = new Vector3(...accessor.getMax([0, 0, 0]))
+                    .applyMatrix4(transform);
+                bbMin = bbMin.map((v, i) => Math.min(v, objMin.getComponent(i)));
+                bbMax = bbMax.map((v, i) => Math.max(v, objMax.getComponent(i)));
+            }
+        });
+        let bbSize = new Vector3().fromArray(bbMax).sub(new Vector3().fromArray(bbMin));
+        let bbCenter = new Vector3().fromArray(bbMin).add(bbSize.clone().multiplyScalar(0.5));
+        let bbTransform = new Matrix4().makeTranslation(bbCenter.x, bbCenter.y, bbCenter.z);
+
+        // Create the helper axes and grid box
+        let helpersDoc = new Document();
+        newAxes(helpersDoc, bbSize.clone().multiplyScalar(0.5), bbTransform);
+        newGridBox(helpersDoc, bbSize, bbTransform);
+        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
+        await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
     }
 
     /** Removes a model from the viewer */
@@ -37,10 +63,11 @@ export class SceneMgr {
         // Remove the model from the document
         document.value = await removeModel(name, document.value)
 
-        // Display the final fully loaded model
-        await this.showCurrentDoc(sceneUrl, document);
-
         console.log("Model", name, "removed in", performance.now() - loadStart, "ms");
+
+        // Reload the helpers to fit the new model (will also show the document)
+        await this.reloadHelpers(sceneUrl, document);
+
         return document;
     }
 

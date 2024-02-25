@@ -9,8 +9,18 @@ import Model from "./Model.vue";
 const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
 const emit = defineEmits<{ remove: [string] }>()
 
-function meshList(document: Document) {
-  return document.getRoot().listMeshes();
+function meshesList(document: Document): Array<Array<Mesh>> {
+  // Grouped by shared name
+  return document.getRoot().listMeshes().reduce((acc, mesh) => {
+    let name = mesh.getExtras()[extrasNameKey]?.toString() ?? 'Unnamed';
+    let group = acc.find((group) => meshName(group[0]) === name);
+    if (group) {
+      group.push(mesh);
+    } else {
+      acc.push([mesh]);
+    }
+    return acc;
+  }, [] as Array<Array<Mesh>>);
 }
 
 function meshName(mesh: Mesh) {
@@ -24,8 +34,8 @@ function onRemove(mesh: Mesh) {
 
 <template>
   <Loading v-if="!props.document"/>
-  <v-expansion-panels v-else v-for="mesh in meshList(props.document)" :key="meshName(mesh)">
-    <model :mesh="mesh" :viewer="props.viewer" :document="props.document" @remove="onRemove(mesh)"/>
+  <v-expansion-panels v-else v-for="meshes in meshesList(props.document)" :key="meshName(meshes[0])">
+    <model :meshes="meshes" :viewer="props.viewer" :document="props.document" @remove="onRemove(meshes[0])"/>
   </v-expansion-panels>
 </template>
 

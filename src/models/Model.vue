@@ -16,17 +16,25 @@ import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {mdiCircleOpacity, mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 
-const props = defineProps<{ mesh: Mesh, viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
+const props = defineProps<{
+  meshes: Array<Mesh>,
+  viewer: InstanceType<typeof ModelViewerWrapper> | null,
+  document: Document
+}>();
 const emit = defineEmits<{ remove: [] }>()
 
-let modelName = props.mesh.getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
+let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
 
-let faceCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length
-let edgeCount = props.mesh.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]).length
-let vertexCount = props.mesh.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length
+let faceCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length).reduce((a, b) => a + b, 0)
+let edgeCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]).length).reduce((a, b) => a + b, 0)
+let vertexCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length).reduce((a, b) => a + b, 0)
 
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
 const opacity = defineModel<number>("opacity", {default: 1});
+
+if (faceCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
+if (edgeCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
+if (vertexCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
 
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   //console.log('Enabled features may have changed', newEnabledFeatures)
