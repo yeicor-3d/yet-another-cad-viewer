@@ -9,15 +9,15 @@ import Loading from "../misc/Loading.vue";
 import {ref} from "vue";
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
+import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
 import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer";
+import {Vector3} from "three";
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 
 const emit = defineEmits<{ load: [] }>()
 
-const props = defineProps({
-  src: String
-});
+const props = defineProps<{ src: string }>();
 
 const elem = ref<ModelViewerElement | null>(null);
 const scene = ref<ModelScene | null>(null);
@@ -25,7 +25,7 @@ const renderer = ref<Renderer | null>(null);
 defineExpose({elem, scene, renderer});
 
 onMounted(() => {
-  elem.value.addEventListener('load', () => {
+  elem.value.addEventListener('load', async () => {
     if (elem.value) {
       // Delete the initial load banner
       let banner = elem.value.querySelector('.initial-load-banner');
@@ -35,13 +35,102 @@ onMounted(() => {
       renderer.value = elem.value[$renderer] as Renderer;
       // Emit the load event
       emit('load')
+
+      // Test adding a fake 3D line
+      let lineHandle = await addLine3D(new Vector3(0, 0, 0), new Vector3(0, 100, 0), "Hello!", {
+        "stroke": "green",
+        "stroke-width": "2",
+      });
+      setTimeout(() => removeLine3D(lineHandle), 10000);
     }
   });
+  elem.value.addEventListener('camera-change', onCameraChange);
 });
+
+
+class Line3DData {
+  startHotspot: HTMLElement;
+  endHotspot: HTMLElement;
+  start2D: [number, number];
+  end2D: [number, number];
+  lineAttrs: { [key: string]: string };
+  centerText?: string;
+  centerTextSize?: [number, number]
+}
+
+let nextLineId = 0;
+let lines = ref<{ [id: number]: Line3DData }>({});
+
+function positionToHotspot(position: Vector3): string {
+  return position.x + ' ' + position.y + ' ' + position.z;
+}
+
+async function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "", lineAttrs: {
+  [key: string]: string
+} = {}): Promise<number> {
+  if (!scene.value) return -1;
+  let id = nextLineId++;
+  let hotspotName1 = 'line' + id + '_start';
+  let hotspotName2 = 'line' + id + '_end';
+  scene.value.addHotspot(new Hotspot({name: hotspotName1, position: positionToHotspot(p1)}));
+  scene.value.addHotspot(new Hotspot({name: hotspotName2, position: positionToHotspot(p2)}));
+  lines.value[id] = {
+    startHotspot: elem.value.shadowRoot.querySelector('slot[name="' + hotspotName1 + '"]').parentElement,
+    endHotspot: elem.value.shadowRoot.querySelector('slot[name="' + hotspotName2 + '"]').parentElement,
+    start2D: [0, 0],
+    end2D: [20, 20],
+    centerText: centerText,
+    centerTextSize: [0, 0],
+    lineAttrs: lineAttrs
+  };
+  requestIdleCallback(() => onCameraChangeLine(id));
+  return id;
+}
+
+function removeLine3D(id: number) {
+  if (!scene.value) return;
+  if (lines.value[id].startHotspot) {
+    scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_start'}));
+    lines.value[id].startHotspot.parentElement.remove()
+  }
+  if (lines.value[id].endHotspot) {
+    scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
+    lines.value[id].endHotspot.parentElement.remove()
+  }
+  delete lines.value[id];
+}
+
+function onCameraChange() {
+  // Need to update the SVG overlay
+  for (let lineId in lines.value) {
+    onCameraChangeLine(lineId as any);
+  }
+}
+
+let svg = ref<SVGElement | null>(null);
+
+function onCameraChangeLine(lineId: number) {
+  // Update start and end 2D positions
+  let {x: xB, y: yB} = elem.value.getBoundingClientRect();
+  let {x, y} = lines.value[lineId].startHotspot.getBoundingClientRect();
+  lines.value[lineId].start2D = [x - xB, y - yB];
+  let {x: x2, y: y2} = lines.value[lineId].endHotspot.getBoundingClientRect();
+  lines.value[lineId].end2D = [x2 - xB, y2 - yB];
+
+  // Update the center text size if needed
+  if (lines.value[lineId].centerText && lines.value[lineId].centerTextSize[0] == 0) {
+    let text = svg.value.getElementsByClassName('line' + lineId + '_text')[0] as SVGTextElement | undefined;
+    if (text) {
+      let bbox = text.getBBox();
+      lines.value[lineId].centerTextSize = [bbox.width, bbox.height];
+    }
+  }
+}
 
 </script>
 
 <template>
+  <!-- The main 3D model viewer -->
   <model-viewer ref="elem" style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
                 min-camera-orbit="-Infinity 0deg 5%" disable-tap :exposure="settings.exposure"
@@ -51,11 +140,23 @@ onMounted(() => {
     <slot></slot> <!-- Controls, annotations, etc. -->
     <loading class="annotation initial-load-banner"></loading>
   </model-viewer>
-  <!-- TODO: Transparent SVG overlay that can draw 2D lines attached to the 3D model(s) -->
-  <!-- https://modelviewer.dev/examples/annotations/index.html -->
+
+  <!-- The SVG overlay for fake 3D lines attached to the model -->
   <div class="overlay-svg-wrapper">
-    <svg class="overlay-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <!--<line x1="0" y1="0" x2="100%" y2="100%" stroke="black" stroke-width="2"/>-->
+    <svg ref="svg" class="overlay-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <g v-for="[lineId, line] in Object.entries(lines)" :key="lineId">
+        <line :x1="line.start2D[0]" :y1="line.start2D[1]" :x2="line.end2D[0]"
+              :y2="line.end2D[1]" v-bind="line.lineAttrs"/>
+        <rect :x="(line.start2D[0] + line.end2D[0]) / 2 - line.centerTextSize[0]/2 - 4"
+              :y="(line.start2D[1] + line.end2D[1]) / 2 - line.centerTextSize[1]/2 - 4"
+              :width="line.centerTextSize[0] + 8" :height="line.centerTextSize[1] - 4"
+              fill="gray" fill-opacity="0.75" rx="4" ry="4" stroke="black" v-if="line.centerText"/>
+        <text :x="(line.start2D[0] + line.end2D[0]) / 2" :y="(line.start2D[1] + line.end2D[1]) / 2"
+              text-anchor="middle" alignment-baseline="middle" font-size="16" fill="black"
+              :class="'line' + lineId + '_text'" v-if="line.centerText">
+          {{ line.centerText }}
+        </text>
+      </g>
     </svg>
   </div>
 </template>

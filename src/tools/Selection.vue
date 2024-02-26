@@ -34,19 +34,21 @@ let selectionMoveListener = (event: MouseEvent) => {
 
 let selectionListener = (event: MouseEvent) => {
   if (!selectionEnabled.value) {
-    mouseDownAt = undefined;
     return;
   }
+
+  // If the mouse moved while clicked (dragging), avoid selection logic
   if (mouseDownAt) {
     let [x, y] = mouseDownAt;
+    mouseDownAt = undefined;
     if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5) {
-      mouseDownAt = undefined;
       return;
     }
-    mouseDownAt = undefined;
   }
-  let scene: ModelScene = props.viewer?.scene;
+
+  // Define the 3D ray from the camera to the mouse
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
+  let scene: ModelScene = props.viewer?.scene;
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
   //const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
   raycaster.setFromCamera(ndcCoords, (scene as any).camera);
@@ -56,7 +58,9 @@ let selectionListener = (event: MouseEvent) => {
     raycaster.ray.direction.copy(
         scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
   }
-  // console.log('NDC', ndcCoords, 'Camera', (scene as any).camera, 'Ray', ray_caster.ray);
+  console.log('Ray', raycaster.ray);
+
+  // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
   let hit = hits.find((hit) => {
     const kind = hit.object.type
@@ -66,11 +70,11 @@ let selectionListener = (event: MouseEvent) => {
         (kind === 'Points' && selectFilter.value === 'Vertices');
     return hit.object.visible && !hit.object.userData.noHit && kindOk;
   }) as Intersection<MObject3D> | undefined;
-  console.log('Hit', hit)
+  //console.log('Hit', hit)
+
   if (!highlightNextSelection.value[0]) {
-    if (!hit) {
-      deselectAll();
-    } else {
+    // If we are selecting, toggle the selection or deselect all if no hit
+    if (hit) {
       // Toggle selection
       const wasSelected = selected.value.find((m) => m.object.name === hit.object.name) !== undefined;
       if (wasSelected) {
@@ -78,6 +82,8 @@ let selectionListener = (event: MouseEvent) => {
       } else {
         select(hit)
       }
+    } else {
+      deselectAll();
     }
   } else {
     // Otherwise, highlight the model that owns the hit
