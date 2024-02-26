@@ -28,7 +28,6 @@ onMounted(() => {
   elem.value.addEventListener('load', () => {
     if (elem.value) {
       // Delete the initial load banner
-      // TODO: Replace with an actual poster?
       let banner = elem.value.querySelector('.initial-load-banner');
       if (banner) banner.remove();
       // Set the scene

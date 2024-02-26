@@ -1,6 +1,5 @@
 import asyncio
 import atexit
-import hashlib
 import os
 import signal
 import sys
@@ -34,6 +33,8 @@ class UpdatesApiData:
     """Hash of the object, to detect changes without rebuilding the object"""
     obj: Optional[TopoDS_Shape] = field(default=None, metadata=config(exclude=lambda obj: True))
     """The OCCT object, if any (not serialized)"""
+    kwargs: Optional[Dict[str, any]] = field(default=None, metadata=config(exclude=lambda obj: True))
+    """The show_object options, if any (not serialized)"""
 
 
 # noinspection PyUnusedLocal
@@ -154,10 +155,11 @@ class Server:
 
     obj_counter = 0
 
-    def _show_common(self, name: Optional[str], hash: str, start: float, obj: Optional[TopoDS_Shape] = None):
+    def _show_common(self, name: Optional[str], hash: str, start: float, obj: Optional[TopoDS_Shape] = None,
+                     kwargs=None):
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
-        precomputed_info = UpdatesApiData(name=name, hash=hash, obj=obj)
+        precomputed_info = UpdatesApiData(name=name, hash=hash, obj=obj, kwargs=kwargs or {})
         self.show_events.publish_nowait(precomputed_info)
         logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
         return precomputed_info
@@ -173,7 +175,7 @@ class Server:
         """Publishes any single-file GLTF object to the server (GLB format recommended)."""
         start = time.time()
         # Precompute the info and send it to the client as if it was a CAD object
-        precomputed_info = self._show_common(name, _hashcode(gltf, **kwargs), start)
+        precomputed_info = self._show_common(name, _hashcode(gltf, **kwargs), start, kwargs=kwargs)
         # Also pre-populate the GLTF data for the object API
         publish_to = BufferedPubSub[bytes]()
         publish_to.publish_nowait(gltf)
@@ -202,7 +204,7 @@ class Server:
         # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
         obj = Shape(obj).rotate(Axis.X, -90).wrapped
 
-        self._show_common(name, _hashcode(obj, **kwargs), start, obj)
+        self._show_common(name, _hashcode(obj, **kwargs), start, obj, kwargs)
 
     async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
@@ -230,6 +232,7 @@ class Server:
         # Check that the object to build exists and grab it if it does
         found = False
         obj: Optional[TopoDS_Shape] = None
+        kwargs: Optional[Dict[str, any]] = None
         subscription = self.show_events.subscribe(include_future=False)
         try:
             async for data in subscription:
@@ -252,7 +255,11 @@ class Server:
 
                 def _build_object():
                     # Build and publish the object (once)
-                    gltf = tessellate(obj)  # TODO: Publish tessellate options
+                    gltf = tessellate(obj, tolerance=kwargs.get('tolerance', 0.1),
+                                      angular_tolerance=kwargs.get('angular_tolerance', 0.1),
+                                      faces=kwargs.get('faces', True),
+                                      edges=kwargs.get('edges', True),
+                                      vertices=kwargs.get('vertices', True))
                     glb_list_of_bytes = gltf.save_to_bytes()
                     publish_to.publish_nowait(b''.join(glb_list_of_bytes))
                     logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start,

@@ -16,10 +16,6 @@ from pygltflib import GLTF2
 import mylogger
 from gltf import GLTFMgr
 
-
-# TODO: Migrate to ocp-tessellate to reuse the tessellation logic
-
-
 def tessellate(
         ocp_shape: TopoDS_Shape,
         tolerance: float = 0.1,

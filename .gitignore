@@ -8,10 +8,5 @@
 /.idea/
 /parcel-bundle-reports/
 
-# TODO: Figure out which assets to keep in the repo
-/assets/fox.glb
-/assets/fox.glb.license
-/assets/logo.glb
-
 *.iml
 venv/
