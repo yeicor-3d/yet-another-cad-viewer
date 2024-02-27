@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import {defineModel, ref} from "vue";
+import {defineModel, inject, ref, ShallowRef, watch} from "vue";
 import {VBtn, VSelect, VTooltip} from "vuetify/lib/components";
 import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCubeOutline, mdiCursorDefaultClick, mdiFeatureSearch, mdiRuler} from '@mdi/js';
 import type {Intersection, Material, Object3D} from "three";
-import {Raycaster} from "three";
+import {Raycaster, Vector3} from "three";
 import type ModelViewerWrapperT from "./ModelViewerWrapper.vue";
 import {extrasNameKey} from "../misc/gltf";
+import {SceneMgr} from "../misc/scene";
+import {Document} from "@gltf-transform/core";
 
 export type MObject3D = Object3D & {
   userData: { noHit?: boolean },
@@ -22,28 +24,28 @@ let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
 let showBoundingBox = ref<Boolean>(false);
 
-let hasListener = false;
 let mouseDownAt: [number, number] | null = null;
 let selectFilter = ref('Any');
 const raycaster = new Raycaster();
 
 let selectionMoveListener = (event: MouseEvent) => {
-  if (!selectionEnabled.value) return;
   mouseDownAt = [event.clientX, event.clientY];
+  if (!selectionEnabled.value) return;
 };
 
 let selectionListener = (event: MouseEvent) => {
-  if (!selectionEnabled.value) {
-    return;
-  }
-
   // If the mouse moved while clicked (dragging), avoid selection logic
   if (mouseDownAt) {
     let [x, y] = mouseDownAt;
-    mouseDownAt = undefined;
+    mouseDownAt = null;
     if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5) {
       return;
     }
+  }
+
+  // If disabled, avoid selection logic
+  if (!selectionEnabled.value) {
+    return;
   }
 
   // Define the 3D ray from the camera to the mouse
@@ -59,6 +61,12 @@ let selectionListener = (event: MouseEvent) => {
         scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
   }
   console.log('Ray', raycaster.ray);
+
+  // TODO DEBUG: Draw the ray for debugging
+  let actualFrom = scene.getTarget().clone().add(scene.target.position);
+  let actualTo = actualFrom.clone().add(raycaster.ray.direction.clone().multiplyScalar(50));
+  let lineHandle = props.viewer?.addLine3D(actualFrom, actualTo, "Ray")
+  setTimeout(() => props.viewer?.removeLine3D(lineHandle), 30000)
 
   // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
@@ -135,11 +143,6 @@ function toggleSelection() {
   if (!viewer) return;
   selectionEnabled.value = !selectionEnabled.value;
   if (selectionEnabled.value) {
-    if (!hasListener) {
-      viewer.addEventListener('mouseup', selectionListener);
-      viewer.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
-      hasListener = true;
-    }
     for (let material of selected.value) {
       select(material);
     }
@@ -163,19 +166,99 @@ function toggleHighlightNextSelection() {
   }
 }
 
-function toggleShowBoundingBox() {
-  // let scene: ModelScene = props.viewer?.scene;
-  // if (!scene) return;
-  showBoundingBox.value = !showBoundingBox.value;
-  // scene.model?.traverse((child) => {
-  //   if (child.userData[extrasNameKey] === modelName) {
-  //     if (child.type === 'BoxHelper') {
-  //       child.visible = showBoundingBox.value;
-  //     }
-  //   }
-  // });
-  // scene.queueRender() // Force rerender of model-viewer
 
+let boundingBoxLineIds: Array<number> = []
+
+function toggleShowBoundingBox() {
+  showBoundingBox.value = !showBoundingBox.value;
+  updateBoundingBox();
+}
+
+let hasListeners = false;
+let firstLoad = true;
+watch(() => props.viewer?.elem, (elem) => {
+  if (hasListeners) return;
+  hasListeners = true;
+  elem.addEventListener('mouseup', selectionListener);
+  elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
+  elem.addEventListener('load', () => {
+    if (firstLoad) {
+      toggleShowBoundingBox();
+      firstLoad = false;
+    } else {
+      updateBoundingBox();
+    }
+  });
+  let isWaiting = false;
+  let lastBoundingBoxUpdate = performance.now();
+  elem.addEventListener('camera-change', () => {
+    // Avoid updates while dragging (slow operation)
+    if (isWaiting) return;
+    if (performance.now() - lastBoundingBoxUpdate < 1000) return;
+    isWaiting = true;
+    let waitingHandler: () => void;
+    waitingHandler = () => {
+      if (mouseDownAt === null) {
+        updateBoundingBox();
+        isWaiting = false;
+        lastBoundingBoxUpdate = performance.now();
+      } else {
+        // If the mouse is still down, wait a little more
+        setTimeout(waitingHandler, 100);
+      }
+    };
+    setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
+  });
+});
+
+let document: ShallowRef<Document> = inject('document');
+
+function updateBoundingBox() {
+  boundingBoxLineIds.forEach((id) => props.viewer?.removeLine3D(id));
+  boundingBoxLineIds = [];
+  if (!showBoundingBox.value) return;
+  let bb = SceneMgr.getBoundingBox(document);
+  // TODO: Get bounding box of selection instead if selection is enabled
+  // For each edge of the bounding box, draw a line
+  let corners = [
+    [bb.min.x, bb.min.y, bb.min.z],
+    [bb.min.x, bb.min.y, bb.max.z],
+    [bb.min.x, bb.max.y, bb.min.z],
+    [bb.min.x, bb.max.y, bb.max.z],
+    [bb.max.x, bb.min.y, bb.min.z],
+    [bb.max.x, bb.min.y, bb.max.z],
+    [bb.max.x, bb.max.y, bb.min.z],
+    [bb.max.x, bb.max.y, bb.max.z],
+  ];
+  let edgesByAxis = [
+    [[0, 1], [2, 3], [4, 5], [6, 7]], // X
+    [[0, 2], [1, 3], [4, 6], [5, 7]], // Y
+    [[0, 4], [1, 5], [2, 6], [3, 7]], // Z
+  ];
+  for (let axisEdges of edgesByAxis) {
+    // Only draw one edge per axis, the closest one to the camera
+    let edgeToDraw: Array<number> = axisEdges[0];
+    let edgeToDrawDist = Infinity;
+    let cameraPos: Vector3 = props.viewer?.scene.camera.position;
+    for (let edge of axisEdges) {
+      let from = new Vector3(...corners[edge[0]]);
+      let to = new Vector3(...corners[edge[1]]);
+      let mid = from.clone().add(to).multiplyScalar(0.5);
+      let newDist = cameraPos.distanceTo(mid);
+      if (newDist < edgeToDrawDist) {
+        edgeToDraw = edge;
+        edgeToDrawDist = newDist;
+      }
+    }
+    let from = new Vector3(...corners[edgeToDraw[0]]);
+    let to = new Vector3(...corners[edgeToDraw[1]]);
+    let lineHandle = props.viewer?.addLine3D(from, to, to.clone().sub(from).length().toFixed(1) + "mm", {
+      "stroke": "blue",
+      "stroke-width": "2"
+    });
+    boundingBoxLineIds.push(lineHandle);
+  }
+  props.viewer?.scene?.queueRender() // Force rerender of model-viewer
 }
 </script>
 
@@ -200,7 +283,7 @@ function toggleShowBoundingBox() {
     <svg-icon type="mdi" :path="mdiFeatureSearch"/>
   </v-btn>
   <!-- TODO: Show BB -->
-  <v-btn icon disabled @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
+  <v-btn icon @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
     <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection bounds' : 'Show selection bounds' }}
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiCubeOutline"/>

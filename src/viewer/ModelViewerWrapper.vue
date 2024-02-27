@@ -22,27 +22,17 @@ const props = defineProps<{ src: string }>();
 const elem = ref<ModelViewerElement | null>(null);
 const scene = ref<ModelScene | null>(null);
 const renderer = ref<Renderer | null>(null);
-defineExpose({elem, scene, renderer});
 
 onMounted(() => {
   elem.value.addEventListener('load', async () => {
-    if (elem.value) {
-      // Delete the initial load banner
-      let banner = elem.value.querySelector('.initial-load-banner');
-      if (banner) banner.remove();
-      // Set the scene
-      scene.value = elem.value[$scene] as ModelScene;
-      renderer.value = elem.value[$renderer] as Renderer;
-      // Emit the load event
-      emit('load')
-
-      // Test adding a fake 3D line
-      let lineHandle = await addLine3D(new Vector3(0, 0, 0), new Vector3(0, 100, 0), "Hello!", {
-        "stroke": "green",
-        "stroke-width": "2",
-      });
-      setTimeout(() => removeLine3D(lineHandle), 10000);
-    }
+    // Delete the initial load banner
+    let banner = elem.value.querySelector('.initial-load-banner');
+    if (banner) banner.remove();
+    // Set the scene
+    scene.value = elem.value[$scene] as ModelScene;
+    renderer.value = elem.value[$renderer] as Renderer;
+    // Emit the load event
+    emit('load')
   });
   elem.value.addEventListener('camera-change', onCameraChange);
 });
@@ -65,9 +55,11 @@ function positionToHotspot(position: Vector3): string {
   return position.x + ' ' + position.y + ' ' + position.z;
 }
 
-async function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "", lineAttrs: {
-  [key: string]: string
-} = {}): Promise<number> {
+function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "",
+                   lineAttrs: { [key: string]: string } = {
+                     "stroke-width": "2",
+                     "stroke": "red",
+                   }): number {
   if (!scene.value) return -1;
   let id = nextLineId++;
   let hotspotName1 = 'line' + id + '_start';
@@ -77,26 +69,23 @@ async function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "", line
   lines.value[id] = {
     startHotspot: elem.value.shadowRoot.querySelector('slot[name="' + hotspotName1 + '"]').parentElement,
     endHotspot: elem.value.shadowRoot.querySelector('slot[name="' + hotspotName2 + '"]').parentElement,
-    start2D: [0, 0],
-    end2D: [20, 20],
+    start2D: [-1000, -1000],
+    end2D: [-1000, -1000],
     centerText: centerText,
     centerTextSize: [0, 0],
     lineAttrs: lineAttrs
   };
+  scene.value.queueRender() // Needed to update the hotspots
   requestIdleCallback(() => onCameraChangeLine(id));
   return id;
 }
 
 function removeLine3D(id: number) {
   if (!scene.value) return;
-  if (lines.value[id].startHotspot) {
-    scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_start'}));
-    lines.value[id].startHotspot.parentElement.remove()
-  }
-  if (lines.value[id].endHotspot) {
-    scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
-    lines.value[id].endHotspot.parentElement.remove()
-  }
+  scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_start'}));
+  lines.value[id].startHotspot.parentElement.remove()
+  scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
+  lines.value[id].endHotspot.parentElement.remove()
   delete lines.value[id];
 }
 
@@ -110,6 +99,7 @@ function onCameraChange() {
 let svg = ref<SVGElement | null>(null);
 
 function onCameraChangeLine(lineId: number) {
+  if (!(lineId in lines.value)) return // Silently ignore (not updated yet)
   // Update start and end 2D positions
   let {x: xB, y: yB} = elem.value.getBoundingClientRect();
   let {x, y} = lines.value[lineId].startHotspot.getBoundingClientRect();
@@ -127,6 +117,7 @@ function onCameraChangeLine(lineId: number) {
   }
 }
 
+defineExpose({elem, scene, renderer, addLine3D, removeLine3D});
 </script>
 
 <template>

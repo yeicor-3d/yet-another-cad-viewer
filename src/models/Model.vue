@@ -118,13 +118,9 @@ function onModelLoad() {
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
-if (props.viewer.elem) {
-  props.viewer.elem.addEventListener('load', onModelLoad);
-} else {
-  watch(() => props.viewer?.elem, (elem) => {
-    if (elem) elem.addEventListener('load', onModelLoad);
-  });
-}
+watch(() => props.viewer?.elem, (elem) => {
+  elem.addEventListener('load', onModelLoad);
+});
 </script>
 
 <template>

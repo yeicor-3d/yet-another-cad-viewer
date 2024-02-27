@@ -1,6 +1,6 @@
 <!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
-import {defineAsyncComponent, ref, Ref, shallowRef} from "vue";
+import {defineAsyncComponent, ref, Ref, shallowRef, provide} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
@@ -27,6 +27,7 @@ let sceneUrl = ref("")
 let viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
 let document = shallowRef(new Document());
 let models: Ref<InstanceType<typeof Models> | null> = ref(null)
+provide('document', document);
 
 async function onModelLoadRequest(model: NetworkUpdateEvent) {
   await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);

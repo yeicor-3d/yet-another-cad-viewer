@@ -2,7 +2,7 @@ import {Ref, ShallowRef} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {extrasNameKey, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
 import {newAxes, newGridBox} from "./helpers";
-import {Matrix4, Vector3} from 'three';
+import {Box3, Matrix4, Vector3} from 'three';
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
@@ -27,6 +27,18 @@ export class SceneMgr {
     }
 
     private static async reloadHelpers(sceneUrl: Ref<string>, document: ShallowRef<Document>) {
+        let bb = SceneMgr.getBoundingBox(document);
+
+        // Create the helper axes and grid box
+        let helpersDoc = new Document();
+        let transform = (new Matrix4()).makeTranslation(bb.getCenter(new Vector3()));
+        newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
+        newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
+        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
+        await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
+    }
+
+    static getBoundingBox(document: ShallowRef<Document>): Box3 {
         // Get bounding box of the model and use it to set the size of the helpers
         let bbMin: number[] = [1e6, 1e6, 1e6];
         let bbMax: number[] = [-1e6, -1e6, -1e6];
@@ -46,14 +58,7 @@ export class SceneMgr {
         });
         let bbSize = new Vector3().fromArray(bbMax).sub(new Vector3().fromArray(bbMin));
         let bbCenter = new Vector3().fromArray(bbMin).add(bbSize.clone().multiplyScalar(0.5));
-        let bbTransform = new Matrix4().makeTranslation(bbCenter.x, bbCenter.y, bbCenter.z);
-
-        // Create the helper axes and grid box
-        let helpersDoc = new Document();
-        newAxes(helpersDoc, bbSize.clone().multiplyScalar(0.5), bbTransform);
-        newGridBox(helpersDoc, bbSize, bbTransform);
-        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-        await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
+        return new Box3().setFromCenterAndSize(bbCenter, bbSize);
     }
 
     /** Removes a model from the viewer */
