@@ -6,7 +6,7 @@ import {settings} from "../misc/settings";
 import {onMounted} from "vue";
 import {$scene, $renderer} from "@google/model-viewer/lib/model-viewer-base";
 import Loading from "../misc/Loading.vue";
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
@@ -117,7 +117,17 @@ function onCameraChangeLine(lineId: number) {
   }
 }
 
-defineExpose({elem, scene, renderer, addLine3D, removeLine3D});
+function onElemReady(callback: (elem: ModelViewerElement) => void) {
+  if (elem.value) {
+    callback(elem.value);
+  } else {
+    watch(() => elem.value, (elem) => {
+      if (elem) callback(elem);
+    });
+  }
+}
+
+defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D});
 </script>
 
 <template>

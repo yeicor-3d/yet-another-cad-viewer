@@ -176,40 +176,48 @@ function toggleShowBoundingBox() {
   updateBoundingBox();
 }
 
-let hasListeners = false;
-let firstLoad = true;
-watch(() => props.viewer?.elem, (elem) => {
-  if (hasListeners) return;
-  hasListeners = true;
-  elem.addEventListener('mouseup', selectionListener);
-  elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
-  elem.addEventListener('load', () => {
-    if (firstLoad) {
-      toggleShowBoundingBox();
-      firstLoad = false;
-    } else {
-      updateBoundingBox();
-    }
-  });
-  let isWaiting = false;
-  let lastBoundingBoxUpdate = performance.now();
-  elem.addEventListener('camera-change', () => {
-    // Avoid updates while dragging (slow operation)
-    if (isWaiting) return;
-    if (performance.now() - lastBoundingBoxUpdate < 1000) return;
-    isWaiting = true;
-    let waitingHandler: () => void;
-    waitingHandler = () => {
-      if (mouseDownAt === null) {
-        updateBoundingBox();
-        isWaiting = false;
-        lastBoundingBoxUpdate = performance.now();
+let viewerFound = false
+watch(() => props.viewer, (viewer) => {
+  if (!viewer) return;
+  if (viewerFound) return;
+  viewerFound = true;
+  let hasListeners = false;
+  let firstLoad = true;
+  // props.viewer.elem may not yet be available, so we need to wait for it
+  viewer.onElemReady((elem) => {
+    if (hasListeners) return;
+    hasListeners = true;
+    elem.addEventListener('mouseup', selectionListener);
+    elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
+    elem.addEventListener('load', () => {
+      if (firstLoad) {
+        toggleShowBoundingBox();
+        firstLoad = false;
       } else {
-        // If the mouse is still down, wait a little more
-        setTimeout(waitingHandler, 100);
+        updateBoundingBox();
       }
-    };
-    setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
+    });
+    let isWaiting = false;
+    let lastCameraChange = 0
+    elem.addEventListener('camera-change', () => {
+      // Avoid updates while dragging (slow operation)
+      lastCameraChange = performance.now();
+      if (isWaiting) return;
+      isWaiting = true;
+      let waitingHandler: () => void;
+      waitingHandler = () => {
+        // Ignore also inertia
+        let stillMoving = performance.now() - lastCameraChange < 100;
+        if (!stillMoving) {
+          updateBoundingBox();
+          isWaiting = false;
+        } else {
+          // If the mouse is still down, wait a little more
+          setTimeout(waitingHandler, 100);
+        }
+      };
+      setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
+    });
   });
 });
 
