@@ -168,12 +168,8 @@ function toggleHighlightNextSelection() {
   }
 }
 
-
-let boundingBoxLineIds: Array<number> = []
-
 function toggleShowBoundingBox() {
   showBoundingBox.value = !showBoundingBox.value;
-  updateBoundingBox();
 }
 
 let viewerFound = false
@@ -223,11 +219,19 @@ watch(() => props.viewer, (viewer) => {
 
 let document: ShallowRef<Document> = inject('document');
 
+
+let boundingBoxLines: { [points: string]: number } = {}
+
 function updateBoundingBox() {
-  boundingBoxLineIds.forEach((id) => props.viewer?.removeLine3D(id));
-  boundingBoxLineIds = [];
-  if (!showBoundingBox.value) return;
+  if (!showBoundingBox.value) {
+    for (let lineId of Object.values(boundingBoxLines)) {
+      props.viewer?.removeLine3D(lineId);
+    }
+    boundingBoxLines = {};
+    return;
+  }
   let bb: Box3
+  let boundingBoxLinesToRemove = Object.keys(boundingBoxLines);
   if (selected.value.length > 0) {
     bb = new Box3();
     for (let hit of selected.value) {
@@ -276,13 +280,24 @@ function updateBoundingBox() {
     let from = new Vector3(...corners[edge[0]]);
     let to = new Vector3(...corners[edge[1]]);
     let color = [AxesColors.x, AxesColors.y, AxesColors.z][edgeI][1]; // Secondary colors
-    let lineHandle = props.viewer?.addLine3D(from, to, to.clone().sub(from).length().toFixed(1) + "mm", {
-      "stroke": "rgb(" + color.join(',') + ")",
-      "stroke-width": "2"
-    });
-    boundingBoxLineIds.push(lineHandle);
+    let lineCacheKey = JSON.stringify([from, to]);
+    let matchingLine = boundingBoxLines[lineCacheKey];
+    console.log('Edge', edge, 'Matching line', matchingLine, 'key')
+    if (matchingLine) {
+      boundingBoxLinesToRemove = boundingBoxLinesToRemove.filter((l) => l !== lineCacheKey);
+    } else {
+      boundingBoxLines[lineCacheKey] = props.viewer?.addLine3D(from, to,
+          to.clone().sub(from).length().toFixed(1) + "mm", {
+            "stroke": "rgb(" + color.join(',') + ")",
+            "stroke-width": "2"
+          });
+    }
   }
-  props.viewer?.scene?.queueRender() // Force rerender of model-viewer
+  // Remove the lines that are no longer needed
+  for (let lineLocator of boundingBoxLinesToRemove) {
+    props.viewer?.removeLine3D(boundingBoxLines[lineLocator]);
+    delete boundingBoxLines[lineLocator];
+  }
 }
 </script>
 
