@@ -6,11 +6,12 @@ import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCubeOutline, mdiCursorDefaultClick, mdiFeatureSearch, mdiRuler} from '@mdi/js';
 import type {Intersection, Material, Object3D} from "three";
-import {Raycaster, Vector3} from "three";
+import {Box3, Matrix4, Raycaster, Vector3} from "three";
 import type ModelViewerWrapperT from "./ModelViewerWrapper.vue";
 import {extrasNameKey} from "../misc/gltf";
 import {SceneMgr} from "../misc/scene";
 import {Document} from "@gltf-transform/core";
+import {AxesColors} from "../misc/helpers";
 
 export type MObject3D = Object3D & {
   userData: { noHit?: boolean },
@@ -27,6 +28,9 @@ let showBoundingBox = ref<Boolean>(false);
 let mouseDownAt: [number, number] | null = null;
 let selectFilter = ref('Any');
 const raycaster = new Raycaster();
+raycaster.params.Line.threshold = 0.2;
+raycaster.params.Points.threshold = 0.8;
+
 
 let selectionMoveListener = (event: MouseEvent) => {
   mouseDownAt = [event.clientX, event.clientY];
@@ -52,21 +56,18 @@ let selectionListener = (event: MouseEvent) => {
   // NOTE: Need to access internal as the API has issues with small faces surrounded by edges
   let scene: ModelScene = props.viewer?.scene;
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
-  //const hit = scene.hitFromPoint(ndcCoords) as Intersection<MObject3D> | undefined;
-  raycaster.setFromCamera(ndcCoords, (scene as any).camera);
-  if ((scene as any).camera.isOrthographicCamera) {
-    // Need to fix the ray direction for ortho camera
-    // FIXME: Still buggy (but less so :)
-    raycaster.ray.direction.copy(
-        scene.getTarget().clone().add(scene.target.position).sub((scene as any).camera.position).normalize());
+  raycaster.setFromCamera(ndcCoords, scene.camera);
+  if (!scene.camera.isPerspectiveCamera) {
+    // Need to fix the ray direction for ortho camera FIXME: Still buggy...
+    raycaster.ray.direction.copy(scene.camera.getWorldDirection(new Vector3()));
   }
-  console.log('Ray', raycaster.ray);
+  //console.log('Ray', raycaster.ray);
 
-  // TODO DEBUG: Draw the ray for debugging
-  let actualFrom = scene.getTarget().clone().add(scene.target.position);
-  let actualTo = actualFrom.clone().add(raycaster.ray.direction.clone().multiplyScalar(50));
-  let lineHandle = props.viewer?.addLine3D(actualFrom, actualTo, "Ray")
-  setTimeout(() => props.viewer?.removeLine3D(lineHandle), 30000)
+  // DEBUG: Draw the ray
+  // let actualFrom = scene.getTarget().clone().add(raycaster.ray.origin);
+  // let actualTo = actualFrom.clone().add(raycaster.ray.direction.clone().multiplyScalar(50));
+  // let lineHandle = props.viewer?.addLine3D(actualFrom, actualTo, "Ray")
+  // setTimeout(() => props.viewer?.removeLine3D(lineHandle), 30000)
 
   // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
@@ -93,6 +94,7 @@ let selectionListener = (event: MouseEvent) => {
     } else {
       deselectAll();
     }
+    updateBoundingBox();
   } else {
     // Otherwise, highlight the model that owns the hit
     emit('findModel', hit.object.userData[extrasNameKey])
@@ -149,7 +151,7 @@ function toggleSelection() {
   } else {
     deselectAll(false);
   }
-  props.viewer.scene.queueRender() // Force rerender of model-viewer
+  props.viewer.scene?.queueRender() // Force rerender of model-viewer
 }
 
 function toggleHighlightNextSelection() {
@@ -217,9 +219,17 @@ function updateBoundingBox() {
   boundingBoxLineIds.forEach((id) => props.viewer?.removeLine3D(id));
   boundingBoxLineIds = [];
   if (!showBoundingBox.value) return;
-  let bb = SceneMgr.getBoundingBox(document);
-  // TODO: Get bounding box of selection instead if selection is enabled
-  // For each edge of the bounding box, draw a line
+  let bb: Box3
+  if (selected.value.length > 0) {
+    bb = new Box3();
+    for (let hit of selected.value) {
+      bb.expandByObject(hit.object);
+    }
+    bb.applyMatrix4(new Matrix4().makeTranslation(props.viewer?.scene.getTarget()));
+  } else {
+    bb = SceneMgr.getBoundingBox(document);
+  }
+  // Define each edge of the bounding box, to draw a line for each axis
   let corners = [
     [bb.min.x, bb.min.y, bb.min.z],
     [bb.min.x, bb.min.y, bb.max.z],
@@ -231,29 +241,35 @@ function updateBoundingBox() {
     [bb.max.x, bb.max.y, bb.max.z],
   ];
   let edgesByAxis = [
-    [[0, 1], [2, 3], [4, 5], [6, 7]], // X
-    [[0, 2], [1, 3], [4, 6], [5, 7]], // Y
-    [[0, 4], [1, 5], [2, 6], [3, 7]], // Z
+    [[0, 4], [1, 5], [2, 6], [3, 7]], // X (CAD)
+    [[0, 2], [1, 3], [4, 6], [5, 7]], // Z (CAD)
+    [[0, 1], [2, 3], [4, 5], [6, 7]], // Y (CAD)
   ];
-  for (let axisEdges of edgesByAxis) {
-    // Only draw one edge per axis, the closest one to the camera
-    let edgeToDraw: Array<number> = axisEdges[0];
-    let edgeToDrawDist = Infinity;
-    let cameraPos: Vector3 = props.viewer?.scene.camera.position;
-    for (let edge of axisEdges) {
-      let from = new Vector3(...corners[edge[0]]);
-      let to = new Vector3(...corners[edge[1]]);
-      let mid = from.clone().add(to).multiplyScalar(0.5);
-      let newDist = cameraPos.distanceTo(mid);
-      if (newDist < edgeToDrawDist) {
-        edgeToDraw = edge;
-        edgeToDrawDist = newDist;
+  // Only draw one edge per axis, the 2nd closest one to the camera
+  for (let edgeI in edgesByAxis) {
+    let axisEdges = edgesByAxis[edgeI];
+    let edge: Array<number> = axisEdges[0];
+    for (let i = 0; i < 2; i++) { // Find the 2nd closest one by running twice dropping the first
+      edge = axisEdges[0];
+      let edgeDist = Infinity;
+      let cameraPos: Vector3 = props.viewer?.scene.camera.position;
+      for (let testEdge of axisEdges) {
+        let from = new Vector3(...corners[testEdge[0]]);
+        let to = new Vector3(...corners[testEdge[1]]);
+        let mid = from.clone().add(to).multiplyScalar(0.5);
+        let newDist = cameraPos.distanceTo(mid);
+        if (newDist < edgeDist) {
+          edge = testEdge;
+          edgeDist = newDist;
+        }
       }
+      axisEdges = axisEdges.filter((e) => e !== edge);
     }
-    let from = new Vector3(...corners[edgeToDraw[0]]);
-    let to = new Vector3(...corners[edgeToDraw[1]]);
+    let from = new Vector3(...corners[edge[0]]);
+    let to = new Vector3(...corners[edge[1]]);
+    let color = [AxesColors.x, AxesColors.y, AxesColors.z][edgeI][1]; // Secondary colors
     let lineHandle = props.viewer?.addLine3D(from, to, to.clone().sub(from).length().toFixed(1) + "mm", {
-      "stroke": "blue",
+      "stroke": "rgb(" + color.join(',') + ")",
       "stroke-width": "2"
     });
     boundingBoxLineIds.push(lineHandle);
