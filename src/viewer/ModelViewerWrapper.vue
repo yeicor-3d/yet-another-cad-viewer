@@ -87,6 +87,7 @@ function removeLine3D(id: number) {
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
   lines.value[id].endHotspot.parentElement.remove()
   delete lines.value[id];
+  lines.value = {...lines.value}; // TODO: Trigger reactivity not working...
 }
 
 function onCameraChange() {

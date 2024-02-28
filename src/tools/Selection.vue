@@ -12,6 +12,7 @@ import {extrasNameKey} from "../misc/gltf";
 import {SceneMgr} from "../misc/scene";
 import {Document} from "@gltf-transform/core";
 import {AxesColors} from "../misc/helpers";
+import {distances} from "../misc/distances";
 
 export type MObject3D = Object3D & {
   userData: { noHit?: boolean },
@@ -23,13 +24,12 @@ let emit = defineEmits<{ findModel: [string] }>();
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
-let showBoundingBox = ref<Boolean>(false);
+let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
+let showDistances = ref<Boolean>(true);
 
 let mouseDownAt: [number, number] | null = null;
 let selectFilter = ref('Any');
 const raycaster = new Raycaster();
-raycaster.params.Line.threshold = 0.2;
-raycaster.params.Points.threshold = 0.8;
 
 
 let selectionMoveListener = (event: MouseEvent) => {
@@ -50,6 +50,21 @@ let selectionListener = (event: MouseEvent) => {
   // If disabled, avoid selection logic
   if (!selectionEnabled.value) {
     return;
+  }
+
+  // Set raycaster parameters
+  if (selectFilter.value === 'Any') {
+    raycaster.params.Line.threshold = 0.2;
+    raycaster.params.Points.threshold = 0.8;
+  } else if(selectFilter.value === 'Edges') {
+    raycaster.params.Line.threshold = 0.8;
+    raycaster.params.Points.threshold = 0.0;
+  } else if (selectFilter.value === 'Vertices') {
+    raycaster.params.Line.threshold = 0.0;
+    raycaster.params.Points.threshold = 0.8;
+  } else if (selectFilter.value === 'Faces') {
+    raycaster.params.Line.threshold = 0.0;
+    raycaster.params.Points.threshold = 0.0;
   }
 
   // Define the 3D ray from the camera to the mouse
@@ -95,6 +110,7 @@ let selectionListener = (event: MouseEvent) => {
       deselectAll();
     }
     updateBoundingBox();
+    updateDistances();
   } else {
     // Otherwise, highlight the model that owns the hit
     emit('findModel', hit.object.userData[extrasNameKey])
@@ -282,7 +298,6 @@ function updateBoundingBox() {
     let color = [AxesColors.x, AxesColors.y, AxesColors.z][edgeI][1]; // Secondary colors
     let lineCacheKey = JSON.stringify([from, to]);
     let matchingLine = boundingBoxLines[lineCacheKey];
-    console.log('Edge', edge, 'Matching line', matchingLine, 'key')
     if (matchingLine) {
       boundingBoxLinesToRemove = boundingBoxLinesToRemove.filter((l) => l !== lineCacheKey);
     } else {
@@ -298,6 +313,56 @@ function updateBoundingBox() {
     props.viewer?.removeLine3D(boundingBoxLines[lineLocator]);
     delete boundingBoxLines[lineLocator];
   }
+}
+
+function toggleShowDistances() {
+  showDistances.value = !showDistances.value;
+  updateDistances();
+}
+
+let distanceLines: { [points: string]: number } = {}
+
+function updateDistances() {
+  if (!showDistances.value || selected.value.length != 2) {
+    for (let lineId of Object.values(distanceLines)) {
+      props.viewer?.removeLine3D(lineId);
+    }
+    distanceLines = {};
+    return;
+  }
+
+  // Set up the line cache (for delta updates)
+  let distanceLinesToRemove = Object.keys(distanceLines);
+  function ensureLine(from: Vector3, to: Vector3, text: string, color: string) {
+    console.log('ensureLine', from, to, text, color)
+    let lineCacheKey = JSON.stringify([from, to]);
+    let matchingLine = distanceLines[lineCacheKey];
+    if (matchingLine) {
+      distanceLinesToRemove = distanceLinesToRemove.filter((l) => l !== lineCacheKey);
+    } else {
+      distanceLines[lineCacheKey] = props.viewer?.addLine3D(from, to, text, {
+        "stroke": color,
+        "stroke-width": "2",
+        "stroke-dasharray": "5"
+      });
+    }
+  }
+
+  // Add lines (if not already added)
+  let objA = selected.value[0].object;
+  let objB = selected.value[1].object;
+  let {min, center, max} = distances(objA, objB);
+  ensureLine(max[0], max[1], max[1].distanceTo(max[0]).toFixed(1) + "mm", "orange");
+  ensureLine(center[0], center[1], center[1].distanceTo(center[0]).toFixed(1) + "mm", "green");
+  ensureLine(min[0], min[1], min[1].distanceTo(min[0]).toFixed(1) + "mm", "cyan");
+
+  // Remove the lines that are no longer needed
+  for (let lineLocator of distanceLinesToRemove) {
+    props.viewer?.removeLine3D(distanceLines[lineLocator]);
+    delete distanceLines[lineLocator];
+  }
+
+  return;
 }
 </script>
 
@@ -321,15 +386,14 @@ function updateBoundingBox() {
     <v-tooltip activator="parent">Highlight the next clicked element in the models list</v-tooltip>
     <svg-icon type="mdi" :path="mdiFeatureSearch"/>
   </v-btn>
-  <!-- TODO: Show BB -->
   <v-btn icon @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
     <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection bounds' : 'Show selection bounds' }}
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiCubeOutline"/>
   </v-btn>
-  <!-- TODO: Show distances of selections (min/center/max distance) -->
-  <v-btn icon disabled @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
-    <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection dimensions' : 'Show selection dimensions' }}
+  <v-btn icon @click="toggleShowDistances" :color="showDistances ? 'surface-light' : ''">
+    <v-tooltip activator="parent">
+      {{ showDistances ? 'Hide selection distances' : 'Show distances (when a pair of features is selected)' }}
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiRuler"/>
   </v-btn>
