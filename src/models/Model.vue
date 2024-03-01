@@ -2,19 +2,31 @@
 import {
   VBtn,
   VBtnToggle,
+  VCheckboxBtn,
+  VDivider,
   VExpansionPanel,
   VExpansionPanelText,
   VExpansionPanelTitle,
   VSlider,
   VSpacer,
-  VTooltip
+  VTooltip,
 } from "vuetify/lib/components";
 import {extrasNameKey} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
-import {watch} from "vue";
+import {ref, watch, inject, ShallowRef} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
-import {mdiCircleOpacity, mdiDelete, mdiRectangle, mdiRectangleOutline, mdiVectorRectangle} from '@mdi/js'
-import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
+import {
+  mdiCircleOpacity,
+  mdiCube,
+  mdiDelete,
+  mdiRectangle,
+  mdiRectangleOutline,
+  mdiSwapHorizontal,
+  mdiVectorRectangle
+} from '@mdi/js'
+import SvgIcon from '@jamescoyle/vue-icon';
+import {Box3, Plane, Vector3} from "three";
+import {SceneMgr} from "../misc/scene";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -28,7 +40,12 @@ let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah
 // Reactive properties
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
 const opacity = defineModel<number>("opacity", {default: 1});
-// TODO: Clipping planes (+ stencil!)
+const clipPlaneX = ref(0);
+const clipPlaneSwappedX = ref(false);
+const clipPlaneY = ref(0);
+const clipPlaneSwappedY = ref(false);
+const clipPlaneZ = ref(0);
+const clipPlaneSwappedZ = ref(false);
 
 // Count the number of faces, edges and vertices
 let faceCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length).reduce((a, b) => a + b, 0)
@@ -89,6 +106,59 @@ function onOpacityChange(newOpacity: number) {
 
 watch(opacity, onOpacityChange);
 
+let document: ShallowRef<Document> = inject('document');
+function onClipPlanesChange() {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+  console.log('Clip planes may have changed', clipPlaneX.value, clipPlaneY.value, clipPlaneZ.value, clipPlaneSwappedX.value, clipPlaneSwappedY.value, clipPlaneSwappedZ.value)
+  let enabled = !clipPlaneSwappedX.value && clipPlaneX.value > 0 ||
+      !clipPlaneSwappedY.value && clipPlaneY.value > 0 ||
+      !clipPlaneSwappedZ.value && clipPlaneZ.value > 0 ||
+      clipPlaneSwappedX.value && clipPlaneX.value < 1 ||
+      clipPlaneSwappedY.value && clipPlaneY.value < 1 ||
+      clipPlaneSwappedZ.value && clipPlaneZ.value < 1;
+  let bbox: Box3
+  if (props.viewer?.renderer && enabled) { // Global value for all models, once set it cannot be unset
+    props.viewer.renderer.alpha = true;
+    props.viewer.renderer.localClippingEnabled = enabled;
+    console.log('Local clipping enabled', props.viewer.renderer)
+    bbox = SceneMgr.getBoundingBox(document);
+  }
+  sceneModel.traverse((child) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      if (child.material) {
+        if (bbox) {
+          let planes = [
+            new Plane(new Vector3(1, 0, 0), bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x)),
+            new Plane(new Vector3(0, 1, 0), bbox.min.y + clipPlaneY.value * (bbox.max.y - bbox.min.y)),
+            new Plane(new Vector3(0, 0, 1), bbox.min.z + clipPlaneZ.value * (bbox.max.z - bbox.min.z)),
+          ];
+          if (clipPlaneSwappedX.value) planes[0].negate();
+          if (clipPlaneSwappedY.value) planes[1].negate();
+          if (clipPlaneSwappedZ.value) planes[2].negate();
+          if (modelName == 'fox') console.log('Clipping planes', planes, child.material)
+          // FIXME: Not working...
+          child.material.clippingPlanes = planes;
+          // props.viewer.renderer.clippingPlanes = planes;
+          // child.material.clipShadows = false;
+          // child.material.clipIntersection = false;
+          // child.material.alphaToCoverage = true;
+          // child.material.needsUpdate = true;
+        }
+      }
+    }
+  });
+  scene.queueRender()
+}
+
+watch(clipPlaneX, onClipPlanesChange);
+watch(clipPlaneY, onClipPlanesChange);
+watch(clipPlaneZ, onClipPlanesChange);
+watch(clipPlaneSwappedX, onClipPlanesChange);
+watch(clipPlaneSwappedY, onClipPlanesChange);
+watch(clipPlaneSwappedZ, onClipPlanesChange);
+
 function onModelLoad() {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
@@ -115,6 +185,8 @@ function onModelLoad() {
   onEnabledFeaturesChange(enabledFeatures.value)
   // Opacity may have been reset after a reload
   onOpacityChange(opacity.value)
+  // Clip planes may have been reset after a reload
+  onClipPlanesChange()
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
@@ -149,6 +221,49 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
       <v-slider v-model="opacity" hide-details min="0" max="1" :step="0.1">
         <template v-slot:prepend>
           <svg-icon type="mdi" :path="mdiCircleOpacity"></svg-icon>
+        </template>
+      </v-slider>
+      <v-divider></v-divider>
+      <v-slider v-model="clipPlaneX" hide-details min="0" max="1">
+        <template v-slot:prepend>
+          <svg-icon type="mdi" :path="mdiCube" :rotate="120"></svg-icon>
+          X
+        </template>
+        <template v-slot:append>
+          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
+                          v-model="clipPlaneSwappedX">
+            <template v-slot:label>
+              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+            </template>
+          </v-checkbox-btn>
+        </template>
+      </v-slider>
+      <v-slider v-model="clipPlaneY" hide-details min="0" max="1">
+        <template v-slot:prepend>
+          <svg-icon type="mdi" :path="mdiCube" :rotate="-120"></svg-icon>
+          Y
+        </template>
+        <template v-slot:append>
+          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
+                          v-model="clipPlaneSwappedY">
+            <template v-slot:label>
+              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+            </template>
+          </v-checkbox-btn>
+        </template>
+      </v-slider>
+      <v-slider v-model="clipPlaneZ" hide-details min="0" max="1">
+        <template v-slot:prepend>
+          <svg-icon type="mdi" :path="mdiCube"></svg-icon>
+          Z
+        </template>
+        <template v-slot:append>
+          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
+                          v-model="clipPlaneSwappedZ">
+            <template v-slot:label>
+              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+            </template>
+          </v-checkbox-btn>
         </template>
       </v-slider>
     </v-expansion-panel-text>
@@ -198,5 +313,13 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
 
 .hide-this-icon {
   display: none !important;
+}
+
+.mdi-checkbox-blank-outline { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/></svg>');
+}
+
+.mdi-checkbox-marked-outline { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19,19H5V5H15V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V11H19M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z"/></svg>');
 }
 </style>
