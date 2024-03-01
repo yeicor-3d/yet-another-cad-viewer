@@ -134,7 +134,7 @@ function entries(lines: { [id: number]: Line3DData }): [string, Line3DData][] {
 
 defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D});
 
-let {disableTap} = inject('disableTap');
+let {disableTap} = inject<{ disableTap: Ref<boolean> }>('disableTap');
 watch(disableTap, (value) => {
   // Rerender not auto triggered? This works anyway...
   if (value) elem.value?.setAttribute('disable-tap', '');

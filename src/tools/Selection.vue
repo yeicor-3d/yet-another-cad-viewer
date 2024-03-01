@@ -21,7 +21,7 @@ export type MObject3D = Object3D & {
 
 let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
-let {disableTap, setDisableTap} = inject('disableTap');
+let {setDisableTap} = inject<{setDisableTap: (boolean) => void}>('disableTap');
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
@@ -29,7 +29,7 @@ let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
 let showDistances = ref<Boolean>(true);
 
 let mouseDownAt: [number, number] | null = null;
-let selectFilter = ref('Any');
+let selectFilter = ref('Any (S)');
 const raycaster = new Raycaster();
 
 
@@ -54,16 +54,16 @@ let selectionListener = (event: MouseEvent) => {
   }
 
   // Set raycaster parameters
-  if (selectFilter.value === 'Any') {
+  if (selectFilter.value === 'Any (S)') {
     raycaster.params.Line.threshold = 0.2;
     raycaster.params.Points.threshold = 0.8;
-  } else if (selectFilter.value === 'Edges') {
+  } else if (selectFilter.value === '(E)dges') {
     raycaster.params.Line.threshold = 0.8;
     raycaster.params.Points.threshold = 0.0;
-  } else if (selectFilter.value === 'Vertices') {
+  } else if (selectFilter.value === '(V)ertices') {
     raycaster.params.Line.threshold = 0.0;
     raycaster.params.Points.threshold = 0.8;
-  } else if (selectFilter.value === 'Faces') {
+  } else if (selectFilter.value === '(F)aces') {
     raycaster.params.Line.threshold = 0.0;
     raycaster.params.Points.threshold = 0.0;
   }
@@ -89,10 +89,10 @@ let selectionListener = (event: MouseEvent) => {
   const hits = raycaster.intersectObject(scene, true);
   let hit = hits.find((hit) => {
     const kind = hit.object.type
-    const kindOk = (selectFilter.value === 'Any') ||
-        ((kind === 'Mesh' || kind === 'SkinnedMesh') && selectFilter.value === 'Faces') ||
-        (kind === 'Line' && selectFilter.value === 'Edges') ||
-        (kind === 'Points' && selectFilter.value === 'Vertices');
+    const kindOk = (selectFilter.value === 'Any (S)') ||
+        ((kind === 'Mesh' || kind === 'SkinnedMesh') && selectFilter.value === '(F)aces') ||
+        (kind === 'Line' && selectFilter.value === '(E)dges') ||
+        (kind === 'Points' && selectFilter.value === '(V)ertices');
     return hit.object.visible && !hit.object.userData.noHit && kindOk;
   }) as Intersection<MObject3D> | undefined;
   //console.log('Hit', hit)
@@ -359,36 +359,70 @@ function updateDistances() {
 
   return;
 }
+
+// Add keyboard shortcuts
+window.addEventListener('keydown', (event) => {
+  if (event.key === 's') {
+    if(selectFilter.value == 'Any (S)') toggleSelection();
+    else {
+      selectFilter.value = 'Any (S)';
+      if(!selectionEnabled.value) toggleSelection();
+    }
+  } else if (event.key === 'f') {
+    if(selectFilter.value == '(F)aces') toggleSelection();
+    else {
+      selectFilter.value = '(F)aces';
+      if(!selectionEnabled.value) toggleSelection();
+    }
+  } else if (event.key === 'e') {
+    if(selectFilter.value == '(E)dges') toggleSelection();
+    else {
+      selectFilter.value = '(E)dges';
+      if(!selectionEnabled.value) toggleSelection();
+    }
+  } else if (event.key === 'v') {
+    if(selectFilter.value == '(V)ertices') toggleSelection();
+    else {
+      selectFilter.value = '(V)ertices';
+      if(!selectionEnabled.value) toggleSelection();
+    }
+  } else if (event.key === 'b') {
+    toggleShowBoundingBox();
+  } else if (event.key === 'd') {
+    toggleShowDistances();
+  } else if (event.key === 'h') {
+    toggleHighlightNextSelection();
+  }
+});
 </script>
 
 <template>
   <div class="select-parent">
     <v-btn icon @click="toggleSelection" :color="selectionEnabled ? 'surface-light' : ''">
-      <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable selection mode' : 'Enable selection mode' }}
+      <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable (s)election mode' : 'Enable (s)election mode' }}
       </v-tooltip>
       <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
     </v-btn>
     <v-tooltip :text="'Select only '  + selectFilter.toString().toLocaleLowerCase()" :open-on-click="false">
       <template v-slot:activator="{ props }">
-        <!-- TODO: Keyboard shortcuts for fast selection (& other tools) -->
         <v-select v-bind="props" class="select-only" variant="underlined"
-                  :items="['Any', 'Faces', 'Edges', 'Vertices']"
+                  :items="['Any (S)', '(F)aces', '(E)dges', '(V)ertices']"
                   v-model="selectFilter"/>
       </template>
     </v-tooltip>
   </div>
   <v-btn icon @click="toggleHighlightNextSelection" :color="highlightNextSelection[0] ? 'surface-light' : ''">
-    <v-tooltip activator="parent">Highlight the next clicked element in the models list</v-tooltip>
+    <v-tooltip activator="parent">(H)ighlight the next clicked element in the models list</v-tooltip>
     <svg-icon type="mdi" :path="mdiFeatureSearch"/>
   </v-btn>
   <v-btn icon @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
-    <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection bounds' : 'Show selection bounds' }}
+    <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection (b)ounds' : 'Show selection (b)ounds' }}
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiCubeOutline"/>
   </v-btn>
   <v-btn icon @click="toggleShowDistances" :color="showDistances ? 'surface-light' : ''">
     <v-tooltip activator="parent">
-      {{ showDistances ? 'Hide selection distances' : 'Show distances (when a pair of features is selected)' }}
+      {{ showDistances ? 'Hide selection (d)istances' : 'Show (d)istances (when a pair of features is selected)' }}
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiRuler"/>
   </v-btn>
