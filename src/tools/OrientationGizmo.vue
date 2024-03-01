@@ -2,6 +2,7 @@
 import {onMounted, onUpdated, ref} from "vue";
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
+import type {ModelViewerElement} from '@google/model-viewer';
 
 // Optimized minimal dependencies from three
 import {Vector3} from "three/src/math/Vector3.js";
@@ -9,7 +10,7 @@ import {Matrix4} from "three/src/math/Matrix4.js";
 
 globalThis.THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
-const props = defineProps<{ scene: ModelScene }>();
+const props = defineProps<{ elem: ModelViewerElement | null, scene: ModelScene }>();
 
 function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElement {
   // noinspection SpellCheckingInspection
@@ -43,6 +44,8 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
       (scene as any).__perspectiveCamera.lookAt(lookAt);
     }
     scene.queueRender();
+    requestIdleCallback(() => props.elem?.dispatchEvent(
+        new CustomEvent('camera-change', {detail: {source: 'none'}})))
   }
   return gizmo;
 }

@@ -27,6 +27,7 @@ const SelectionComponent = defineAsyncComponent({
   loadingComponent: () => "Loading...",
   delay: 0,
 });
+let selectionComp = ref<InstanceType<typeof SelectionComponent> | null>(null);
 
 const LicensesDialogContent = defineAsyncComponent({
   loader: () => import("./LicensesDialogContent.vue"),
@@ -69,13 +70,16 @@ function toggleProjection() {
   if (wasPerspectiveCamera) {
     (scene as any).__perspectiveCamera = prevCam; // Save the default perspective camera
     // This hack also needs to sync the camera position and target
-    requestAnimationFrame(() => syncOrthoCamera(true));
+    syncOrthoCamera(true);
   } else {
     // Restore the default perspective camera
     scene.camera = (scene as any).__perspectiveCamera;
     props.viewer.scene.queueRender() // Force rerender of model-viewer
   }
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
+  // The camera change may take a few frames to take effect, dispatch the event after a delay
+  requestIdleCallback(() => props.viewer?.elem?.dispatchEvent(
+      new CustomEvent('camera-change', {detail: {source: 'none'}})))
 }
 
 async function centerCamera() {
@@ -98,30 +102,40 @@ async function downloadSceneGlb() {
 async function openGithub() {
   window.open('https://github.com/yeicor-3d/yet-another-cad-viewer', '_blank')
 }
+
+
+// Add keyboard shortcuts
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'p') toggleProjection();
+  else if (event.key === 'c') centerCamera();
+  else if (event.key === 'd') downloadSceneGlb();
+  else if (event.key === 'g') openGithub();
+});
 </script>
 
 <template>
-  <orientation-gizmo :scene="props.viewer.scene" v-if="props.viewer?.scene"/>
+  <orientation-gizmo :scene="props.viewer.scene" :elem="props.viewer?.elem" v-if="props.viewer?.scene"/>
   <v-divider/>
   <h5>Camera</h5>
   <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
-    <v-tooltip activator="parent">Toggle Projection<br/>(currently
+    <v-tooltip activator="parent">Toggle (P)rojection<br/>(currently
       {{ toggleProjectionText === 'PERSP' ? 'perspective' : 'orthographic' }})
     </v-tooltip>
     <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
   </v-btn>
   <v-btn icon @click="centerCamera">
-    <v-tooltip activator="parent">Recenter Camera</v-tooltip>
+    <v-tooltip activator="parent">Re(c)enter Camera</v-tooltip>
     <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
-  <selection-component :viewer="props.viewer" v-model="selection" @findModel="(name) => emit('findModel', name)"/>
+  <selection-component :ref="selectionComp" :viewer="props.viewer" v-model="selection"
+                       @findModel="(name) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
   <v-btn icon @click="downloadSceneGlb">
-    <v-tooltip activator="parent">Download Scene</v-tooltip>
+    <v-tooltip activator="parent">(D)ownload Scene</v-tooltip>
     <svg-icon type="mdi" :path="mdiDownload"/>
   </v-btn>
   <v-dialog id="licenses-dialog" fullscreen>
@@ -148,7 +162,7 @@ async function openGithub() {
     </template>
   </v-dialog>
   <v-btn icon @click="openGithub">
-    <v-tooltip activator="parent">Open GitHub</v-tooltip>
+    <v-tooltip activator="parent">Open (G)itHub</v-tooltip>
     <svg-icon type="mdi" :path="mdiGithub"/>
   </v-btn>
   <div ref="statsHolder"></div>

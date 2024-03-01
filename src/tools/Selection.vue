@@ -185,6 +185,26 @@ function toggleShowBoundingBox() {
 
 let viewerFound = false
 let firstLoad = true;
+let cameraChangeWaiting = false;
+let cameraChangeLast = 0
+let onCameraChange = () => {
+  // Avoid updates while dragging (slow operation)
+  cameraChangeLast = performance.now();
+  if (cameraChangeWaiting) return;
+  cameraChangeWaiting = true;
+  let waitingHandler: () => void;
+  waitingHandler = () => {
+    // Ignore also inertia
+    if (performance.now() - cameraChangeLast > 250) {
+      updateBoundingBox();
+      cameraChangeWaiting = false;
+    } else {
+      // If the camera is still moving, wait a bit more
+      setTimeout(waitingHandler, 100);
+    }
+  };
+  setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
+};
 watch(() => props.viewer, (viewer) => {
   if (!viewer) return;
   if (viewerFound) return;
@@ -204,26 +224,7 @@ watch(() => props.viewer, (viewer) => {
         updateBoundingBox();
       }
     });
-    let isWaiting = false;
-    let lastCameraChange = 0
-    elem.addEventListener('camera-change', () => {
-      // Avoid updates while dragging (slow operation)
-      lastCameraChange = performance.now();
-      if (isWaiting) return;
-      isWaiting = true;
-      let waitingHandler: () => void;
-      waitingHandler = () => {
-        // Ignore also inertia
-        if (performance.now() - lastCameraChange > 250) {
-          updateBoundingBox();
-          isWaiting = false;
-        } else {
-          // If the camera is still moving, wait a bit more
-          setTimeout(waitingHandler, 100);
-        }
-      };
-      setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
-    });
+    elem.addEventListener('camera-change', onCameraChange);
   });
 });
 
@@ -359,6 +360,8 @@ function updateDistances() {
 
   return;
 }
+
+defineExpose({onCameraChange})
 
 // Add keyboard shortcuts
 window.addEventListener('keydown', (event) => {
