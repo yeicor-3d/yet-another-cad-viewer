@@ -120,9 +120,8 @@ function onClipPlanesChange() {
       clipPlaneSwappedZ.value && clipPlaneZ.value < 1;
   let bbox: Box3
   if (props.viewer?.renderer && enabled) { // Global value for all models, once set it cannot be unset
-    props.viewer.renderer.alpha = true;
-    props.viewer.renderer.localClippingEnabled = enabled;
-    console.log('Local clipping enabled', props.viewer.renderer)
+    props.viewer.renderer.threeRenderer.localClippingEnabled = enabled;
+    console.log('Local clipping enabled', props.viewer.renderer, props.viewer)
     bbox = SceneMgr.getBoundingBox(document);
   }
   sceneModel.traverse((child) => {
