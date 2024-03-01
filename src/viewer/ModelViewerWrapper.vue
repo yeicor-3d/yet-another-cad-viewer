@@ -3,7 +3,7 @@
 
 <script setup lang="ts">
 import {settings} from "../misc/settings";
-import {onMounted} from "vue";
+import {onMounted, inject, Ref} from "vue";
 import {$scene, $renderer} from "@google/model-viewer/lib/model-viewer-base";
 import Loading from "../misc/Loading.vue";
 import {ref, watch} from "vue";
@@ -87,7 +87,7 @@ function removeLine3D(id: number) {
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
   lines.value[id].endHotspot.parentElement.remove()
   delete lines.value[id];
-  lines.value = {...lines.value}; // TODO: Trigger reactivity not working...
+  scene.value.queueRender() // Needed to update the hotspots
 }
 
 function onCameraChange() {
@@ -128,14 +128,25 @@ function onElemReady(callback: (elem: ModelViewerElement) => void) {
   }
 }
 
+function entries(lines: { [id: number]: Line3DData }): [string, Line3DData][] {
+  return Object.entries(lines);
+}
+
 defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D});
+
+let {disableTap} = inject('disableTap');
+watch(disableTap, (value) => {
+  // Rerender not auto triggered? This works anyway...
+  if (value) elem.value?.setAttribute('disable-tap', '');
+  else elem.value?.removeAttribute('disable-tap');
+});
 </script>
 
 <template>
   <!-- The main 3D model viewer -->
   <model-viewer ref="elem" style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
-                min-camera-orbit="-Infinity 0deg 5%" disable-tap :exposure="settings.exposure"
+                min-camera-orbit="-Infinity 0deg 5%" :disable-tap="disableTap.value" :exposure="settings.exposure"
                 :shadow-intensity="settings.shadowIntensity" interaction-prompt="none" :autoplay="settings.autoplay"
                 :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :skybox-image="settings.background"
                 :environment-image="settings.background">
@@ -146,7 +157,7 @@ defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D});
   <!-- The SVG overlay for fake 3D lines attached to the model -->
   <div class="overlay-svg-wrapper">
     <svg ref="svg" class="overlay-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <g v-for="[lineId, line] in Object.entries(lines)" :key="lineId">
+      <g v-for="[lineId, line] in entries(lines)" :key="lineId">
         <line :x1="line.start2D[0]" :y1="line.start2D[1]" :x2="line.end2D[0]"
               :y2="line.end2D[1]" v-bind="line.lineAttrs"/>
         <rect :x="(line.start2D[0] + line.end2D[0]) / 2 - line.centerTextSize[0]/2 - 4"

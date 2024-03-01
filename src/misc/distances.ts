@@ -1,20 +1,27 @@
 import {BufferAttribute, InterleavedBufferAttribute, Vector3} from 'three';
 import type {MObject3D} from "../tools/Selection.vue";
+import type { ModelScene } from '@google/model-viewer/lib/three-components/ModelScene';
 
 
-function getCenterAndVertexList(obj: InstanceType<typeof MObject3D>): {
+function getCenterAndVertexList(obj: InstanceType<typeof MObject3D>, scene: ModelScene): {
     center: Vector3,
     vertices: Array<Vector3>
 } {
     obj.updateMatrixWorld();
     let pos: InterleavedBufferAttribute = obj.geometry.getAttribute('position');
     let ind: BufferAttribute = obj.geometry.index;
+    if (!ind) {
+        ind = new BufferAttribute(new Uint16Array(pos.count), 1);
+        for (let i = 0; i < pos.count; i++) {
+            ind.array[i] = i;
+        }
+    }
     let center = new Vector3();
     let vertices = [];
     for (let i = 0; i < ind.count; i++) {
         let index = ind.array[i];
         let vertex = new Vector3(pos.getX(index), pos.getY(index), pos.getZ(index));
-        // vertex = obj.localToWorld(vertex); // TODO: Bad locations due to with model viewer?
+        vertex = scene.target.worldToLocal(obj.localToWorld(vertex));
         center.add(vertex);
         vertices.push(vertex);
     }
@@ -27,15 +34,15 @@ function getCenterAndVertexList(obj: InstanceType<typeof MObject3D>): {
  * Given two THREE.Object3D objects, returns their closest and farthest vertices, and the geometric centers.
  * All of them are approximated and should not be used for precise calculations.
  */
-export function distances(a: InstanceType<typeof MObject3D>, b: InstanceType<typeof MObject3D>): {
+export function distances(a: InstanceType<typeof MObject3D>, b: InstanceType<typeof MObject3D>, scene: ModelScene): {
     min: Array<Vector3>,
     center: Array<Vector3>,
     max: Array<Vector3>
 } {
     // Simplify this problem (approximate) by using the distance between each of their vertices.
     // Find the center of each object.
-    let {center: aCenter, vertices: aVertices} = getCenterAndVertexList(a);
-    let {center: bCenter, vertices: bVertices} = getCenterAndVertexList(b);
+    let {center: aCenter, vertices: aVertices} = getCenterAndVertexList(a, scene);
+    let {center: bCenter, vertices: bVertices} = getCenterAndVertexList(b, scene);
 
     // Find the closest and farthest vertices.
     // TODO: Compute actual min and max distances between the two objects.

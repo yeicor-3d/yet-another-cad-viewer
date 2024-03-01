@@ -21,6 +21,7 @@ export type MObject3D = Object3D & {
 
 let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
+let {disableTap, setDisableTap} = inject('disableTap');
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
@@ -56,7 +57,7 @@ let selectionListener = (event: MouseEvent) => {
   if (selectFilter.value === 'Any') {
     raycaster.params.Line.threshold = 0.2;
     raycaster.params.Points.threshold = 0.8;
-  } else if(selectFilter.value === 'Edges') {
+  } else if (selectFilter.value === 'Edges') {
     raycaster.params.Line.threshold = 0.8;
     raycaster.params.Points.threshold = 0.0;
   } else if (selectFilter.value === 'Vertices') {
@@ -160,14 +161,7 @@ function toggleSelection() {
   let viewer: ModelViewerElement = props.viewer?.elem;
   if (!viewer) return;
   selectionEnabled.value = !selectionEnabled.value;
-  if (selectionEnabled.value) {
-    for (let material of selected.value) {
-      select(material);
-    }
-  } else {
-    deselectAll(false);
-  }
-  props.viewer.scene?.queueRender() // Force rerender of model-viewer
+  setDisableTap(selectionEnabled.value);
 }
 
 function toggleHighlightNextSelection() {
@@ -186,15 +180,16 @@ function toggleHighlightNextSelection() {
 
 function toggleShowBoundingBox() {
   showBoundingBox.value = !showBoundingBox.value;
+  if (!firstLoad /*bug?*/) updateBoundingBox();
 }
 
 let viewerFound = false
+let firstLoad = true;
 watch(() => props.viewer, (viewer) => {
   if (!viewer) return;
   if (viewerFound) return;
   viewerFound = true;
   let hasListeners = false;
-  let firstLoad = true;
   // props.viewer.elem may not yet be available, so we need to wait for it
   viewer.onElemReady((elem) => {
     if (hasListeners) return;
@@ -219,12 +214,11 @@ watch(() => props.viewer, (viewer) => {
       let waitingHandler: () => void;
       waitingHandler = () => {
         // Ignore also inertia
-        let stillMoving = performance.now() - lastCameraChange < 100;
-        if (!stillMoving) {
+        if (performance.now() - lastCameraChange > 250) {
           updateBoundingBox();
           isWaiting = false;
         } else {
-          // If the mouse is still down, wait a little more
+          // If the camera is still moving, wait a bit more
           setTimeout(waitingHandler, 100);
         }
       };
@@ -333,6 +327,7 @@ function updateDistances() {
 
   // Set up the line cache (for delta updates)
   let distanceLinesToRemove = Object.keys(distanceLines);
+
   function ensureLine(from: Vector3, to: Vector3, text: string, color: string) {
     console.log('ensureLine', from, to, text, color)
     let lineCacheKey = JSON.stringify([from, to]);
@@ -351,7 +346,7 @@ function updateDistances() {
   // Add lines (if not already added)
   let objA = selected.value[0].object;
   let objB = selected.value[1].object;
-  let {min, center, max} = distances(objA, objB);
+  let {min, center, max} = distances(objA, objB, props.viewer?.scene);
   ensureLine(max[0], max[1], max[1].distanceTo(max[0]).toFixed(1) + "mm", "orange");
   ensureLine(center[0], center[1], center[1].distanceTo(center[0]).toFixed(1) + "mm", "green");
   ensureLine(min[0], min[1], min[1].distanceTo(min[0]).toFixed(1) + "mm", "cyan");

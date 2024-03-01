@@ -1,6 +1,6 @@
 <!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
-import {defineAsyncComponent, ref, Ref, shallowRef, provide} from "vue";
+import {defineAsyncComponent, provide, Ref, ref, shallowRef} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
@@ -28,6 +28,11 @@ let viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
 let document = shallowRef(new Document());
 let models: Ref<InstanceType<typeof Models> | null> = ref(null)
 provide('document', document);
+let disableTap = ref(false);
+let setDisableTap = (val: boolean) => {
+  disableTap.value = val;
+}
+provide('disableTap', {disableTap, setDisableTap});
 
 async function onModelLoadRequest(model: NetworkUpdateEvent) {
   await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);
@@ -37,10 +42,6 @@ async function onModelLoadRequest(model: NetworkUpdateEvent) {
 function onModelRemoveRequest(name: string) {
   SceneMgr.removeModel(sceneUrl, document, name);
   document.value = document.value.clone(); // Force update from this component!
-}
-
-function onFindModel(name: string) {
-  Models.value.findModel(name);
 }
 
 // Set up the load model event listener
