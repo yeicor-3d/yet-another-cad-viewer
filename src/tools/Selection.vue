@@ -180,9 +180,9 @@ function toggleHighlightNextSelection() {
 
 function toggleShowBoundingBox() {
   showBoundingBox.value = !showBoundingBox.value;
+  updateBoundingBox();
 }
 
-let viewerFound = false
 let firstLoad = true;
 let hasListeners = false;
 let cameraChangeWaiting = false;
@@ -205,41 +205,29 @@ let onCameraChange = () => {
   };
   setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
 };
-watch(() => props.viewer, (viewer) => {
-  console.log('Viewer changed', viewer)
+let onViewerReady = (viewer) => {
   if (!viewer) return;
   // props.viewer.elem may not yet be available, so we need to wait for it
   viewer.onElemReady((elem) => {
-    if (viewerFound) return;
-    viewerFound = true;
     if (hasListeners) return;
     hasListeners = true;
     elem.addEventListener('mouseup', selectionListener);
     elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
     elem.addEventListener('load', () => {
-      console.log('Model loaded')
       if (firstLoad) {
         toggleShowBoundingBox();
         firstLoad = false;
+      } else {
+        updateBoundingBox();
       }
-      updateBoundingBox();
     });
-    console.log(elem)
-    if (elem.loaded) {
-      console.log('Model already loaded')
-      if (firstLoad) {
-        toggleShowBoundingBox();
-        firstLoad = false;
-      }
-      updateBoundingBox();
-    }
     elem.addEventListener('camera-change', onCameraChange);
   });
-});
+};
+if (props.viewer) onViewerReady(props.viewer);
+else watch(() => props.viewer, onViewerReady);
 
 let {sceneDocument}: { sceneDocument: ShallowRef<Document> } = inject('sceneDocument');
-
-
 let boundingBoxLines: { [points: string]: number } = {}
 
 function updateBoundingBox() {
@@ -305,17 +293,21 @@ function updateBoundingBox() {
     if (matchingLine) {
       boundingBoxLinesToRemove = boundingBoxLinesToRemove.filter((l) => l !== lineCacheKey);
     } else {
-      boundingBoxLines[lineCacheKey] = props.viewer?.addLine3D(from, to,
+      let newLineId = props.viewer.addLine3D(from, to,
           to.clone().sub(from).length().toFixed(1) + "mm", {
             "stroke": "rgb(" + color.join(',') + ")",
             "stroke-width": "2"
           });
+      if (newLineId) {
+        boundingBoxLines[lineCacheKey] = newLineId;
+      }
     }
   }
   // Remove the lines that are no longer needed
   for (let lineLocator of boundingBoxLinesToRemove) {
-    props.viewer?.removeLine3D(boundingBoxLines[lineLocator]);
-    delete boundingBoxLines[lineLocator];
+    if (props.viewer.removeLine3D(boundingBoxLines[lineLocator])) {
+      delete boundingBoxLines[lineLocator];
+    }
   }
 }
 

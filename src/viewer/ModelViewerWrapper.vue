@@ -48,7 +48,7 @@ class Line3DData {
   centerTextSize?: [number, number]
 }
 
-let nextLineId = 0;
+let nextLineId = 1;  // Avoid 0 (falsy!)
 let lines = ref<{ [id: number]: Line3DData }>({});
 
 function positionToHotspot(position: Vector3): string {
@@ -59,8 +59,8 @@ function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "",
                    lineAttrs: { [key: string]: string } = {
                      "stroke-width": "2",
                      "stroke": "red",
-                   }): number {
-  if (!scene.value) return -1;
+                   }): number | null {
+  if (!scene.value) return null
   let id = nextLineId++;
   let hotspotName1 = 'line' + id + '_start';
   let hotspotName2 = 'line' + id + '_end';
@@ -80,14 +80,15 @@ function addLine3D(p1: Vector3, p2: Vector3, centerText: string = "",
   return id;
 }
 
-function removeLine3D(id: number) {
-  if (!scene.value) return;
+function removeLine3D(id: number): boolean {
+  if (!scene.value || !(id in lines.value)) return false;
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_start'}));
   lines.value[id].startHotspot.parentElement.remove()
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
   lines.value[id].endHotspot.parentElement.remove()
   delete lines.value[id];
   scene.value.queueRender() // Needed to update the hotspots
+  return true;
 }
 
 function onCameraChange() {
