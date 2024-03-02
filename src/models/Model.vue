@@ -13,7 +13,7 @@ import {
 } from "vuetify/lib/components";
 import {extrasNameKey} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
-import {ref, watch, inject, ShallowRef} from "vue";
+import {inject, ref, ShallowRef, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {
   mdiCircleOpacity,
@@ -25,7 +25,8 @@ import {
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import {Box3, Plane, Vector3} from "three";
+import type {Box3} from "three";
+import {Plane, Vector3} from "three";
 import {SceneMgr} from "../misc/scene";
 
 const props = defineProps<{
@@ -40,11 +41,11 @@ let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah
 // Reactive properties
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
 const opacity = defineModel<number>("opacity", {default: 1});
-const clipPlaneX = ref(0);
+const clipPlaneX = ref(1);
 const clipPlaneSwappedX = ref(false);
-const clipPlaneY = ref(0);
+const clipPlaneY = ref(1);
 const clipPlaneSwappedY = ref(false);
-const clipPlaneZ = ref(0);
+const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
 
 // Count the number of faces, edges and vertices
@@ -107,38 +108,42 @@ function onOpacityChange(newOpacity: number) {
 watch(opacity, onOpacityChange);
 
 let document: ShallowRef<Document> = inject('document');
+
 function onClipPlanesChange() {
+  console.log('Clip planes may have changed', clipPlaneX.value, clipPlaneY.value, clipPlaneZ.value, clipPlaneSwappedX.value, clipPlaneSwappedY.value, clipPlaneSwappedZ.value)
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  console.log('Clip planes may have changed', clipPlaneX.value, clipPlaneY.value, clipPlaneZ.value, clipPlaneSwappedX.value, clipPlaneSwappedY.value, clipPlaneSwappedZ.value)
-  let enabled = !clipPlaneSwappedX.value && clipPlaneX.value > 0 ||
-      !clipPlaneSwappedY.value && clipPlaneY.value > 0 ||
-      !clipPlaneSwappedZ.value && clipPlaneZ.value > 0 ||
-      clipPlaneSwappedX.value && clipPlaneX.value < 1 ||
-      clipPlaneSwappedY.value && clipPlaneY.value < 1 ||
-      clipPlaneSwappedZ.value && clipPlaneZ.value < 1;
-  let bbox: Box3
+  let enabled = clipPlaneSwappedX.value && clipPlaneX.value > 0 ||
+      clipPlaneSwappedY.value && clipPlaneY.value > 0 ||
+      clipPlaneSwappedZ.value && clipPlaneZ.value > 0 ||
+      !clipPlaneSwappedX.value && clipPlaneX.value < 1 ||
+      !clipPlaneSwappedY.value && clipPlaneY.value < 1 ||
+      !clipPlaneSwappedZ.value && clipPlaneZ.value < 1;
   if (props.viewer?.renderer && enabled) { // Global value for all models, once set it cannot be unset
     props.viewer.renderer.threeRenderer.localClippingEnabled = enabled;
-    console.log('Local clipping enabled', props.viewer.renderer, props.viewer)
-    bbox = SceneMgr.getBoundingBox(document);
   }
+  let bbox = SceneMgr.getBoundingBox(document);
+  // Due to model-viewer's camera manipulation, the bounding box
+  bbox.translate(scene.getTarget().multiplyScalar(-1));
+  console.log('Bounding box', bbox)
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material) {
         if (bbox) {
           let planes = [
-            new Plane(new Vector3(1, 0, 0), bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x)),
-            new Plane(new Vector3(0, 1, 0), bbox.min.y + clipPlaneY.value * (bbox.max.y - bbox.min.y)),
-            new Plane(new Vector3(0, 0, 1), bbox.min.z + clipPlaneZ.value * (bbox.max.z - bbox.min.z)),
+            new Plane(new Vector3(-1, 0, 0), bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x)),
+            new Plane(new Vector3(0, 0, 1), bbox.min.z + clipPlaneY.value * (bbox.max.z - bbox.min.z)),
+            new Plane(new Vector3(0, -1, 0), bbox.min.y + clipPlaneZ.value * (bbox.max.y - bbox.min.y)),
           ];
           if (clipPlaneSwappedX.value) planes[0].negate();
           if (clipPlaneSwappedY.value) planes[1].negate();
           if (clipPlaneSwappedZ.value) planes[2].negate();
           if (modelName == 'fox') console.log('Clipping planes', planes, child.material)
-          // FIXME: Not working...
           child.material.clippingPlanes = planes;
+          if (child.userData.backChild) {
+            child.userData.backChild.material.clippingPlanes = planes;
+          }
           // props.viewer.renderer.clippingPlanes = planes;
           // child.material.clipShadows = false;
           // child.material.clipIntersection = false;
@@ -157,6 +162,8 @@ watch(clipPlaneZ, onClipPlanesChange);
 watch(clipPlaneSwappedX, onClipPlanesChange);
 watch(clipPlaneSwappedY, onClipPlanesChange);
 watch(clipPlaneSwappedZ, onClipPlanesChange);
+// Clip planes are also affected by the camera position, so we need to listen to camera changes
+props.viewer.onElemReady((elem) => elem.addEventListener('camera-change', onClipPlanesChange))
 
 function onModelLoad() {
   let scene = props.viewer?.scene;
@@ -165,8 +172,37 @@ function onModelLoad() {
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
+  let stencilBackChildrenToAdd = [];
+  let stencilRenderOrder = 1;
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
+      if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
+        // Use the stencil buffer to fill the inside (for nice clipping)
+        // This requires a new material, so we need to clone the existing one
+        // https://threejs.org/examples/?q=clipping#webgl_clipping_stencil
+        // child.material.side = FrontSide;
+        // child.material.stencilFunc = AlwaysStencilFunc;
+        // child.material.stencilFail = DecrementWrapStencilOp;
+        // child.material.stencilZFail = DecrementWrapStencilOp;
+        // child.material.stencilZPass = DecrementWrapStencilOp;
+        // child.renderOrder = stencilRenderOrder;
+        //
+        // let backMaterial = child.material.clone();
+        // backMaterial.side = BackSide;
+        // backMaterial.depthWrite = false;
+        // backMaterial.depthTest = false;
+        // backMaterial.colorWrite = false;
+        // backMaterial.stencilWrite = true;
+        // backMaterial.stencilFail = IncrementWrapStencilOp;
+        // backMaterial.stencilZFail = IncrementWrapStencilOp;
+        // backMaterial.stencilZPass = IncrementWrapStencilOp;
+        // let backChild = new TMesh(child.geometry, backMaterial);
+        // backChild.renderOrder = stencilRenderOrder;
+        //
+        // stencilBackChildrenToAdd.push(backChild);
+        // stencilRenderOrder++;
+        // child.userData.backChild = backChild;
+      }
       // if (child.type == 'Line' || child.type == 'LineSegments') {
       // child.material.linewidth = 3; // Not supported in WebGL2
       // If wide lines are really needed, we need https://threejs.org/examples/?q=line#webgl_lines_fat
@@ -177,6 +213,7 @@ function onModelLoad() {
       }
     }
   });
+  stencilBackChildrenToAdd.forEach((child) => sceneModel.add(child));
   scene.queueRender()
 
   // Furthermore...
