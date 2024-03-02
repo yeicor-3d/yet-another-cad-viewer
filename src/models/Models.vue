@@ -5,16 +5,18 @@ import Loading from "../misc/Loading.vue";
 import {Document, Mesh} from "@gltf-transform/core";
 import {extrasNameKey} from "../misc/gltf";
 import Model from "./Model.vue";
-import {ref} from "vue";
+import {ref, watch, inject, Ref} from "vue";
 
-const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null, document: Document }>();
+const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ remove: [string] }>()
+
+let {sceneDocument} = inject<{ sceneDocument: Ref<Document> }>('sceneDocument');
 
 let expandedNames = ref<Array<string>>([]);
 
-function meshesList(document: Document): Array<Array<Mesh>> {
+function meshesList(sceneDocument: Document): Array<Array<Mesh>> {
   // Grouped by shared name
-  return document.getRoot().listMeshes().reduce((acc, mesh) => {
+  return sceneDocument.getRoot().listMeshes().reduce((acc, mesh) => {
     let name = mesh.getExtras()[extrasNameKey]?.toString() ?? 'Unnamed';
     let group = acc.find((group) => meshName(group[0]) === name);
     if (group) {
@@ -44,10 +46,9 @@ defineExpose({findModel})
 </script>
 
 <template>
-  <Loading v-if="!props.document"/>
-  <v-expansion-panels v-else v-for="meshes in meshesList(props.document)" :key="meshName(meshes[0])"
+  <v-expansion-panels v-for="meshes in meshesList(sceneDocument)" :key="meshName(meshes[0])"
                       v-model="expandedNames" multiple>
-    <model :meshes="meshes" :viewer="props.viewer" :document="props.document" @remove="onRemove(meshes[0])"/>
+    <model :meshes="meshes" :viewer="props.viewer" @remove="onRemove(meshes[0])"/>
   </v-expansion-panels>
 </template>
 

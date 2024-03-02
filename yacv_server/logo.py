@@ -20,12 +20,14 @@ def build_logo() -> TopoDS_Shape:
 
     return logo_obj.part.wrapped
 
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     # Start an offline "server" to merge the CAD part of the logo with the animated GLTF part of the logo
     os.environ['YACV_DISABLE_SERVER'] = '1'
     from yacv_server import show_object, server
+
     ASSETS_DIR = os.getenv('ASSETS_DIR', os.path.join(os.path.dirname(__file__), '..', 'assets'))
 
     # Add the CAD part of the logo to the server
@@ -37,6 +39,7 @@ if __name__ == "__main__":
     with open(os.path.join(ASSETS_DIR, 'logo.glb'), 'wb') as f:
         async def writer():
             f.write(await server.export('logo'))
+
 
         asyncio.run(writer())
 

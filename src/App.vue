@@ -1,6 +1,6 @@
 <!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
-import {defineAsyncComponent, provide, Ref, ref, shallowRef} from "vue";
+import {defineAsyncComponent, provide, Ref, ref, shallowRef, triggerRef} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
@@ -23,25 +23,23 @@ const ModelViewerWrapper = defineAsyncComponent({
 
 let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
 
-let sceneUrl = ref("")
-let viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
-let document = shallowRef(new Document());
-let models: Ref<InstanceType<typeof Models> | null> = ref(null)
-provide('document', document);
-let disableTap = ref(false);
-let setDisableTap = (val: boolean) => {
-  disableTap.value = val;
-}
+const sceneUrl = ref("")
+const viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
+const sceneDocument = shallowRef(new Document());
+provide('sceneDocument', {sceneDocument});
+const models: Ref<InstanceType<typeof Models> | null> = ref(null)
+const disableTap = ref(false);
+const setDisableTap = (val: boolean) => disableTap.value = val;
 provide('disableTap', {disableTap, setDisableTap});
 
 async function onModelLoadRequest(model: NetworkUpdateEvent) {
-  await SceneMgr.loadModel(sceneUrl, document, model.name, model.url);
-  document.value = document.value.clone(); // Force update from this component!
+  sceneDocument.value = await SceneMgr.loadModel(sceneUrl, sceneDocument.value, model.name, model.url);
+  triggerRef(sceneDocument); // Why not triggered automatically?
 }
 
-function onModelRemoveRequest(name: string) {
-  SceneMgr.removeModel(sceneUrl, document, name);
-  document.value = document.value.clone(); // Force update from this component!
+async function onModelRemoveRequest(name: string) {
+  sceneDocument.value = await SceneMgr.removeModel(sceneUrl, sceneDocument.value, name);
+  triggerRef(sceneDocument); // Why not triggered automatically?
 }
 
 // Set up the load model event listener
@@ -76,7 +74,7 @@ async function loadModelManual() {
           <svg-icon type="mdi" :path="mdiPlus"/>
         </v-btn>
       </template>
-      <models ref="models" :viewer="viewer" :document="document" @remove="onModelRemoveRequest"/>
+      <models ref="models" :viewer="viewer" @remove="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->

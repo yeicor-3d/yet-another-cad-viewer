@@ -21,7 +21,7 @@ export type MObject3D = Object3D & {
 
 let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
-let {setDisableTap} = inject<{setDisableTap: (boolean) => void}>('disableTap');
+let {setDisableTap} = inject<{ setDisableTap: (boolean) => void }>('disableTap');
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
@@ -180,11 +180,11 @@ function toggleHighlightNextSelection() {
 
 function toggleShowBoundingBox() {
   showBoundingBox.value = !showBoundingBox.value;
-  if (!firstLoad /*bug?*/) updateBoundingBox();
 }
 
 let viewerFound = false
 let firstLoad = true;
+let hasListeners = false;
 let cameraChangeWaiting = false;
 let cameraChangeLast = 0
 let onCameraChange = () => {
@@ -206,29 +206,38 @@ let onCameraChange = () => {
   setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
 };
 watch(() => props.viewer, (viewer) => {
+  console.log('Viewer changed', viewer)
   if (!viewer) return;
-  if (viewerFound) return;
-  viewerFound = true;
-  let hasListeners = false;
   // props.viewer.elem may not yet be available, so we need to wait for it
   viewer.onElemReady((elem) => {
+    if (viewerFound) return;
+    viewerFound = true;
     if (hasListeners) return;
     hasListeners = true;
     elem.addEventListener('mouseup', selectionListener);
     elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
     elem.addEventListener('load', () => {
+      console.log('Model loaded')
       if (firstLoad) {
         toggleShowBoundingBox();
         firstLoad = false;
-      } else {
-        updateBoundingBox();
       }
+      updateBoundingBox();
     });
+    console.log(elem)
+    if (elem.loaded) {
+      console.log('Model already loaded')
+      if (firstLoad) {
+        toggleShowBoundingBox();
+        firstLoad = false;
+      }
+      updateBoundingBox();
+    }
     elem.addEventListener('camera-change', onCameraChange);
   });
 });
 
-let document: ShallowRef<Document> = inject('document');
+let {sceneDocument}: { sceneDocument: ShallowRef<Document> } = inject('sceneDocument');
 
 
 let boundingBoxLines: { [points: string]: number } = {}
@@ -250,7 +259,7 @@ function updateBoundingBox() {
     }
     bb.applyMatrix4(new Matrix4().makeTranslation(props.viewer?.scene.getTarget()));
   } else {
-    bb = SceneMgr.getBoundingBox(document);
+    bb = SceneMgr.getBoundingBox(sceneDocument.value);
   }
   // Define each edge of the bounding box, to draw a line for each axis
   let corners = [
@@ -361,33 +370,31 @@ function updateDistances() {
   return;
 }
 
-defineExpose({onCameraChange})
-
 // Add keyboard shortcuts
 window.addEventListener('keydown', (event) => {
   if (event.key === 's') {
-    if(selectFilter.value == 'Any (S)') toggleSelection();
+    if (selectFilter.value == 'Any (S)') toggleSelection();
     else {
       selectFilter.value = 'Any (S)';
-      if(!selectionEnabled.value) toggleSelection();
+      if (!selectionEnabled.value) toggleSelection();
     }
   } else if (event.key === 'f') {
-    if(selectFilter.value == '(F)aces') toggleSelection();
+    if (selectFilter.value == '(F)aces') toggleSelection();
     else {
       selectFilter.value = '(F)aces';
-      if(!selectionEnabled.value) toggleSelection();
+      if (!selectionEnabled.value) toggleSelection();
     }
   } else if (event.key === 'e') {
-    if(selectFilter.value == '(E)dges') toggleSelection();
+    if (selectFilter.value == '(E)dges') toggleSelection();
     else {
       selectFilter.value = '(E)dges';
-      if(!selectionEnabled.value) toggleSelection();
+      if (!selectionEnabled.value) toggleSelection();
     }
   } else if (event.key === 'v') {
-    if(selectFilter.value == '(V)ertices') toggleSelection();
+    if (selectFilter.value == '(V)ertices') toggleSelection();
     else {
       selectFilter.value = '(V)ertices';
-      if(!selectionEnabled.value) toggleSelection();
+      if (!selectionEnabled.value) toggleSelection();
     }
   } else if (event.key === 'b') {
     toggleShowBoundingBox();

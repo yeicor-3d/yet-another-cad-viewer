@@ -4,9 +4,9 @@ export const settings = {
         // @ts-ignore
         // new URL('../../assets/fox.glb', import.meta.url).href,
         // @ts-ignore
-        // new URL('../../assets/logo.glb', import.meta.url).href,
+        new URL('../../assets/logo.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
-        "ws://192.168.1.132:32323/"
+        // "ws://192.168.1.132:32323/"
     ],
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     checkServerEveryMs: 100, /* How often to check for a new server */

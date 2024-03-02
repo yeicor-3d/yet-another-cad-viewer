@@ -13,7 +13,7 @@ import {
 } from "vuetify/lib/components";
 import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
-import {inject, ref, ShallowRef, watch} from "vue";
+import {inject, ref, ShallowRef, watch, Ref} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {
   mdiCircleOpacity,
@@ -34,8 +34,7 @@ import {Vector3} from "three/src/math/Vector3";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
-  viewer: InstanceType<typeof ModelViewerWrapper> | null,
-  document: Document
+  viewer: InstanceType<typeof ModelViewerWrapper> | null
 }>();
 const emit = defineEmits<{ remove: [] }>()
 
@@ -111,7 +110,7 @@ function onOpacityChange(newOpacity: number) {
 
 watch(opacity, onOpacityChange);
 
-let document: ShallowRef<Document> = inject('document');
+let {sceneDocument}: {sceneDocument: ShallowRef<Document>} = inject('sceneDocument');
 
 function onClipPlanesChange() {
   let scene = props.viewer?.scene;
@@ -126,7 +125,7 @@ function onClipPlanesChange() {
     // Global value for all models, once set it cannot be unset (unknown for other models...)
     props.viewer.renderer.threeRenderer.localClippingEnabled = true;
     // Due to model-viewer's camera manipulation, the bounding box needs to be transformed
-    bbox = SceneMgr.getBoundingBox(document);
+    bbox = SceneMgr.getBoundingBox(sceneDocument.value);
     bbox.applyMatrix4(sceneModel.matrixWorld);
   }
   sceneModel.traverse((child) => {
