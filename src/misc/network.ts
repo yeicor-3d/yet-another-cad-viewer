@@ -43,13 +43,16 @@ export class NetworkManager extends EventTarget {
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
             console.debug("WebSocket message", data);
-            this.foundModel(data.name, data.hash, data.url);
+            let urlObj = new URL(url);
+            urlObj.protocol = urlObj.protocol === "ws:" ? "http:" : "https:";
+            urlObj.searchParams.set("api_object", data.name);
+            this.foundModel(data.name, data.hash, urlObj.toString());
         };
         ws.onerror = (event) => {
             console.error("WebSocket error", event);
         }
         ws.onclose = () => {
-            //console.trace("WebSocket closed, reconnecting very soon");
+            console.debug("WebSocket closed, reconnecting very soon");
             setTimeout(() => this.monitorWebSocket(url), settings.checkServerEveryMs);
         }
     }

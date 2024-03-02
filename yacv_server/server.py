@@ -4,7 +4,7 @@ import os
 import signal
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from threading import Thread
 from typing import Optional, Dict, Union
 
@@ -12,7 +12,7 @@ import aiohttp_cors
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
 from build123d import Shape, Axis
-from dataclasses_json import dataclass_json, config
+from dataclasses_json import dataclass_json
 
 from mylogger import logger
 from pubsub import BufferedPubSub
@@ -31,10 +31,23 @@ class UpdatesApiData:
     """Name of the object. Should be unique unless you want to overwrite the previous object"""
     hash: str
     """Hash of the object, to detect changes without rebuilding the object"""
-    obj: Optional[TopoDS_Shape] = field(default=None, metadata=config(exclude=lambda obj: True))
+
+
+class UpdatesApiFullData(UpdatesApiData):
+    obj: Optional[TopoDS_Shape]
     """The OCCT object, if any (not serialized)"""
-    kwargs: Optional[Dict[str, any]] = field(default=None, metadata=config(exclude=lambda obj: True))
+    kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
+
+    def __init__(self, name: str, hash: str, obj: Optional[TopoDS_Shape] = None,
+                 kwargs: Optional[Dict[str, any]] = None):
+        self.name = name
+        self.hash = hash
+        self.obj = obj
+        self.kwargs = kwargs
+
+    def to_json(self) -> str:
+        return super().to_json()
 
 
 # noinspection PyUnusedLocal
@@ -47,7 +60,7 @@ class Server:
     runner: web.AppRunner
     thread: Optional[Thread] = None
     do_shutdown = asyncio.Event()
-    show_events = BufferedPubSub[UpdatesApiData]()
+    show_events = BufferedPubSub[UpdatesApiFullData]()
     object_events: Dict[str, BufferedPubSub[bytes]] = {}
     object_events_lock = asyncio.Lock()
 
@@ -134,6 +147,7 @@ class Server:
             subscription = self.show_events.subscribe()
             try:
                 async for data in subscription:
+                    logger.debug('Sending info about %s to %s: %s', data.name, request.remote, data)
                     # noinspection PyUnresolvedReferences
                     await ws.send_str(data.to_json())
             finally:
@@ -141,13 +155,15 @@ class Server:
 
         # Start sending updates to the client automatically
         send_task = asyncio.create_task(_send_api_updates())
+        receive_task = asyncio.create_task(ws.receive())
         try:
             logger.debug('Client connected: %s', request.remote)
             # Wait for the client to close the connection (or send a message)
-            await ws.receive()
-        finally:
+            done, pending = await asyncio.wait([send_task, receive_task], return_when=asyncio.FIRST_COMPLETED)
             # Make sure to stop sending updates to the client and close the connection
-            send_task.cancel()
+            for task in pending:
+                task.cancel()
+        finally:
             await ws.close()
             logger.debug('Client disconnected: %s', request.remote)
 
@@ -159,7 +175,7 @@ class Server:
                      kwargs=None):
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
-        precomputed_info = UpdatesApiData(name=name, hash=hash, obj=obj, kwargs=kwargs or {})
+        precomputed_info = UpdatesApiFullData(name=name, hash=hash, obj=obj, kwargs=kwargs or {})
         self.show_events.publish_nowait(precomputed_info)
         logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
         return precomputed_info
@@ -198,6 +214,7 @@ class Server:
             # Build123D & CadQuery
             while 'wrapped' in dir(obj) and not isinstance(obj, TopoDS_Shape):
                 obj = obj.wrapped
+            # TODO: Support locations (drawn as axes)
             if not isinstance(obj, TopoDS_Shape):
                 raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')
 
@@ -208,22 +225,13 @@ class Server:
 
     async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
-
         # Export the object (or fail if not found)
         exported_glb = await self.export(request.match_info['name'])
-        response = web.Response()
-        try:
-            # Create a new stream response with custom content type and headers
-            response.content_type = 'model/gltf-binary'
-            response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
-            await response.prepare(request)
 
-            # Stream the export data to the response
-            response.body = exported_glb
-        finally:
-            # Close the response (if not an error)
-            if response.prepared:
-                await response.write_eof()
+        # Wrap the GLB in a response and return it
+        response = web.Response(body=exported_glb)
+        response.content_type = 'model/gltf-binary'
+        response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
         return response
 
     async def export(self, name: str) -> bytes:
@@ -238,6 +246,7 @@ class Server:
             async for data in subscription:
                 if data.name == name:
                     obj = data.obj
+                    kwargs = data.kwargs
                     found = True  # Required because obj could be None
                     break
         finally:

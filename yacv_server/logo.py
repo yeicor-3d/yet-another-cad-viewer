@@ -4,7 +4,6 @@ import os
 
 from OCP.TopoDS import TopoDS_Shape
 from build123d import *
-from build123d import Shape
 
 
 def build_logo() -> TopoDS_Shape:
@@ -20,7 +19,6 @@ def build_logo() -> TopoDS_Shape:
         extrude(amount=1)
 
     return logo_obj.part.wrapped
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
