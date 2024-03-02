@@ -1,6 +1,6 @@
 import {Ref, ShallowRef} from 'vue';
 import {Document} from '@gltf-transform/core';
-import {extrasNameKey, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
+import {extrasNameKey, extrasNameValueHelpers, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
 import {newAxes, newGridBox} from "./helpers";
 import {Box3, Matrix4, Vector3} from 'three';
 
@@ -13,7 +13,7 @@ export class SceneMgr {
         // Start merging into the current document, replacing or adding as needed
         document.value = await mergePartial(url, name, document.value);
 
-        if (name !== "__helpers") {
+        if (name !== extrasNameValueHelpers) {
             // Reload the helpers to fit the new model
             await this.reloadHelpers(sceneUrl, document);
         } else {
@@ -35,7 +35,7 @@ export class SceneMgr {
         newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
         newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
         let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-        await SceneMgr.loadModel(sceneUrl, document, "__helpers", helpersUrl);
+        await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl);
     }
 
     static getBoundingBox(document: ShallowRef<Document>): Box3 {
@@ -43,7 +43,7 @@ export class SceneMgr {
         let bbMin: number[] = [1e6, 1e6, 1e6];
         let bbMax: number[] = [-1e6, -1e6, -1e6];
         document.value.getRoot().listNodes().forEach(node => {
-            if ((node.getExtras()[extrasNameKey] ?? "__helpers") === "__helpers") return;
+            if ((node.getExtras()[extrasNameKey] ?? extrasNameValueHelpers) === extrasNameValueHelpers) return;
             let transform = new Matrix4(...node.getWorldMatrix());
             for (let prim of node.getMesh()?.listPrimitives() ?? []) {
                 let accessor = prim.getAttribute('POSITION');

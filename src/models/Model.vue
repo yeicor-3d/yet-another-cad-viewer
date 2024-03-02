@@ -11,7 +11,7 @@ import {
   VSpacer,
   VTooltip,
 } from "vuetify/lib/components";
-import {extrasNameKey} from "../misc/gltf";
+import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
 import {inject, ref, ShallowRef, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
@@ -181,7 +181,7 @@ function onModelLoad() {
         // back faces with a different material.
         child.material.side = FrontSide;
 
-        if (modelName !== "__helpers") {
+        if (modelName !== extrasNameValueHelpers) {
           // The back of the material only writes to the stencil buffer the areas
           // that should be covered by the plane, but does not render anything
           let backChild = child.clone();

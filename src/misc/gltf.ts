@@ -3,6 +3,7 @@ import {unpartition} from "@gltf-transform/functions";
 
 let io = new WebIO();
 export let extrasNameKey = "__yacv_name";
+export let extrasNameValueHelpers = "__helpers";
 
 /**
  * Loads a GLB model from a URL and adds it to the document or replaces it if the names match.
