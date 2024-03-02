@@ -89,9 +89,10 @@ let selectionListener = (event: MouseEvent) => {
   const hits = raycaster.intersectObject(scene, true);
   let hit = hits.find((hit) => {
     const kind = hit.object.type
+    console.log(kind)
     const kindOk = (selectFilter.value === 'Any (S)') ||
         ((kind === 'Mesh' || kind === 'SkinnedMesh') && selectFilter.value === '(F)aces') ||
-        (kind === 'Line' && selectFilter.value === '(E)dges') ||
+        ((kind === 'Line' || kind === 'LineSegments') && selectFilter.value === '(E)dges') ||
         (kind === 'Points' && selectFilter.value === '(V)ertices');
     return hit.object.visible && !hit.object.userData.noHit && kindOk;
   }) as Intersection<MObject3D> | undefined;

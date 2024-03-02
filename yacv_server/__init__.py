@@ -18,13 +18,17 @@ if 'YACV_DISABLE_SERVER' not in os.environ:
 # Expose some nice aliases using the default server instance
 show = server.show
 show_object = show
+show_all = server.show_cad_all
 
 
 def _get_app() -> web.Application:
     """Required by aiohttp-devtools"""
     logging.basicConfig(level=logging.DEBUG)
     from logo import build_logo
-    server.show_cad(build_logo(), 'logo')
+    from build123d import Axis
+    logo = build_logo(False)
+    server.show_cad(logo, 'Logo')
+    server.show_cad(logo.faces().group_by(Axis.X)[0].face().center_location, 'Location')
     return server.app
 
 

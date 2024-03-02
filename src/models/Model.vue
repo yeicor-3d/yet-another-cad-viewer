@@ -147,10 +147,10 @@ function onClipPlanesChange() {
           if (!enabledY) planes.splice(1, 1);
           if (!enabledX) planes.shift();
           child.material.clippingPlanes = planes;
-          if (child.userData.backChild) child.userData.backChild.material.clippingPlanes = planes;
+          if (child.userData.backChild && child.userData.backChild.material) child.userData.backChild.material.clippingPlanes = planes;
         } else {
           child.material.clippingPlanes = [];
-          if (child.userData.backChild) child.userData.backChild.material.clippingPlanes = [];
+          if (child.userData.backChild && child.userData.backChild.material) child.userData.backChild.material.clippingPlanes = [];
         }
       }
     }

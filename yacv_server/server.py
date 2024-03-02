@@ -9,11 +9,13 @@ from threading import Thread
 from typing import Optional, Dict, Union
 
 import aiohttp_cors
+from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
-from build123d import Shape, Axis
+from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
+from cad import get_shape, grab_all_cad
 from mylogger import logger
 from pubsub import BufferedPubSub
 from tessellate import _hashcode, tessellate
@@ -202,26 +204,25 @@ class Server:
         """Publishes a CAD object to the server"""
         start = time.time()
 
-        # Try to grab a shape if a different type of object was passed
-        if not isinstance(obj, TopoDS_Shape):
-            # Build123D
-            if 'part' in dir(obj):
-                obj = obj.part
-            if 'sketch' in dir(obj):
-                obj = obj.sketch
-            if 'line' in dir(obj):
-                obj = obj.line
-            # Build123D & CadQuery
-            while 'wrapped' in dir(obj) and not isinstance(obj, TopoDS_Shape):
-                obj = obj.wrapped
-            # TODO: Support locations (drawn as axes)
-            if not isinstance(obj, TopoDS_Shape):
-                raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')
+        # Get the shape of a CAD-like object
+        obj = get_shape(obj)
 
         # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
-        obj = Shape(obj).rotate(Axis.X, -90).wrapped
+        if isinstance(obj, TopoDS_Shape):
+            obj = Shape(obj).rotate(Axis.X, -90).wrapped
+        elif isinstance(obj, TopLoc_Location):
+            tmp_location = Location(obj)
+            tmp_location.position = Vector(tmp_location.position.X, tmp_location.position.Z, -tmp_location.position.Y)
+            tmp_location.orientation = Vector(tmp_location.orientation.X - 90, tmp_location.orientation.Y,
+                                              tmp_location.orientation.Z)
+            obj = tmp_location.wrapped
 
         self._show_common(name, _hashcode(obj, **kwargs), start, obj, kwargs)
+
+    def show_cad_all(self, **kwargs):
+        """Publishes all CAD objects to the server"""
+        for name, obj in grab_all_cad():
+            self.show_cad(obj, name, **kwargs)
 
     async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
@@ -276,7 +277,7 @@ class Server:
 
                 # We should build it fully even if we are cancelled, so we use a separate task
                 # Furthermore, building is CPU-bound, so we use the default executor
-                asyncio.get_running_loop().run_in_executor(None, _build_object)
+                await asyncio.get_running_loop().run_in_executor(None, _build_object)
 
         # In either case return the elements of a subscription to the async generator
         subscription = self.object_events[name].subscribe()

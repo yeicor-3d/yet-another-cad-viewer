@@ -1,7 +1,6 @@
 import {Document, TypedArray} from '@gltf-transform/core'
 import {Vector2} from 'three/src/math/Vector2'
 import {Vector3} from 'three/src/math/Vector3'
-import {Box3} from 'three/src/math/Box3'
 import {Matrix4} from 'three/src/math/Matrix4'
 
 
@@ -47,20 +46,20 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
  */
 export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
     let rawPositions = [
-        0, 0, 0,
-        size.x, 0, 0,
-        0, 0, 0,
-        0, size.y, 0,
-        0, 0, 0,
-        0, 0, -size.z,
+        [0, 0, 0, size.x, 0, 0],
+        [0, 0, 0, 0, size.y, 0],
+        [0, 0, 0, 0, 0, -size.z],
     ];
-    let rawIndices = [0, 1, 2, 3, 4, 5];
+    let rawIndices = [0, 1];
     let rawColors = [
-        ...(AxesColors.x[0]), ...(AxesColors.x[1]),
-        ...(AxesColors.y[0]), ...(AxesColors.y[1]),
-        ...(AxesColors.z[0]), ...(AxesColors.z[1]),
-    ].map(x => x / 255.0);
-    buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, transform, '__helper_axes');
+        [...(AxesColors.x[0]), ...(AxesColors.x[1])],
+        [...(AxesColors.y[0]), ...(AxesColors.y[1])],
+        [...(AxesColors.z[0]), ...(AxesColors.z[1])],
+    ].map(g => g.map(x => x / 255.0));
+    buildSimpleGltf(doc, rawPositions[0], rawIndices, rawColors[0], transform, '__helper_axes');
+    buildSimpleGltf(doc, rawPositions[1], rawIndices, rawColors[1], transform, '__helper_axes');
+    buildSimpleGltf(doc, rawPositions[2], rawIndices, rawColors[2], transform, '__helper_axes');
+    buildSimpleGltf(doc, [0, 0, 0], [0], null, transform, '__helper_axes', WebGL2RenderingContext.POINTS);
 }
 
 /**
@@ -86,7 +85,7 @@ export function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4 
     }
 }
 
-export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = new Matrix4(), divisions = 10, divisionWidth = 0.2) {
+export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = new Matrix4(), divisions = 10, divisionWidth = 0.002) {
     const rawPositions = [];
     const rawIndices = [];
     // Build the grid as triangles
@@ -95,19 +94,19 @@ export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = 
         const y = -size.y / 2 + size.y * i / divisions;
 
         // Vertical quad (two triangles)
-        rawPositions.push(x - divisionWidth / 2, -size.y / 2, 0);
-        rawPositions.push(x + divisionWidth / 2, -size.y / 2, 0);
-        rawPositions.push(x + divisionWidth / 2, size.y / 2, 0);
-        rawPositions.push(x - divisionWidth / 2, size.y / 2, 0);
+        rawPositions.push(x - divisionWidth * size.x / 2, -size.y / 2, 0);
+        rawPositions.push(x + divisionWidth * size.x / 2, -size.y / 2, 0);
+        rawPositions.push(x + divisionWidth * size.x / 2, size.y / 2, 0);
+        rawPositions.push(x - divisionWidth * size.x / 2, size.y / 2, 0);
         const baseIndex = i * 4;
         rawIndices.push(baseIndex, baseIndex + 1, baseIndex + 2);
         rawIndices.push(baseIndex, baseIndex + 2, baseIndex + 3);
 
         // Horizontal quad (two triangles)
-        rawPositions.push(-size.x / 2, y - divisionWidth / 2, 0);
-        rawPositions.push(size.x / 2, y - divisionWidth / 2, 0);
-        rawPositions.push(size.x / 2, y + divisionWidth / 2, 0);
-        rawPositions.push(-size.x / 2, y + divisionWidth / 2, 0);
+        rawPositions.push(-size.x / 2, y - divisionWidth * size.y / 2, 0);
+        rawPositions.push(size.x / 2, y - divisionWidth * size.y / 2, 0);
+        rawPositions.push(size.x / 2, y + divisionWidth * size.y / 2, 0);
+        rawPositions.push(-size.x / 2, y + divisionWidth * size.y / 2, 0);
         const baseIndex2 = (divisions + 1 + i) * 4;
         rawIndices.push(baseIndex2, baseIndex2 + 1, baseIndex2 + 2);
         rawIndices.push(baseIndex2, baseIndex2 + 2, baseIndex2 + 3);
