@@ -184,10 +184,10 @@ function onModelLoad() {
         if (modelName !== "__helpers") {
           // The back of the material only writes to the stencil buffer the areas
           // that should be covered by the plane, but does not render anything
-          let backMaterial = child.material.clone();
-          backMaterial.side = BackSide;
-          backMaterial.color = new Color(0.25, 0.25, 0.25)
-          let backChild = new TMesh(child.geometry, backMaterial);
+          let backChild = child.clone();
+          backChild.material = child.material.clone();
+          backChild.material.side = BackSide;
+          backChild.material.color = new Color(0.25, 0.25, 0.25)
           child.userData.backChild = backChild;
           childrenToAdd.push(backChild);
         }
