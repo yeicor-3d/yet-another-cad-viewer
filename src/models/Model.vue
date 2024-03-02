@@ -25,7 +25,7 @@ import {
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import {BackSide, Color, FrontSide, Mesh as TMesh, Plane, Vector3} from "three";
+import {BackSide, Box3, Color, FrontSide, Mesh as TMesh, Plane, Vector3} from "three";
 import {SceneMgr} from "../misc/scene";
 
 const props = defineProps<{
@@ -117,13 +117,14 @@ function onClipPlanesChange() {
   let enabledY = clipPlaneY.value < 1 && !clipPlaneSwappedY.value || clipPlaneY.value > 0 && clipPlaneSwappedY.value;
   let enabledZ = clipPlaneZ.value < 1 && !clipPlaneSwappedZ.value || clipPlaneZ.value > 0 && clipPlaneSwappedZ.value;
   // let enabled = [enabledX, enabledY, enabledZ];
+  let bbox: Box3;
   if (props.viewer?.renderer && (enabledX || enabledY || enabledZ)) {
     // Global value for all models, once set it cannot be unset (unknown for other models...)
     props.viewer.renderer.threeRenderer.localClippingEnabled = true;
+    // Due to model-viewer's camera manipulation, the bounding box needs to be transformed
+    bbox = SceneMgr.getBoundingBox(document);
+    bbox.applyMatrix4(sceneModel.matrixWorld);
   }
-  let bbox = SceneMgr.getBoundingBox(document);
-  // Due to model-viewer's camera manipulation, the bounding box
-  bbox.applyMatrix4(sceneModel.matrixWorld);
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material) {
@@ -142,9 +143,11 @@ function onClipPlanesChange() {
           if (!enabledZ) planes.pop();
           if (!enabledY) planes.splice(1, 1);
           if (!enabledX) planes.shift();
-          if (modelName == 'fox') console.log('Clipping planes', planes, child.material)
           child.material.clippingPlanes = planes;
           if (child.userData.backChild) child.userData.backChild.material.clippingPlanes = planes;
+        } else {
+          child.material.clippingPlanes = [];
+          if (child.userData.backChild) child.userData.backChild.material.clippingPlanes = [];
         }
       }
     }
@@ -242,16 +245,19 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
     <v-expansion-panel-text>
       <v-slider v-model="opacity" hide-details min="0" max="1" :step="0.1">
         <template v-slot:prepend>
+          <v-tooltip activator="parent">Change opacity</v-tooltip>
           <svg-icon type="mdi" :path="mdiCircleOpacity"></svg-icon>
         </template>
       </v-slider>
       <v-divider></v-divider>
       <v-slider v-model="clipPlaneX" hide-details min="0" max="1">
         <template v-slot:prepend>
+          <v-tooltip activator="parent">Clip plane X</v-tooltip>
           <svg-icon type="mdi" :path="mdiCube" :rotate="120"></svg-icon>
           X
         </template>
         <template v-slot:append>
+          <v-tooltip activator="parent">Swap clip plane X</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
                           v-model="clipPlaneSwappedX">
             <template v-slot:label>
@@ -262,10 +268,12 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
       </v-slider>
       <v-slider v-model="clipPlaneY" hide-details min="0" max="1">
         <template v-slot:prepend>
+          <v-tooltip activator="parent">Clip plane Y</v-tooltip>
           <svg-icon type="mdi" :path="mdiCube" :rotate="-120"></svg-icon>
           Y
         </template>
         <template v-slot:append>
+          <v-tooltip activator="parent">Swap clip plane Y</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
                           v-model="clipPlaneSwappedY">
             <template v-slot:label>
@@ -276,10 +284,12 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
       </v-slider>
       <v-slider v-model="clipPlaneZ" hide-details min="0" max="1">
         <template v-slot:prepend>
+          <v-tooltip activator="parent">Clip plane Z</v-tooltip>
           <svg-icon type="mdi" :path="mdiCube"></svg-icon>
           Z
         </template>
         <template v-slot:append>
+          <v-tooltip activator="parent">Swap clip plane Z</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
                           v-model="clipPlaneSwappedZ">
             <template v-slot:label>
