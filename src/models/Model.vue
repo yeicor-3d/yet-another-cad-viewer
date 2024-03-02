@@ -25,8 +25,12 @@ import {
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import {BackSide, Box3, Color, FrontSide, Mesh as TMesh, Plane, Vector3} from "three";
 import {SceneMgr} from "../misc/scene";
+import {BackSide, FrontSide} from "three/src/constants";
+import {Box3} from "three/src/math/Box3";
+import {Color} from "three/src/math/Color";
+import {Plane} from "three/src/math/Plane";
+import {Vector3} from "three/src/math/Vector3";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -224,15 +228,15 @@ props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
       <v-btn-toggle v-model="enabledFeatures" multiple @click.stop color="surface-light">
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Faces ({{ faceCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiRectangle"></svg-icon>
+          <svg-icon type="mdi" :path="mdiRectangle" :rotate="90"></svg-icon>
         </v-btn>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Edges ({{ edgeCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiRectangleOutline"></svg-icon>
+          <svg-icon type="mdi" :path="mdiRectangleOutline" :rotate="90"></svg-icon>
         </v-btn>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Vertices ({{ vertexCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiVectorRectangle"></svg-icon>
+          <svg-icon type="mdi" :path="mdiVectorRectangle" :rotate="90"></svg-icon>
         </v-btn>
       </v-btn-toggle>
       <div class="model-name">{{ modelName }}</div>

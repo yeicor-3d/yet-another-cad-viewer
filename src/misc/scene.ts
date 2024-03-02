@@ -2,7 +2,9 @@ import {Ref, ShallowRef} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {extrasNameKey, extrasNameValueHelpers, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
 import {newAxes, newGridBox} from "./helpers";
-import {Box3, Matrix4, Vector3} from 'three';
+import {Vector3} from 'three/src/math/Vector3'
+import {Box3} from 'three/src/math/Box3'
+import {Matrix4} from 'three/src/math/Matrix4'
 
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {

@@ -11,7 +11,7 @@ import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
 import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer";
-import {Vector3} from "three";
+import type {Vector3} from "three";
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 

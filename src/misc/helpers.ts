@@ -1,5 +1,8 @@
 import {Document, TypedArray} from '@gltf-transform/core'
-import {Matrix4, Vector2, Vector3} from 'three'
+import {Vector2} from 'three/src/math/Vector2'
+import {Vector3} from 'three/src/math/Vector3'
+import {Box3} from 'three/src/math/Box3'
+import {Matrix4} from 'three/src/math/Matrix4'
 
 
 /** Exports the colors used for the axes, primary and secondary. They match the orientation gizmo. */
@@ -105,7 +108,7 @@ export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = 
         rawPositions.push(size.x / 2, y - divisionWidth / 2, 0);
         rawPositions.push(size.x / 2, y + divisionWidth / 2, 0);
         rawPositions.push(-size.x / 2, y + divisionWidth / 2, 0);
-        const baseIndex2 = (divisions+1 + i) * 4;
+        const baseIndex2 = (divisions + 1 + i) * 4;
         rawIndices.push(baseIndex2, baseIndex2 + 1, baseIndex2 + 2);
         rawIndices.push(baseIndex2, baseIndex2 + 2, baseIndex2 + 3);
     }

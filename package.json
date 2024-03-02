@@ -6,7 +6,7 @@
   "author": "Yeicor",
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "yarn update-licenses && parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report",
+    "build": "yarn update-licenses && parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report --public-url ./",
     "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
   },
   "dependencies": {
