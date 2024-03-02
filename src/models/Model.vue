@@ -25,8 +25,7 @@ import {
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import type {Box3} from "three";
-import {Plane, Vector3} from "three";
+import {BackSide, Color, FrontSide, Mesh as TMesh, Plane, Vector3} from "three";
 import {SceneMgr} from "../misc/scene";
 
 const props = defineProps<{
@@ -76,6 +75,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
         let visible = newEnabledFeatures.includes(childIsFace ? 0 : childIsEdge ? 1 : childIsVertex ? 2 : -1);
         if (child.visible !== visible) {
           child.visible = visible;
+          if (child.userData.backChild) child.userData.backChild.visible = visible;
         }
       }
     }
@@ -110,45 +110,41 @@ watch(opacity, onOpacityChange);
 let document: ShallowRef<Document> = inject('document');
 
 function onClipPlanesChange() {
-  console.log('Clip planes may have changed', clipPlaneX.value, clipPlaneY.value, clipPlaneZ.value, clipPlaneSwappedX.value, clipPlaneSwappedY.value, clipPlaneSwappedZ.value)
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  let enabled = clipPlaneSwappedX.value && clipPlaneX.value > 0 ||
-      clipPlaneSwappedY.value && clipPlaneY.value > 0 ||
-      clipPlaneSwappedZ.value && clipPlaneZ.value > 0 ||
-      !clipPlaneSwappedX.value && clipPlaneX.value < 1 ||
-      !clipPlaneSwappedY.value && clipPlaneY.value < 1 ||
-      !clipPlaneSwappedZ.value && clipPlaneZ.value < 1;
-  if (props.viewer?.renderer && enabled) { // Global value for all models, once set it cannot be unset
-    props.viewer.renderer.threeRenderer.localClippingEnabled = enabled;
+  let enabledX = clipPlaneX.value < 1 && !clipPlaneSwappedX.value || clipPlaneX.value > 0 && clipPlaneSwappedX.value;
+  let enabledY = clipPlaneY.value < 1 && !clipPlaneSwappedY.value || clipPlaneY.value > 0 && clipPlaneSwappedY.value;
+  let enabledZ = clipPlaneZ.value < 1 && !clipPlaneSwappedZ.value || clipPlaneZ.value > 0 && clipPlaneSwappedZ.value;
+  // let enabled = [enabledX, enabledY, enabledZ];
+  if (props.viewer?.renderer && (enabledX || enabledY || enabledZ)) {
+    // Global value for all models, once set it cannot be unset (unknown for other models...)
+    props.viewer.renderer.threeRenderer.localClippingEnabled = true;
   }
   let bbox = SceneMgr.getBoundingBox(document);
   // Due to model-viewer's camera manipulation, the bounding box
-  bbox.translate(scene.getTarget().multiplyScalar(-1));
-  console.log('Bounding box', bbox)
+  bbox.applyMatrix4(sceneModel.matrixWorld);
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material) {
         if (bbox) {
+          let offsetX = bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x);
+          let offsetY = bbox.min.z + clipPlaneY.value * (bbox.max.z - bbox.min.z);
+          let offsetZ = bbox.min.y + clipPlaneZ.value * (bbox.max.y - bbox.min.y);
           let planes = [
-            new Plane(new Vector3(-1, 0, 0), bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x)),
-            new Plane(new Vector3(0, 0, 1), bbox.min.z + clipPlaneY.value * (bbox.max.z - bbox.min.z)),
-            new Plane(new Vector3(0, -1, 0), bbox.min.y + clipPlaneZ.value * (bbox.max.y - bbox.min.y)),
+            new Plane(new Vector3(-1, 0, 0), offsetX),
+            new Plane(new Vector3(0, 0, 1), offsetY),
+            new Plane(new Vector3(0, -1, 0), offsetZ),
           ];
           if (clipPlaneSwappedX.value) planes[0].negate();
           if (clipPlaneSwappedY.value) planes[1].negate();
           if (clipPlaneSwappedZ.value) planes[2].negate();
+          if (!enabledZ) planes.pop();
+          if (!enabledY) planes.splice(1, 1);
+          if (!enabledX) planes.shift();
           if (modelName == 'fox') console.log('Clipping planes', planes, child.material)
           child.material.clippingPlanes = planes;
-          if (child.userData.backChild) {
-            child.userData.backChild.material.clippingPlanes = planes;
-          }
-          // props.viewer.renderer.clippingPlanes = planes;
-          // child.material.clipShadows = false;
-          // child.material.clipIntersection = false;
-          // child.material.alphaToCoverage = true;
-          // child.material.needsUpdate = true;
+          if (child.userData.backChild) child.userData.backChild.material.clippingPlanes = planes;
         }
       }
     }
@@ -172,36 +168,26 @@ function onModelLoad() {
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
-  let stencilBackChildrenToAdd = [];
-  let stencilRenderOrder = 1;
+  let childrenToAdd = [];
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
-        // Use the stencil buffer to fill the inside (for nice clipping)
-        // This requires a new material, so we need to clone the existing one
+        // We could implement cutting planes using the stencil buffer:
         // https://threejs.org/examples/?q=clipping#webgl_clipping_stencil
-        // child.material.side = FrontSide;
-        // child.material.stencilFunc = AlwaysStencilFunc;
-        // child.material.stencilFail = DecrementWrapStencilOp;
-        // child.material.stencilZFail = DecrementWrapStencilOp;
-        // child.material.stencilZPass = DecrementWrapStencilOp;
-        // child.renderOrder = stencilRenderOrder;
-        //
-        // let backMaterial = child.material.clone();
-        // backMaterial.side = BackSide;
-        // backMaterial.depthWrite = false;
-        // backMaterial.depthTest = false;
-        // backMaterial.colorWrite = false;
-        // backMaterial.stencilWrite = true;
-        // backMaterial.stencilFail = IncrementWrapStencilOp;
-        // backMaterial.stencilZFail = IncrementWrapStencilOp;
-        // backMaterial.stencilZPass = IncrementWrapStencilOp;
-        // let backChild = new TMesh(child.geometry, backMaterial);
-        // backChild.renderOrder = stencilRenderOrder;
-        //
-        // stencilBackChildrenToAdd.push(backChild);
-        // stencilRenderOrder++;
-        // child.userData.backChild = backChild;
+        // But this is buggy for lots of models, so instead we just draw
+        // back faces with a different material.
+        child.material.side = FrontSide;
+
+        if (modelName !== "__helpers") {
+          // The back of the material only writes to the stencil buffer the areas
+          // that should be covered by the plane, but does not render anything
+          let backMaterial = child.material.clone();
+          backMaterial.side = BackSide;
+          backMaterial.color = new Color(0.25, 0.25, 0.25)
+          let backChild = new TMesh(child.geometry, backMaterial);
+          child.userData.backChild = backChild;
+          childrenToAdd.push(backChild);
+        }
       }
       // if (child.type == 'Line' || child.type == 'LineSegments') {
       // child.material.linewidth = 3; // Not supported in WebGL2
@@ -213,7 +199,7 @@ function onModelLoad() {
       }
     }
   });
-  stencilBackChildrenToAdd.forEach((child) => sceneModel.add(child));
+  childrenToAdd.forEach((child) => sceneModel.add(child));
   scene.queueRender()
 
   // Furthermore...
