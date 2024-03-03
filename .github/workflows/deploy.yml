@@ -1,5 +1,3 @@
-name: "maybe deploy"
-
 on:
   push:
     tags:
@@ -27,14 +25,16 @@ jobs:
     steps:
       - uses: "dawidd6/action-download-artifact@v3"
         with:
-          workflow: "build"
+          workflow: "build.yml"
           name: "frontend"
           path: "./public"
+          allow_forks: false
       - uses: "dawidd6/action-download-artifact@v3"
         with:
-          workflow: "build"
+          workflow: "build.yml"
           name: "logo"
           path: "./public"
+          allow_forks: false
       - uses: "svenstaro/upload-release-action@v2"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
