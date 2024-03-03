@@ -35,19 +35,19 @@ jobs:
           name: "logo"
           path: "./public"
           allow_forks: false
-      - uses: "svenstaro/upload-release-action@v2"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          file: "./public/*"
-          asset_name: "frontend"
-          tag: "${{ github.ref }}"
-          overwrite: true
-          file_glob: true
       - uses: "actions/configure-pages@v4"
       - uses: "actions/upload-pages-artifact@v3"
         with:
           path: 'public'
       - id: "deployment"
         uses: "actions/deploy-pages@v4"
+      - run: 'zip -r frontend.zip public'
+      - uses: "svenstaro/upload-release-action@v2"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          file: "frontend.zip"
+          asset_name: "frontend"
+          tag: "${{ github.ref }}"
+          overwrite: true
 
   # TODO: deploy-backend
