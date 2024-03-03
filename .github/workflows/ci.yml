@@ -16,9 +16,11 @@ jobs:
     steps:
       - uses: "actions/checkout@v4"
       - uses: "actions/setup-node@v4"
+        with:
+          cache: "yarn"
       - run: "yarn install"
       - run: "yarn build"
-      - uses: "actions/upload-artifact@v3"
+      - uses: "actions/upload-artifact@v4"
         with:
           name: "frontend"
           path: "./dist"
@@ -29,9 +31,13 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
+      - uses: "actions/setup-node@v4"
+        with:
+          cache: "yarn"
       - run: "pipx install poetry"
       - uses: "actions/setup-python@v5"
         with:
+          python-version: "3.11"
           cache: "poetry"
       - run: "poetry install"
       - run: "poetry build"
@@ -41,14 +47,18 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
+      - uses: "actions/setup-node@v4"
+        with:
+          cache: "yarn"
       - run: "pipx install poetry"
       - uses: "actions/setup-python@v5"
         with:
+          python-version: "3.11"
           cache: "poetry"
       - run: "poetry install"
       - run: "poetry run python yacv_server/logo.py"
       - run: "cp assets/fox.glb assets/logo_build/fox.glb"
-      - uses: "actions/upload-artifact@v3"
+      - uses: "actions/upload-artifact@v4"
         with:
           name: "logo"
           path: "./assets/logo_build"
