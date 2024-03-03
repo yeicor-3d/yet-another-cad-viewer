@@ -88,7 +88,7 @@ let selectionListener = (event: MouseEvent) => {
   // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
   let hit = hits.find((hit: Intersection<Object3D>) => {
-    if (!hit.object || !(hit.object as any).isMesh) return false;
+    if (!hit.object) return false;
     const kind = hit.object.type
     let isFace = kind === 'Mesh' || kind === 'SkinnedMesh';
     let isEdge = kind === 'Line' || kind === 'LineSegments';
