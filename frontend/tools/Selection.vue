@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import {defineModel, inject, ref, ShallowRef, watch} from "vue";
-import {VBtn, VSelect, VTooltip} from "vuetify/lib/components";
-import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
+import {defineModel, inject, ref, type ShallowRef, watch} from "vue";
+import {VBtn, VSelect, VTooltip} from "vuetify/lib/components/index.mjs";
+import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCubeOutline, mdiCursorDefaultClick, mdiFeatureSearch, mdiRuler} from '@mdi/js';
-import type {Intersection, Material, Object3D} from "three";
+import type {Intersection, Material, Mesh, Object3D} from "three";
 import {Box3, Matrix4, Raycaster, Vector3} from "three";
-import type ModelViewerWrapperT from "./ModelViewerWrapper.vue";
+import type ModelViewerWrapperT from "../viewer/ModelViewerWrapper.vue";
 import {extrasNameKey} from "../misc/gltf";
 import {SceneMgr} from "../misc/scene";
 import {Document} from "@gltf-transform/core";
 import {AxesColors} from "../misc/helpers";
 import {distances} from "../misc/distances";
 
-export type MObject3D = Object3D & {
+export type MObject3D = Mesh & {
   userData: { noHit?: boolean },
   material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
 };
 
 let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
-let {setDisableTap} = inject<{ setDisableTap: (boolean) => void }>('disableTap');
+let {setDisableTap} = inject<{ setDisableTap: (arg0: boolean) => void }>('disableTap')!!;
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
@@ -87,13 +87,16 @@ let selectionListener = (event: MouseEvent) => {
 
   // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
-  let hit = hits.find((hit) => {
+  let hit = hits.find((hit: Intersection<Object3D>) => {
+    if (!hit.object || !(hit.object as any).isMesh) return false;
     const kind = hit.object.type
-    console.log(kind)
+    let isFace = kind === 'Mesh' || kind === 'SkinnedMesh';
+    let isEdge = kind === 'Line' || kind === 'LineSegments';
+    let isVertex = kind === 'Points';
     const kindOk = (selectFilter.value === 'Any (S)') ||
-        ((kind === 'Mesh' || kind === 'SkinnedMesh') && selectFilter.value === '(F)aces') ||
-        ((kind === 'Line' || kind === 'LineSegments') && selectFilter.value === '(E)dges') ||
-        (kind === 'Points' && selectFilter.value === '(V)ertices');
+        (isFace && selectFilter.value === '(F)aces') ||
+        (isEdge && selectFilter.value === '(E)dges') ||
+        (isVertex && selectFilter.value === '(V)ertices');
     return hit.object.visible && !hit.object.userData.noHit && kindOk;
   }) as Intersection<MObject3D> | undefined;
   //console.log('Hit', hit)
@@ -102,7 +105,7 @@ let selectionListener = (event: MouseEvent) => {
     // If we are selecting, toggle the selection or deselect all if no hit
     if (hit) {
       // Toggle selection
-      const wasSelected = selected.value.find((m) => m.object.name === hit.object.name) !== undefined;
+      const wasSelected = selected.value.find((m) => m.object.name === hit?.object?.name) !== undefined;
       if (wasSelected) {
         deselect(hit)
       } else {
@@ -113,7 +116,7 @@ let selectionListener = (event: MouseEvent) => {
     }
     updateBoundingBox();
     updateDistances();
-  } else {
+  } else if (hit) {
     // Otherwise, highlight the model that owns the hit
     emit('findModel', hit.object.userData[extrasNameKey])
     // And reset the selection mode
@@ -144,10 +147,12 @@ function deselect(hit: Intersection<MObject3D>, alsoRemove = true) {
     let toRemove = selected.value.findIndex((m) => m.object.name === hit.object.name);
     selected.value.splice(toRemove, 1);
   }
-  hit.object.material.color.r = hit.object.material.__prevBaseColorFactor[0]
-  hit.object.material.color.g = hit.object.material.__prevBaseColorFactor[1]
-  hit.object.material.color.b = hit.object.material.__prevBaseColorFactor[2]
-  delete hit.object.material.__prevBaseColorFactor;
+  if (hit.object.material.__prevBaseColorFactor) {
+    hit.object.material.color.r = hit.object.material.__prevBaseColorFactor[0]
+    hit.object.material.color.g = hit.object.material.__prevBaseColorFactor[1]
+    hit.object.material.color.b = hit.object.material.__prevBaseColorFactor[2]
+    delete hit.object.material.__prevBaseColorFactor;
+  }
 }
 
 function deselectAll(alsoRemove = true) {
@@ -206,10 +211,10 @@ let onCameraChange = () => {
   };
   setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
 };
-let onViewerReady = (viewer) => {
+let onViewerReady = (viewer: typeof ModelViewerWrapperT) => {
   if (!viewer) return;
   // props.viewer.elem may not yet be available, so we need to wait for it
-  viewer.onElemReady((elem) => {
+  viewer.onElemReady((elem: ModelViewerElement) => {
     if (hasListeners) return;
     hasListeners = true;
     elem.addEventListener('mouseup', selectionListener);
@@ -226,9 +231,9 @@ let onViewerReady = (viewer) => {
   });
 };
 if (props.viewer) onViewerReady(props.viewer);
-else watch(() => props.viewer, onViewerReady);
+else watch(() => props.viewer, () => onViewerReady(props.viewer as any));
 
-let {sceneDocument}: { sceneDocument: ShallowRef<Document> } = inject('sceneDocument');
+let {sceneDocument} = inject<{ sceneDocument: ShallowRef<Document> }>('sceneDocument')!!;
 let boundingBoxLines: { [points: string]: number } = {}
 
 function updateBoundingBox() {
@@ -294,7 +299,7 @@ function updateBoundingBox() {
     if (matchingLine) {
       boundingBoxLinesToRemove = boundingBoxLinesToRemove.filter((l) => l !== lineCacheKey);
     } else {
-      let newLineId = props.viewer.addLine3D(from, to,
+      let newLineId = props.viewer?.addLine3D(from, to,
           to.clone().sub(from).length().toFixed(1) + "mm", {
             "stroke": "rgb(" + color.join(',') + ")",
             "stroke-width": "2"
@@ -306,7 +311,7 @@ function updateBoundingBox() {
   }
   // Remove the lines that are no longer needed
   for (let lineLocator of boundingBoxLinesToRemove) {
-    if (props.viewer.removeLine3D(boundingBoxLines[lineLocator])) {
+    if (props.viewer?.removeLine3D(boundingBoxLines[lineLocator])) {
       delete boundingBoxLines[lineLocator];
     }
   }

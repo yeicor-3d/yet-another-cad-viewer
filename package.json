@@ -1,12 +1,16 @@
 {
   "name": "yet-another-cad-viewer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "license": "MIT",
-  "author": "Yeicor",
+  "author": "Yeicor <4929005+Yeicor@users.noreply.github.com>",
+  "type": "module",
   "scripts": {
-    "start": "parcel src/index.html",
-    "build": "yarn update-licenses && parcel build src/index.html --reporter @parcel/reporter-bundle-analyzer --detailed-report --public-url ./ --no-scope-hoist",
+    "dev": "vite",
+    "build": "run-s update-licenses && run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force",
     "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
   },
   "dependencies": {
@@ -22,15 +26,19 @@
     "vuetify": "^3.5.3"
   },
   "devDependencies": {
-    "@parcel/optimizer-data-url": "2.11.0",
-    "@parcel/reporter-bundle-analyzer": "^2.11.0",
-    "@parcel/transformer-inline-string": "2.11.0",
-    "@parcel/transformer-sass": "^2.11.0",
-    "@parcel/transformer-vue": "2.11.0",
+    "@tsconfig/node20": "^20.1.2",
     "@types/node": "^20.11.17",
     "@types/three": "^0.160.0",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "@vitejs/plugin-vue-jsx": "^3.1.0",
+    "@vue/tsconfig": "^0.5.1",
     "buffer": "^5.5.0||^6.0.0",
+    "commander": "^12.0.0",
     "generate-license-file": "^3.0.1",
-    "parcel": "^2.11.0"
+    "npm-run-all2": "^6.1.1",
+    "terser": "^5.28.1",
+    "typescript": "~5.3.0",
+    "vite": "^5.0.11",
+    "vue-tsc": "^1.8.27"
   }
 }

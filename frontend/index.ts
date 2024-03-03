@@ -1,12 +1,8 @@
-globalThis.__VUE_OPTIONS_API__ = process.env.NODE_ENV === "development"
-globalThis.__VUE_PROD_DEVTOOLS__ = process.env.NODE_ENV === "development"
-globalThis.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = process.env.NODE_ENV === "development"
-
 import {createApp} from 'vue'
 import App from './App.vue'
 
 import {createVuetify} from 'vuetify';
-import * as directives from 'vuetify/lib/directives';
+import * as directives from 'vuetify/lib/directives/index.mjs';
 import 'vuetify/dist/vuetify.css';
 
 const vuetify = createVuetify({

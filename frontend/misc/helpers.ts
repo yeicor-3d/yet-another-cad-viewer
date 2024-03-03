@@ -1,7 +1,7 @@
-import {Document, TypedArray} from '@gltf-transform/core'
-import {Vector2} from 'three/src/math/Vector2'
-import {Vector3} from 'three/src/math/Vector3'
-import {Matrix4} from 'three/src/math/Matrix4'
+import {Document, type TypedArray} from '@gltf-transform/core'
+import {Vector2} from "three/src/math/Vector2.js"
+import {Vector3} from "three/src/math/Vector3.js"
+import {Matrix4} from "three/src/math/Matrix4.js"
 
 
 /** Exports the colors used for the axes, primary and secondary. They match the orientation gizmo. */
@@ -22,10 +22,13 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
         .setArray(new Uint32Array(rawIndices) as TypedArray)
         .setType('SCALAR')
         .setBuffer(buffer)
-    const colors = doc.createAccessor(name + 'Color')
-        .setArray(new Float32Array(rawColors) as TypedArray)
-        .setType('VEC3')
-        .setBuffer(buffer)
+    let colors = null;
+    if (rawColors) {
+        colors = doc.createAccessor(name + 'Color')
+            .setArray(new Float32Array(rawColors) as TypedArray)
+            .setType('VEC3')
+            .setBuffer(buffer);
+    }
     const material = doc.createMaterial(name + 'Material')
         .setAlphaMode('OPAQUE')
     const geometry = doc.createPrimitive()

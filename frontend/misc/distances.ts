@@ -3,13 +3,13 @@ import type {MObject3D} from "../tools/Selection.vue";
 import type { ModelScene } from '@google/model-viewer/lib/three-components/ModelScene';
 
 
-function getCenterAndVertexList(obj: InstanceType<typeof MObject3D>, scene: ModelScene): {
+function getCenterAndVertexList(obj: MObject3D, scene: ModelScene): {
     center: Vector3,
     vertices: Array<Vector3>
 } {
     obj.updateMatrixWorld();
-    let pos: InterleavedBufferAttribute = obj.geometry.getAttribute('position');
-    let ind: BufferAttribute = obj.geometry.index;
+    let pos: BufferAttribute | InterleavedBufferAttribute = obj.geometry.getAttribute('position');
+    let ind: BufferAttribute | null = obj.geometry.index;
     if (!ind) {
         ind = new BufferAttribute(new Uint16Array(pos.count), 1);
         for (let i = 0; i < pos.count; i++) {
@@ -34,7 +34,7 @@ function getCenterAndVertexList(obj: InstanceType<typeof MObject3D>, scene: Mode
  * Given two THREE.Object3D objects, returns their closest and farthest vertices, and the geometric centers.
  * All of them are approximated and should not be used for precise calculations.
  */
-export function distances(a: InstanceType<typeof MObject3D>, b: InstanceType<typeof MObject3D>, scene: ModelScene): {
+export function distances(a: MObject3D, b: MObject3D, scene: ModelScene): {
     min: Array<Vector3>,
     center: Array<Vector3>,
     max: Array<Vector3>

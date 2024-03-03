@@ -10,10 +10,10 @@ import {
   VSlider,
   VSpacer,
   VTooltip,
-} from "vuetify/lib/components";
+} from "vuetify/lib/components/index.mjs";
 import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
 import {Document, Mesh} from "@gltf-transform/core";
-import {inject, ref, ShallowRef, watch, Ref} from "vue";
+import {inject, ref, type ShallowRef, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {
   mdiCircleOpacity,
@@ -26,11 +26,12 @@ import {
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
 import {SceneMgr} from "../misc/scene";
-import {BackSide, FrontSide} from "three/src/constants";
-import {Box3} from "three/src/math/Box3";
-import {Color} from "three/src/math/Color";
-import {Plane} from "three/src/math/Plane";
-import {Vector3} from "three/src/math/Vector3";
+import {BackSide, FrontSide} from "three/src/constants.js";
+import {Box3} from "three/src/math/Box3.js";
+import {Color} from "three/src/math/Color.js";
+import {Plane} from "three/src/math/Plane.js";
+import {Vector3} from "three/src/math/Vector3.js";
+import type {MObject3D} from "../tools/Selection.vue";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -69,7 +70,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
-  sceneModel.traverse((child) => {
+  sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
       let childIsEdge = child.type == 'Line' || child.type == 'LineSegments'
@@ -96,7 +97,7 @@ function onOpacityChange(newOpacity: number) {
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
   // console.log('Opacity may have changed', newOpacity)
-  sceneModel.traverse((child) => {
+  sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material && child.material.opacity !== newOpacity) {
         child.material.transparent = newOpacity < 1;
@@ -110,7 +111,7 @@ function onOpacityChange(newOpacity: number) {
 
 watch(opacity, onOpacityChange);
 
-let {sceneDocument}: {sceneDocument: ShallowRef<Document>} = inject('sceneDocument');
+let {sceneDocument} = inject<{ sceneDocument: ShallowRef<Document> }>('sceneDocument')!!;
 
 function onClipPlanesChange() {
   let scene = props.viewer?.scene;
@@ -128,7 +129,7 @@ function onClipPlanesChange() {
     bbox = SceneMgr.getBoundingBox(sceneDocument.value);
     bbox.translate(scene.getTarget());
   }
-  sceneModel.traverse((child) => {
+  sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material) {
         if (bbox) {
@@ -165,7 +166,7 @@ watch(clipPlaneSwappedX, onClipPlanesChange);
 watch(clipPlaneSwappedY, onClipPlanesChange);
 watch(clipPlaneSwappedZ, onClipPlanesChange);
 // Clip planes are also affected by the camera position, so we need to listen to camera changes
-props.viewer.onElemReady((elem) => elem.addEventListener('camera-change', onClipPlanesChange))
+props.viewer!!.onElemReady((elem) => elem.addEventListener('camera-change', onClipPlanesChange))
 
 function onModelLoad() {
   let scene = props.viewer?.scene;
@@ -174,8 +175,8 @@ function onModelLoad() {
   // Iterate all primitives of the mesh and set their visibility based on the enabled features
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
-  let childrenToAdd = [];
-  sceneModel.traverse((child) => {
+  let childrenToAdd: Array<MObject3D> = [];
+  sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
         // We could implement cutting planes using the stencil buffer:
@@ -192,7 +193,7 @@ function onModelLoad() {
           backChild.material.side = BackSide;
           backChild.material.color = new Color(0.25, 0.25, 0.25)
           child.userData.backChild = backChild;
-          childrenToAdd.push(backChild);
+          childrenToAdd.push(backChild as MObject3D);
         }
       }
       // if (child.type == 'Line' || child.type == 'LineSegments') {
@@ -200,12 +201,12 @@ function onModelLoad() {
       // If wide lines are really needed, we need https://threejs.org/examples/?q=line#webgl_lines_fat
       // }
       if (child.type == 'Points') {
-        child.material.size = 5;
+        (child.material as any).size = 5;
         child.material.needsUpdate = true;
       }
     }
   });
-  childrenToAdd.forEach((child) => sceneModel.add(child));
+  childrenToAdd.forEach((child: MObject3D) => sceneModel.add(child));
   scene.queueRender()
 
   // Furthermore...
@@ -218,7 +219,7 @@ function onModelLoad() {
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
-props.viewer.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
+props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
 </script>
 
 <template>

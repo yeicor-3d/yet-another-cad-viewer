@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import {VExpansionPanels} from "vuetify/lib/components";
+import {VExpansionPanels} from "vuetify/lib/components/index.mjs";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
-import Loading from "../misc/Loading.vue";
 import {Document, Mesh} from "@gltf-transform/core";
 import {extrasNameKey} from "../misc/gltf";
 import Model from "./Model.vue";
-import {ref, watch, inject, Ref} from "vue";
+import {inject, ref, type Ref} from "vue";
 
 const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ remove: [string] }>()
 
-let {sceneDocument} = inject<{ sceneDocument: Ref<Document> }>('sceneDocument');
+let {sceneDocument} = inject<{ sceneDocument: Ref<Document> }>('sceneDocument')!!;
 
 let expandedNames = ref<Array<string>>([]);
 

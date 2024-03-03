@@ -9,18 +9,18 @@ import {
   VToolbar,
   VToolbarTitle,
   VTooltip,
-} from "vuetify/lib/components";
+} from "vuetify/lib/components/index.mjs";
 import OrientationGizmo from "./OrientationGizmo.vue";
-import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera";
-import {OrthographicCamera} from "three/src/cameras/OrthographicCamera";
+import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera.js";
+import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
 import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
-import SvgIcon from '@jamescoyle/vue-icon/lib/svg-icon.vue';
+import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
-import type ModelViewerWrapper from "./viewer/ModelViewerWrapper.vue";
-import {defineAsyncComponent, Ref, ref} from "vue";
+import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
+import {defineAsyncComponent, type Ref, ref} from "vue";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -39,7 +39,7 @@ const LicensesDialogContent = defineAsyncComponent({
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ findModel: [string] }>()
 
-let selection: Ref<Array<Intersection<typeof MObject3D>>> = ref([]);
+let selection: Ref<Array<Intersection<MObject3D>>> = ref([]);
 let selectionFaceCount = () => selection.value.filter((s) => s.object.type == "Mesh" || s.object.type == "SkinnedMesh").length
 let selectionEdgeCount = () => selection.value.filter((s) => s.object.type == "Line").length
 let selectionVertexCount = () => selection.value.filter((s) => s.object.type == "Points").length
@@ -56,7 +56,7 @@ function syncOrthoCamera(force: boolean) {
     (scene as any).camera = new OrthographicCamera(-w, w, h, -h, perspectiveCam.near, perspectiveCam.far);
     scene.camera.position.copy(perspectiveCam.position);
     scene.camera.lookAt(scene.getTarget().clone().add(scene.target.position));
-    if (force) props.viewer.scene.queueRender() // Force rerender of model-viewer
+    if (force) scene.queueRender() // Force rerender of model-viewer
     requestAnimationFrame(() => syncOrthoCamera(false));
   }
 }
@@ -74,7 +74,7 @@ function toggleProjection() {
   } else {
     // Restore the default perspective camera
     scene.camera = (scene as any).__perspectiveCamera;
-    props.viewer.scene.queueRender() // Force rerender of model-viewer
+    scene.queueRender() // Force rerender of model-viewer
   }
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
   // The camera change may take a few frames to take effect, dispatch the event after a delay
@@ -83,14 +83,16 @@ function toggleProjection() {
 }
 
 async function centerCamera() {
-  let viewerEl: ModelViewerElement = props.viewer.elem;
+  let viewerEl: ModelViewerElement | null | undefined = props.viewer?.elem;
+  if (!viewerEl) return;
   await viewerEl.updateFraming();
   viewerEl.zoom(3);
 }
 
 
 async function downloadSceneGlb() {
-  let viewerEl: ModelViewerElement = props.viewer.elem;
+  let viewerEl: ModelViewerElement | null | undefined = props.viewer?.elem;
+  if (!viewerEl) return;
   const glTF = await viewerEl.exportScene({onlyVisible: true, binary: true});
   const file = new File([glTF], "export.glb");
   const link = document.createElement("a");
@@ -114,7 +116,7 @@ window.addEventListener('keydown', (event) => {
 </script>
 
 <template>
-  <orientation-gizmo :scene="props.viewer.scene" :elem="props.viewer?.elem" v-if="props.viewer?.scene"/>
+  <orientation-gizmo :scene="props.viewer.scene as any" :elem="props.viewer.elem" v-if="props.viewer?.scene"/>
   <v-divider/>
   <h5>Camera</h5>
   <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
@@ -129,7 +131,7 @@ window.addEventListener('keydown', (event) => {
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
-  <selection-component :ref="selectionComp" :viewer="props.viewer" v-model="selection"
+  <selection-component :ref="selectionComp as any" :viewer="props.viewer as any" v-model="selection"
                        @findModel="(name) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>

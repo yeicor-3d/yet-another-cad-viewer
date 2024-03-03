@@ -1,11 +1,11 @@
 <!--suppress SillyAssignmentJS -->
 <script setup lang="ts">
-import {defineAsyncComponent, provide, Ref, ref, shallowRef, triggerRef} from "vue";
+import {defineAsyncComponent, provide, type Ref, ref, shallowRef, triggerRef} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
 import Models from "./models/Models.vue";
-import {VBtn, VLayout, VMain, VToolbarTitle} from "vuetify/lib/components";
+import {VBtn, VLayout, VMain, VToolbarTitle} from "vuetify/lib/components/index.mjs";
 import {settings} from "./misc/settings";
 import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
 import {SceneMgr} from "./misc/scene";
@@ -44,7 +44,7 @@ async function onModelRemoveRequest(name: string) {
 
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
-networkMgr.addEventListener('update', onModelLoadRequest);
+networkMgr.addEventListener('update', (e) => onModelLoadRequest(e as NetworkUpdateEvent));
 // Start loading all configured models ASAP
 for (let model of settings.preloadModels) {
   networkMgr.load(model);
@@ -65,7 +65,7 @@ async function loadModelManual() {
     </v-main>
 
     <!-- The left collapsible sidebar has the list of models -->
-    <sidebar :opened-init="openSidebarsByDefault" side="left">
+    <sidebar :opened-init="openSidebarsByDefault" side="left" :width="300">
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
       </template>
@@ -82,7 +82,7 @@ async function loadModelManual() {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :viewer="viewer" @findModel="(name) => models.findModel(name)"/>
+      <tools :viewer="viewer" @findModel="(name) => models?.findModel(name)"/>
     </sidebar>
 
   </v-layout>

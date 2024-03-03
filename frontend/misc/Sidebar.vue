@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import {VBtn, VNavigationDrawer, VToolbar, VToolbarItems} from "vuetify/lib/components";
-import {mdiClose, mdiChevronRight, mdiChevronLeft} from '@mdi/js'
+import {VBtn, VNavigationDrawer, VToolbar, VToolbarItems} from "vuetify/lib/components/index.mjs";
+import {mdiChevronLeft, mdiChevronRight, mdiClose} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
 
-const props = defineProps({
+const props = defineProps<{
   openedInit: Boolean,
-  side: String,
-  width: Number
-});
+  side: "left" | "right",
+  width: number
+}>();
 
-let opened = ref(props.openedInit);
+let opened = ref(props.openedInit.valueOf());
 const openIcon = props.side === 'left' ? mdiChevronRight : mdiChevronLeft;
 
 </script>

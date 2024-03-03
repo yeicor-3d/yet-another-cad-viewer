@@ -10,11 +10,13 @@ import {Matrix4} from "three/src/math/Matrix4.js";
 
 globalThis.THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
+const OrientationGizmo = OrientationGizmoRaw.default;
+
 const props = defineProps<{ elem: ModelViewerElement | null, scene: ModelScene }>();
 
 function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElement {
   // noinspection SpellCheckingInspection
-  let gizmo = new OrientationGizmoRaw(scene.camera, {
+  let gizmo = new OrientationGizmoRaw.default(scene.camera, {
     size: expectedParent.clientWidth,
     bubbleSizePrimary: expectedParent.clientWidth / 12,
     bubbleSizeSeconday: expectedParent.clientWidth / 14,
@@ -22,8 +24,8 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
   });
   // HACK: Swap axes to fake the CAD orientation
   for (let swap of [["y", "-z"], ["z", "-y"], ["z", "-z"]]) {
-    let indexA = gizmo.bubbles.findIndex((bubble) => bubble.axis == swap[0])
-    let indexB = gizmo.bubbles.findIndex((bubble) => bubble.axis == swap[1])
+    let indexA = gizmo.bubbles.findIndex((bubble: any) => bubble.axis == swap[0])
+    let indexB = gizmo.bubbles.findIndex((bubble: any) => bubble.axis == swap[1])
     let dirA = gizmo.bubbles[indexA].direction.clone();
     let dirB = gizmo.bubbles[indexB].direction.clone();
     gizmo.bubbles[indexA].direction.copy(dirB);
@@ -63,6 +65,7 @@ function updateGizmo() {
 }
 
 let reinstall = () => {
+  if(!container.value) return;
   if (gizmo) container.value.removeChild(gizmo);
   gizmo = createGizmo(container.value, props.scene as ModelScene) as typeof gizmo;
   container.value.appendChild(gizmo);

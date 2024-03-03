@@ -1,4 +1,4 @@
-import {Document, Scene, Transform, WebIO, Buffer} from "@gltf-transform/core";
+import {Document, Scene, type Transform, WebIO, Buffer} from "@gltf-transform/core";
 import {unpartition} from "@gltf-transform/functions";
 
 let io = new WebIO();

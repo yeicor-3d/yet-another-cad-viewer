@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // License text for all dependencies, only downloaded when/if needed
 // @ts-ignore
-import licenseText from "bundle-text:../../assets/licenses.txt";
+import licenseText from "../../assets/licenses.txt?raw";
 </script>
 
 <template>

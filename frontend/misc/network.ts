@@ -13,7 +13,7 @@ export class NetworkUpdateEvent extends Event {
 
 /** Listens for updates and emits events when a model changes */
 export class NetworkManager extends EventTarget {
-    private knownObjectHashes: { [name: string]: string } = {};
+    private knownObjectHashes: { [name: string]: string | null } = {};
 
     /**
      * Tries to load a new model (.glb) from the given URL.
@@ -55,7 +55,7 @@ export class NetworkManager extends EventTarget {
         ws.onopen = () => clearTimeout(timeoutFaster);
     }
 
-    private foundModel(name: string, hash: string, url: string) {
+    private foundModel(name: string, hash: string | null, url: string) {
         let prevHash = this.knownObjectHashes[name];
         if (!hash || hash !== prevHash) {
             this.knownObjectHashes[name] = hash;
