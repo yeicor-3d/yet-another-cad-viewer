@@ -1,31 +1,15 @@
 name: "maybe deploy"
 
 on:
-  workflow_run:
-    workflows: [ "build" ]
-    types: [ "completed" ]
-    branches: [ "master" ]
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+.*"
 
 
 permissions:
   contents: "write"
 
 jobs:
-  check-early-exit:
-    runs-on: "ubuntu-latest"
-    outputs:
-      should-deploy: "${{ steps.check-early-exit.outputs.should-deploy }}"
-    steps:
-      - run: |
-          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-            echo "Not deploying because the CI workflow did not succeed."
-            echo "should-deploy=false" >> $GITHUB_ENV
-          elif ! echo "${{ github.ref }}" | grep -q -E "^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*"; then
-            echo "Not deploying because the CI workflow was not triggered by a release tag."
-            echo "should-deploy=false" >> $GITHUB_ENV
-          else
-            echo "should-deploy=true" >> $GITHUB_ENV
-          fi
   deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
@@ -34,12 +18,12 @@ jobs:
     steps:
       - uses: "dawidd6/action-download-artifact@v3"
         with:
-          workflow: "ci.yml"
+          workflow: "build"
           name: "frontend"
           path: "./public"
       - uses: "dawidd6/action-download-artifact@v3"
         with:
-          workflow: "ci.yml"
+          workflow: "build"
           name: "logo"
           path: "./public"
       - run: "ls -l -R ./public"

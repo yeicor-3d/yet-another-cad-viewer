@@ -14,11 +14,11 @@ in a web browser.
 - Control clipping planes and transparency of each model.
 - Select any entity and measure bounding box size and distances.
 - Fully-featured [static deployment](#static-deployment): just upload the viewer and models to your server.
-- [Live lazy updates](#live-updates) while editing the CAD model (using the [yacv_server](yacv_server)).
+- [Live lazy updates](#live-updates) while editing the CAD model (using the `yacv-server` package).
 
 ## Usage & demo
 
-The latest build is available at https://yeicor-3d.github.io/yet-another-cad-viewer/.
+The [logo](yacv_server/logo.py) also works as an example of how to use the viewer.
 
 ### Live updates
 
