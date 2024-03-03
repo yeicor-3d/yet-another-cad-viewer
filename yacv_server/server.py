@@ -28,6 +28,7 @@ if not os.path.exists(FRONTEND_BASE_PATH):
         FRONTEND_BASE_PATH = os.path.join(FILE_DIR, '..', 'dist')
     else:
         logger.warning('Frontend not found at %s', FRONTEND_BASE_PATH)
+        FRONTEND_BASE_PATH = None
 
 # Define the API paths (also available at the root path for simplicity)
 UPDATES_API_PATH = '/api/updates'
@@ -84,7 +85,8 @@ class Server:
         self.app.router.add_get('/', self._entrypoint)
         # - Static files from the frontend
         self.app.router.add_get('/{path:(.*/|)}', _index_handler)  # Any folder -> index.html
-        self.app.router.add_static('/', path=FRONTEND_BASE_PATH, name='static_frontend')
+        if FRONTEND_BASE_PATH is not None:
+            self.app.router.add_static('/', path=FRONTEND_BASE_PATH, name='static_frontend')
         # --- CORS ---
         cors = aiohttp_cors.setup(self.app, defaults={
             "*": aiohttp_cors.ResourceOptions(
