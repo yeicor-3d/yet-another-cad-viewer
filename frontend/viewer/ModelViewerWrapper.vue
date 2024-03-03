@@ -56,7 +56,7 @@ function positionToHotspot(position: Vector3): string {
   return position.x + ' ' + position.y + ' ' + position.z;
 }
 
-function addLine3D(p1: Vector3, p2: Vector3, centerText?: string = undefined, lineAttrs: { [key: string]: string } = {
+function addLine3D(p1: Vector3, p2: Vector3, centerText?: string, lineAttrs: { [key: string]: string } = {
   "stroke-width": "2",
   "stroke": "red",
 }): number | null {
