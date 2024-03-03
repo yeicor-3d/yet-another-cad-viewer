@@ -1,6 +1,6 @@
 # Yet Another CAD Viewer
 
-This is a CAD viewer capable of displaying [OCP](https://github.com/CadQuery/OCP)
+A CAD viewer capable of displaying [OCP](https://github.com/CadQuery/OCP)
 models ([CadQuery](https://github.com/CadQuery/cadquery)/[Build123d](https://github.com/gumyr/build123d)/...)
 in a web browser.
 
