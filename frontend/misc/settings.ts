@@ -14,7 +14,7 @@ export const settings = {
     ],
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     monitorEveryMs: 100,
-    monitorOpenTimeoutMs: 10000,
+    monitorOpenTimeoutMs: 100,
     // ModelViewer settings
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',
