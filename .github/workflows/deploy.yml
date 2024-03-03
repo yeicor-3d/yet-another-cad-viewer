@@ -5,6 +5,8 @@ on:
     workflows: ["ci.yml"]
     types:
       - "completed"
+    branches:
+      - "master"
 
 
 permissions:
