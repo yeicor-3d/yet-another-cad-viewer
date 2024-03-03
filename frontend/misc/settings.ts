@@ -1,6 +1,6 @@
 // These are the default values for the settings, which are overridden below
 export const settings = {
-    preloadModels: [
+    preload: [
         // @ts-ignore
         // new URL('../../assets/fox.glb', import.meta.url).href,
         // @ts-ignore
@@ -29,15 +29,19 @@ function parseSetting(name: string, value: string): any {
     if (arrayElem) name = name.slice(0, -2);
     let prevValue = (settings as any)[name];
     if (prevValue === undefined) throw new Error(`Unknown setting: ${name}`);
-    if (Array.isArray(prevValue) && !arrayElem) {
-        let toExtend = []
-        if (!firstTimeNames.includes(name)) {
-            firstTimeNames.push(name);
+    if (Array.isArray(prevValue)) {
+        if (!arrayElem) {
+            let toExtend = []
+            if (!firstTimeNames.includes(name)) {
+                firstTimeNames.push(name);
+            } else {
+                toExtend = prevValue;
+            }
+            toExtend.push(parseSetting(name + ".0", value));
+            return toExtend;
         } else {
-            toExtend = prevValue;
+            prevValue = prevValue[0];
         }
-        toExtend.push(parseSetting(name + ".0", value));
-        return toExtend;
     }
     switch (typeof prevValue) {
         case 'boolean':
@@ -47,7 +51,7 @@ function parseSetting(name: string, value: string): any {
         case 'string':
             return value;
         default:
-            throw new Error(`Unknown setting type: ${typeof prevValue}`);
+            throw new Error(`Unknown setting type: ${typeof prevValue} -- ${prevValue}`);
     }
 }
 

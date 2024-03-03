@@ -24,7 +24,7 @@ The [logo](yacv_server/logo.py) also works as an example of how to use the viewe
 
 To see the live updates you will need to run the [yacv_server](yacv_server) and
 open [the viewer](https://yeicor-3d.github.io/yet-another-cad-viewer/) with
-the `preloadModels=ws://<host>:32323/` query parameter (by default it already tries localhost).
+the `preload=ws://<host>:32323/` query parameter (by default it already tries localhost).
 
 Note that [yacv_server](yacv_server) also hosts the frontend at `http://localhost:32323/` if you have no access to the
 internet.
@@ -32,13 +32,13 @@ internet.
 ### Static deployment
 
 To deploy the viewer and models as a static website you can simply copy the latest build directory to your server.
-To load models use the `preloadModels=...` query parameter in the URL.
+To load models use the `preload=...` query parameter in the URL.
 It can be set multiple times to load multiple models.
 
 Note that you can simply reuse the [main deployment](https://yeicor-3d.github.io/yet-another-cad-viewer/) and host only
-your own models (linking them from the viewer with the `preloadModels` query parameter).
+your own models (linking them from the viewer with the `preload` query parameter).
 
 To see a working example of a static deployment you can check out
-the [demo](https://yeicor-3d.github.io/yet-another-cad-viewer/?preloadModels=base.glb&preloadModels=fox.glb&preloadModels=img.jpg.glb&preloadModels=location.glb).
+the [demo](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=base.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb).
 
 ![Demo](assets/screenshot.png)

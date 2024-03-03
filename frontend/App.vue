@@ -46,7 +46,7 @@ async function onModelRemoveRequest(name: string) {
 let networkMgr = new NetworkManager();
 networkMgr.addEventListener('update', (e) => onModelLoadRequest(e as NetworkUpdateEvent));
 // Start loading all configured models ASAP
-for (let model of settings.preloadModels) {
+for (let model of settings.preload) {
   networkMgr.load(model);
 }
 
