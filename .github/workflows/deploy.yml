@@ -2,11 +2,9 @@ name: "Deploy"
 
 on:
   workflow_run:
-    workflows: ["ci.yml"]
-    types:
-      - "completed"
-    branches:
-      - "master"
+    workflows: [ "Continuous Integration" ]
+    types: [ "completed" ]
+    branches: [ "master" ]
 
 
 permissions:
@@ -16,15 +14,15 @@ jobs:
   check-early-exit:
     runs-on: "ubuntu-latest"
     outputs:
-      should_deploy: "${{ steps.check-early-exit.outputs.should_deploy }}"
+      should-deploy: "${{ steps.check-early-exit.outputs.should-deploy }}"
     steps:
       - run: "echo ${{ github.ref }}"
-      - run: "echo ${{ github.ref }} | grep -q -v -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+$' && echo '::set-output name=should_deploy::false' || echo '::set-output name=should_deploy::true'"
+      - run: "echo ${{ github.ref }} | grep -q -v -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' && echo '::set-output name=should-deploy::false' || echo '::set-output name=should-deploy::true'"
   deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
     needs: "check-early-exit"
-    if: "needs.check-early-exit.outputs.should_deploy == 'true'"
+    if: "needs.check-early-exit.outputs.should-deploy == 'true'"
     steps:
       - uses: "dawidd6/action-download-artifact@v3"
         with:
