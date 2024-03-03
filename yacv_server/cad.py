@@ -1,10 +1,13 @@
 """
 Utilities to work with CAD objects
 """
+import hashlib
 from typing import Optional, Union, List, Tuple
 
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
+
+from gltf import GLTFMgr
 
 CADLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and Locations for now
 
@@ -54,4 +57,68 @@ def grab_all_cad() -> List[Tuple[str, CADLike]]:
                 shapes.append((key, shape))
     return shapes
 
-# TODO: Image to CAD utility and show_image shortcut on server.
+
+def image_to_gltf(source: str | bytes, center: any, ppmm: int, name: Optional[str] = None,
+                  save_mime: str = 'image/jpeg') -> Tuple[bytes, str]:
+    """Convert an image to a GLTF CAD object, indicating the center location and pixels per millimeter."""
+    from PIL import Image
+    import io
+    import os
+    from build123d import Plane
+    from build123d import Location
+    from build123d import Vector
+
+    # Handle arguments
+    if name is None:
+        if isinstance(source, str):
+            name = os.path.basename(source)
+        else:
+            hasher = hashlib.md5()
+            hasher.update(source)
+            name = 'image_' + hasher.hexdigest()
+    format: str
+    if save_mime == 'image/jpeg':
+        format = 'JPEG'
+    elif save_mime == 'image/png':
+        format = 'PNG'
+    else:
+        raise ValueError(f'Unsupported save MIME type (for GLTF files): {save_mime}')
+
+    # Get the plane of the image
+    center_loc = get_shape(center)
+    if not isinstance(center_loc, TopLoc_Location):
+        raise ValueError('Center location not valid')
+    plane = Plane(Location(center_loc))
+    # Convert coordinates system
+    plane.origin = Vector(plane.origin.X, plane.origin.Z, -plane.origin.Y)
+    plane.z_dir = -plane.y_dir
+    plane.y_dir = plane.z_dir
+
+    def vert(v: Vector) -> Tuple[float, float, float]:
+        return v.X, v.Y, v.Z
+
+    # Load the image to a byte buffer
+    img = Image.open(source)
+    img_buf = io.BytesIO()
+    img.save(img_buf, format=format)
+    img_buf = img_buf.getvalue()
+
+    # Build the gltf
+    mgr = GLTFMgr(image=(img_buf, save_mime))
+    mgr.add_face([
+        vert(plane.origin - plane.x_dir * img.width / (2 * ppmm) - plane.y_dir * img.height / (2 * ppmm)),
+        vert(plane.origin + plane.x_dir * img.width / (2 * ppmm) - plane.y_dir * img.height / (2 * ppmm)),
+        vert(plane.origin + plane.x_dir * img.width / (2 * ppmm) + plane.y_dir * img.height / (2 * ppmm)),
+        vert(plane.origin - plane.x_dir * img.width / (2 * ppmm) + plane.y_dir * img.height / (2 * ppmm)),
+    ], [
+        (0, 2, 1),
+        (0, 3, 2),
+    ], [
+        (0, 0),
+        (1, 0),
+        (1, 1),
+        (0, 1),
+    ])
+
+    # Return the GLTF binary blob and the suggested name of the image
+    return b''.join(mgr.gltf.save_to_bytes()), name

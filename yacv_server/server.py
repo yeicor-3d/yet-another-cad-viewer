@@ -15,7 +15,7 @@ from aiohttp import web
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from cad import get_shape, grab_all_cad
+from cad import get_shape, grab_all_cad, image_to_gltf
 from mylogger import logger
 from pubsub import BufferedPubSub
 from tessellate import _hashcode, tessellate
@@ -190,7 +190,7 @@ class Server:
             self.show_cad(any_object, name, **kwargs)
 
     def show_gltf(self, gltf: bytes, name: Optional[str] = None, **kwargs):
-        """Publishes any single-file GLTF object to the server (GLB format recommended)."""
+        """Publishes any single-file GLTF object to the server."""
         start = time.time()
         # Precompute the info and send it to the client as if it was a CAD object
         precomputed_info = self._show_common(name, _hashcode(gltf, **kwargs), start, kwargs=kwargs)
@@ -199,6 +199,14 @@ class Server:
         publish_to.publish_nowait(gltf)
         publish_to.publish_nowait(b'')  # Signal the end of the stream
         self.object_events[precomputed_info.name] = publish_to
+
+    def show_image(self, source: str | bytes, center: any, ppmm: int, name: Optional[str] = None,
+                   save_mime: str = 'image/jpeg', **kwargs):
+        """Publishes an image as a quad GLTF object, indicating the center location and pixels per millimeter."""
+        # Convert the image to a GLTF CAD object
+        gltf, name = image_to_gltf(source, center, ppmm, name, save_mime)
+        # Publish it like any other GLTF object
+        self.show_gltf(gltf, name, **kwargs)
 
     def show_cad(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
         """Publishes a CAD object to the server"""

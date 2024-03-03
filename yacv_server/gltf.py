@@ -12,7 +12,7 @@ _checkerboard_image_bytes = base64.decodebytes(
 class GLTFMgr:
     """A utility class to build our GLTF2 objects easily and incrementally"""
 
-    def __init__(self):
+    def __init__(self, image: Tuple[bytes, str] = (_checkerboard_image_bytes, 'image/png')):
         self.gltf = GLTF2(
             asset=Asset(generator=f"yacv_server@{importlib.metadata.version('yacv_server')}"),
             scene=0,
@@ -20,14 +20,13 @@ class GLTFMgr:
             nodes=[Node(mesh=0)],
             meshes=[Mesh(primitives=[])],
             accessors=[],
-            bufferViews=[BufferView(buffer=0, byteLength=len(_checkerboard_image_bytes), byteOffset=0)],
-            buffers=[Buffer(byteLength=len(_checkerboard_image_bytes))],
+            bufferViews=[BufferView(buffer=0, byteLength=len(image[0]), byteOffset=0)],
+            buffers=[Buffer(byteLength=len(image[0]))],
             samplers=[Sampler(magFilter=NEAREST)],
             textures=[Texture(source=0, sampler=0)],
-            images=[Image(bufferView=0, mimeType='image/png')],
+            images=[Image(bufferView=0, mimeType=image[1])],
         )
-        self.gltf.set_binary_blob(_checkerboard_image_bytes)
-        # TODO: Custom image support for loading textured planes as CAD objects
+        self.gltf.set_binary_blob(image[0])
 
     def add_face(self, vertices_raw: List[Tuple[float, float, float]], indices_raw: List[Tuple[int, int, int]],
                  tex_coord_raw: List[Tuple[float, float]]):
