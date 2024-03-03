@@ -1,24 +1,35 @@
 name: "Deploy"
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["ci.yml"]
+    types:
+      - "completed"
+
 
 permissions:
   contents: "write"
 
 jobs:
+  check-early-exit:
+    runs-on: "ubuntu-latest"
+    outputs:
+      should_deploy: "${{ steps.check-early-exit.outputs.should_deploy }}"
+    steps:
+      - run: "echo ${{ github.ref }}"
+      - run: "echo ${{ github.ref }} | grep -q -v -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+$' && echo '::set-output name=should_deploy::false' || echo '::set-output name=should_deploy::true'"
   deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
+    needs: "check-early-exit"
+    if: "needs.check-early-exit.outputs.should_deploy == 'true'"
     steps:
-      - uses: "actions/download-workflow-artifact@v3"
+      - uses: "dawidd6/action-download-artifact@v3"
         with:
           workflow: "ci.yml"
           name: "frontend"
           path: "./public"
-      - uses: "actions/download-workflow-artifact@v3"
+      - uses: "dawidd6/action-download-artifact@v3"
         with:
           workflow: "ci.yml"
           name: "logo"
