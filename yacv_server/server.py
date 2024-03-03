@@ -20,7 +20,16 @@ from mylogger import logger
 from pubsub import BufferedPubSub
 from tessellate import _hashcode, tessellate
 
-FRONTEND_BASE_PATH = os.getenv('FRONTEND_BASE_PATH', '../dist')
+# Find the frontend folder (optional, but recommended)
+FILE_DIR = os.path.dirname(__file__)
+FRONTEND_BASE_PATH = os.getenv('FRONTEND_BASE_PATH', os.path.join(FILE_DIR, 'frontend'))
+if not os.path.exists(FRONTEND_BASE_PATH):
+    if os.path.exists(os.path.join(FILE_DIR, '..', 'dist')):  # Fallback to dev build
+        FRONTEND_BASE_PATH = os.path.join(FILE_DIR, '..', 'dist')
+    else:
+        logger.warning('Frontend not found at %s', FRONTEND_BASE_PATH)
+
+# Define the API paths (also available at the root path for simplicity)
 UPDATES_API_PATH = '/api/updates'
 OBJECTS_API_PATH = '/api/object'  # /{name}
 

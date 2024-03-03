@@ -2,13 +2,12 @@ globalThis.__VUE_OPTIONS_API__ = process.env.NODE_ENV === "development"
 globalThis.__VUE_PROD_DEVTOOLS__ = process.env.NODE_ENV === "development"
 globalThis.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = process.env.NODE_ENV === "development"
 
-// import {createApp} from 'vue/dist/vue.esm-browser.prod.js'
-// import {createApp} from 'vue/dist/vue.esm-browser.js'
 import {createApp} from 'vue'
 import App from './App.vue'
 
 import {createVuetify} from 'vuetify';
 import * as directives from 'vuetify/lib/directives';
+import 'vuetify/dist/vuetify.css';
 
 const vuetify = createVuetify({
     directives,
@@ -20,7 +19,3 @@ const vuetify = createVuetify({
 const app = createApp(App)
 app.use(vuetify)
 app.mount('body')
-
-// Start non-blocking loading of Vuetify styles
-// @ts-ignore
-import('vuetify/dist/vuetify.css');

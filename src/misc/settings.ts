@@ -2,18 +2,19 @@
 export const settings = {
     preloadModels: [
         // @ts-ignore
-        new URL('../../assets/fox.glb', import.meta.url).href,
+        // new URL('../../assets/fox.glb', import.meta.url).href,
         // @ts-ignore
-        new URL('../../assets/logo_build/base.glb', import.meta.url).href,
+        // new URL('../../assets/logo_build/base.glb', import.meta.url).href,
         // @ts-ignore
-        new URL('../../assets/logo_build/location.glb', import.meta.url).href,
+        // new URL('../../assets/logo_build/location.glb', import.meta.url).href,
         // @ts-ignore
-        new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
+        // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
-        // "ws://192.168.1.132:32323/"
+        "ws://127.0.0.1:32323/"
     ],
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
-    checkServerEveryMs: 100, /* How often to check for a new server */
+    monitorEveryMs: 100,
+    monitorOpenTimeoutMs: 10000,
     // ModelViewer settings
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',

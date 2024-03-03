@@ -28,7 +28,7 @@ onMounted(() => {
     // Delete the initial load banner
     let banner = elem.value.querySelector('.initial-load-banner');
     if (banner) banner.remove();
-    // Set the scene
+    // Set the scene and renderer
     scene.value = elem.value[$scene] as ModelScene;
     renderer.value = elem.value[$renderer] as Renderer;
     // Emit the load event
@@ -162,11 +162,11 @@ watch(disableTap, (value) => {
         <line :x1="line.start2D[0]" :y1="line.start2D[1]" :x2="line.end2D[0]"
               :y2="line.end2D[1]" v-bind="line.lineAttrs"/>
         <rect :x="(line.start2D[0] + line.end2D[0]) / 2 - line.centerTextSize[0]/2 - 4"
-              :y="(line.start2D[1] + line.end2D[1]) / 2 - line.centerTextSize[1]/2 - 4"
-              :width="line.centerTextSize[0] + 8" :height="line.centerTextSize[1] - 4"
+              :y="(line.start2D[1] + line.end2D[1]) / 2 - line.centerTextSize[1]/2 - 2"
+              :width="line.centerTextSize[0] + 8" :height="line.centerTextSize[1] + 4"
               fill="gray" fill-opacity="0.75" rx="4" ry="4" stroke="black" v-if="line.centerText"/>
         <text :x="(line.start2D[0] + line.end2D[0]) / 2" :y="(line.start2D[1] + line.end2D[1]) / 2"
-              text-anchor="middle" alignment-baseline="middle" font-size="16" fill="black"
+              text-anchor="middle" dominant-baseline="middle" font-size="16" fill="black"
               :class="'line' + lineId + '_text'" v-if="line.centerText">
           {{ line.centerText }}
         </text>

@@ -39,6 +39,7 @@ export class NetworkManager extends EventTarget {
     }
 
     private monitorWebSocket(url: string) {
+        // WARNING: This will spam the console logs with failed requests when the server is down
         let ws = new WebSocket(url);
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
@@ -48,13 +49,10 @@ export class NetworkManager extends EventTarget {
             urlObj.searchParams.set("api_object", data.name);
             this.foundModel(data.name, data.hash, urlObj.toString());
         };
-        ws.onerror = (event) => {
-            console.error("WebSocket error", event);
-        }
-        ws.onclose = () => {
-            console.debug("WebSocket closed, reconnecting very soon");
-            setTimeout(() => this.monitorWebSocket(url), settings.checkServerEveryMs);
-        }
+        ws.onerror = () => ws.close();
+        ws.onclose = () => setTimeout(() => this.monitorWebSocket(url), settings.monitorEveryMs);
+        let timeoutFaster = setTimeout(() => ws.close(), settings.monitorOpenTimeoutMs);
+        ws.onopen = () => clearTimeout(timeoutFaster);
     }
 
     private foundModel(name: string, hash: string, url: string) {

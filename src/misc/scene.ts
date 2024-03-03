@@ -1,4 +1,4 @@
-import {Ref, ShallowRef} from 'vue';
+import {Ref} from 'vue';
 import {Document} from '@gltf-transform/core';
 import {extrasNameKey, extrasNameValueHelpers, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
 import {newAxes, newGridBox} from "./helpers";
@@ -19,6 +19,7 @@ export class SceneMgr {
 
         if (name !== extrasNameValueHelpers) {
             // Reload the helpers to fit the new model
+            // TODO: Only reload the helpers after a few milliseconds of no more models being added/removed
             document = await this.reloadHelpers(sceneUrl, document);
         } else {
             // Display the final fully loaded model

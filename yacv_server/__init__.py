@@ -26,11 +26,12 @@ show_all = server.show_cad_all
 def _get_app() -> web.Application:
     """Required by aiohttp-devtools"""
     logging.basicConfig(level=logging.DEBUG)
-    from logo import build_logo
+    from logo import build_logo, ASSETS_DIR
     logo, img_location, img_path = build_logo()
-    server.show_cad(logo, 'Logo')
-    server.show_cad(img_location, 'Location')
+    server.show_cad(logo, 'logo')
+    server.show_cad(img_location, 'location')
     server.show_image(img_path, img_location, 20)
+    server.show_gltf(open(os.path.join(ASSETS_DIR, 'fox.glb'), 'rb').read(), 'fox')
     return server.app
 
 

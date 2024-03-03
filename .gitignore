@@ -3,6 +3,7 @@
 # Useful .gitignore templates: https://github.com/github/gitignore
 /node_modules/
 /dist/
+/yacv_server/frontend/
 /.cache/
 /.parcel-cache/
 /.idea/
