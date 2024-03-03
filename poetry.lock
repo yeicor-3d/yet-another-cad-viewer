@@ -228,12 +228,12 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "build123d"
-version = "0.3.0"
+version = "0.4.0"
 description = "A python CAD programming library"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "build123d-0.3.0-py3-none-any.whl", hash = "sha256:29548f714a04d9309a7b4d128d871e709a47215013740b188842250df079c70b"},
+    {file = "build123d-0.4.0-py3-none-any.whl", hash = "sha256:1a94089dea2427e09cae9b023c01ac9cb6fd0a61faf015252eb139af4263e180"},
 ]
 
 [package.dependencies]
@@ -1696,4 +1696,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "16d385dac0b8683b9d66b91696658ecf47a60fd19e08278f189c79858fe95563"
+content-hash = "d72dd527f1ee9e0bdd1b1118f84951360f8081fe7f417d1a17dda0b96598d758"

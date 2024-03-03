@@ -14,7 +14,7 @@ include = [
 python = "^3.9"
 
 # CAD
-build123d = "^0.3.0"
+build123d = ">=0.3,<0.5"
 ocp-tessellate = "^2.0.6"
 
 # Web
