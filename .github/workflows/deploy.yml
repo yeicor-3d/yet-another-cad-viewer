@@ -3,7 +3,7 @@ name: "maybe deploy"
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+.*"
+      - "v**"
 
 
 permissions:
@@ -13,8 +13,6 @@ jobs:
   deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
-    needs: "check-early-exit"
-    if: "needs.check-early-exit.outputs.should-deploy == 'true'"
     steps:
       - uses: "dawidd6/action-download-artifact@v3"
         with:
