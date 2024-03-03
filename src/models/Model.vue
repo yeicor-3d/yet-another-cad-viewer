@@ -126,7 +126,7 @@ function onClipPlanesChange() {
     props.viewer.renderer.threeRenderer.localClippingEnabled = true;
     // Due to model-viewer's camera manipulation, the bounding box needs to be transformed
     bbox = SceneMgr.getBoundingBox(sceneDocument.value);
-    bbox.applyMatrix4(sceneModel.matrixWorld);
+    bbox.translate(scene.getTarget());
   }
   sceneModel.traverse((child) => {
     if (child.userData[extrasNameKey] === modelName) {
