@@ -9,20 +9,30 @@ permissions:
   contents: "write"
 
 jobs:
-  build-and-deploy:
+  deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/download-artifact@v4"
+      - uses: "actions/download-workflow-artifact@v3"
         with:
+          workflow: "ci.yml"
           name: "frontend"
           path: "./public"
-      - uses: "actions/download-artifact@v4"
+      - uses: "actions/download-workflow-artifact@v3"
         with:
+          workflow: "ci.yml"
           name: "logo"
           path: "./public"
       - run: "ls -l -R ./public"
       - uses: "JamesIves/github-pages-deploy-action@v4"
         with:
           folder: "public"
+      - uses: "svenstaro/upload-release-action@v2"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          file: "./public/*"
+          asset_name: "frontend"
+          tag: "${{ github.ref }}"
+          overwrite: true
+          file_glob: true
 
