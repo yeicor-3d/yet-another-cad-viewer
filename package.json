@@ -22,7 +22,7 @@
     "@mdi/svg": "^7.4.47",
     "three": "^0.160.1",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
-    "vue": "^3.4.16",
+    "vue": "^3.4.21",
     "vuetify": "^3.5.3"
   },
   "devDependencies": {
