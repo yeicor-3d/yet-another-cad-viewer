@@ -1,0 +1,55 @@
+name: "Continuous Integration"
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+
+  build-frontend:
+    name: "Build frontend"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-node@v4"
+      - uses: "yarn install"
+      - run: "yarn build"
+      - uses: "actions/upload-artifact@v3"
+        with:
+          name: "frontend"
+          path: "./dist"
+          retention-days: 5
+
+  build-backend:
+    name: "Build backend"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - run: "pipx install poetry"
+      - uses: "actions/setup-python@v5"
+        with:
+          cache: "poetry"
+      - run: "poetry install"
+      - run: "poetry build"
+
+  build-logo:
+    name: "Build logo"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - run: "pipx install poetry"
+      - uses: "actions/setup-python@v5"
+        with:
+          cache: "poetry"
+      - run: "poetry install"
+      - run: "poetry run python yacv_server/logo.py"
+      - run: "cp assets/fox.glb assets/logo_build/fox.glb"
+      - uses: "actions/upload-artifact@v3"
+        with:
+          name: "logo"
+          path: "./assets/logo_build"
+          retention-days: 5
