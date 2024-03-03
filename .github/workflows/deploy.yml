@@ -16,8 +16,16 @@ jobs:
     outputs:
       should-deploy: "${{ steps.check-early-exit.outputs.should-deploy }}"
     steps:
-      - run: "echo ${{ github.ref }}"
-      - run: "echo ${{ github.ref }} | grep -q -v -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' && echo '::set-output name=should-deploy::false' || echo '::set-output name=should-deploy::true'"
+      - run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+            echo "Not deploying because the CI workflow did not succeed."
+            echo "should-deploy=false" >> $GITHUB_ENV
+          elif ! echo "${{ github.ref }}" | grep -q -E "^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*"; then
+            echo "Not deploying because the CI workflow was not triggered by a release tag."
+            echo "should-deploy=false" >> $GITHUB_ENV
+          else
+            echo "should-deploy=true" >> $GITHUB_ENV
+          fi
   deploy:
     concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
