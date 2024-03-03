@@ -1,8 +1,8 @@
-name: "Deploy"
+name: "maybe deploy"
 
 on:
   workflow_run:
-    workflows: [ "Continuous Integration" ]
+    workflows: [ "build" ]
     types: [ "completed" ]
     branches: [ "master" ]
 
