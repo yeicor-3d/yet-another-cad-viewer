@@ -37,8 +37,8 @@ jobs:
         with:
           python-version: "3.11"
           cache: "poetry"
-      - run: "poetry install"
-      - run: "poetry build"
+      - run: "SKIP_BUILD_FRONTEND=true poetry install"
+      - run: "SKIP_BUILD_FRONTEND=true poetry build"
 
   build-logo:
     name: "Build logo"
@@ -53,7 +53,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: "poetry"
-      - run: "poetry install"
+      - run: "SKIP_BUILD_FRONTEND=true poetry install"
       - run: "poetry run python yacv_server/logo.py"
       - run: "cp assets/fox.glb assets/logo_build/fox.glb"
       - uses: "actions/upload-artifact@v4"

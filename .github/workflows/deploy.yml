@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  deploy-frontend:
     runs-on: "ubuntu-latest"
     environment:
       name: "github-pages"
@@ -50,3 +50,4 @@ jobs:
       - id: "deployment"
         uses: "actions/deploy-pages@v4"
 
+  # TODO: deploy-backend
