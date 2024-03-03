@@ -4,15 +4,26 @@ on:
   push:
     tags:
       - "v**"
+  workflow_dispatch:
 
-
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: "write"
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    concurrency: "ci-${{ github.ref }}" # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: "ubuntu-latest"
+    environment:
+      name: "github-pages"
+      url: "${{ steps.deployment.outputs.page_url }}"
     steps:
       - uses: "dawidd6/action-download-artifact@v3"
         with:
@@ -24,10 +35,6 @@ jobs:
           workflow: "build"
           name: "logo"
           path: "./public"
-      - run: "ls -l -R ./public"
-      - uses: "JamesIves/github-pages-deploy-action@v4"
-        with:
-          folder: "public"
       - uses: "svenstaro/upload-release-action@v2"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -36,4 +43,10 @@ jobs:
           tag: "${{ github.ref }}"
           overwrite: true
           file_glob: true
+      - uses: "actions/configure-pages@v4"
+      - uses: "actions/upload-pages-artifact@v3"
+        with:
+          path: 'public'
+      - id: "deployment"
+        uses: "actions/deploy-pages@v4"
 
