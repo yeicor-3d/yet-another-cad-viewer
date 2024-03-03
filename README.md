@@ -39,6 +39,8 @@ Note that you can simply reuse the [main deployment](https://yeicor-3d.github.io
 your own models (linking them from the viewer with the `preload` query parameter).
 
 To see a working example of a static deployment you can check out
-the [demo](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=base.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb).
+the [demo](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=base.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)
+(or
+the [demo without animation](https://yeicor-3d.github.io/yet-another-cad-viewer/?autoplay=false&preload=base.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)).
 
 ![Demo](assets/screenshot.png)
