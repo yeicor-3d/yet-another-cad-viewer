@@ -27,13 +27,9 @@ def _get_app() -> web.Application:
     """Required by aiohttp-devtools"""
     logging.basicConfig(level=logging.DEBUG)
     from logo import build_logo
-    from build123d import Axis
-    logo = build_logo()
+    logo, img_location, img_path = build_logo()
     server.show_cad(logo, 'Logo')
-    img_location = logo.faces().group_by(Axis.X)[0].face().center_location  # Avoid overlapping:
-    img_location.position = Vector(img_location.position.X - 1e-2, img_location.position.Y, img_location.position.Z)
     server.show_cad(img_location, 'Location')
-    img_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'img.jpg')
     server.show_image(img_path, img_location, 20)
     return server.app
 

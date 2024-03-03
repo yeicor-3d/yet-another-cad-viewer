@@ -243,23 +243,25 @@ class Server:
         response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
         return response
 
+    def shown_object_names(self) -> list[str]:
+        """Returns the names of all objects that have been shown"""
+        return list([obj.name for obj in self.show_events.buffer()])
+
     async def export(self, name: str) -> bytes:
         """Export the given previously-shown object to a single GLB file, building it if necessary."""
         start = time.time()
+
         # Check that the object to build exists and grab it if it does
         found = False
         obj: Optional[TopoDS_Shape] = None
         kwargs: Optional[Dict[str, any]] = None
-        subscription = self.show_events.subscribe(include_future=False)
-        try:
-            async for data in subscription:
-                if data.name == name:
-                    obj = data.obj
-                    kwargs = data.kwargs
-                    found = True  # Required because obj could be None
-                    break
-        finally:
-            await subscription.aclose()
+        subscription = self.show_events.buffer()
+        for data in subscription:
+            if data.name == name:
+                obj = data.obj
+                kwargs = data.kwargs
+                found = True  # Required because obj could be None
+                break
         if not found:
             raise web.HTTPNotFound(text=f'No object named {name} was previously shown')
 

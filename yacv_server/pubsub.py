@@ -58,3 +58,7 @@ class BufferedPubSub(Generic[T]):
                 yield v
         finally:  # When aclose() is called
             await self._unsubscribe(q)
+
+    def buffer(self) -> List[T]:
+        """Returns a shallow copy of the list of buffered events"""
+        return self._buffer[:]
