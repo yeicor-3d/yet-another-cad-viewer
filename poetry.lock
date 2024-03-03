@@ -144,13 +144,13 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "anyio"
-version = "4.2.0"
+version = "4.3.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "anyio-4.2.0-py3-none-any.whl", hash = "sha256:745843b39e829e108e518c489b31dc757de7d2131d53fac32bd8df268227bfee"},
-    {file = "anyio-4.2.0.tar.gz", hash = "sha256:e1875bb4b4e2de1669f4bc7869b6d3f54231cdced71605e6e64c9be77e3be50f"},
+    {file = "anyio-4.3.0-py3-none-any.whl", hash = "sha256:048e05d0f6caeed70d731f3db756d35dcc1f35747c8c403364a8332c630441b8"},
+    {file = "anyio-4.3.0.tar.gz", hash = "sha256:f75253795a87df48568485fd18cdd2a3fa5c4f7c5be8e5e36637733fce06fed6"},
 ]
 
 [package.dependencies]
@@ -228,12 +228,12 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "build123d"
-version = "0.3.0"
+version = "0.4.0"
 description = "A python CAD programming library"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "build123d-0.3.0-py3-none-any.whl", hash = "sha256:29548f714a04d9309a7b4d128d871e709a47215013740b188842250df079c70b"},
+    {file = "build123d-0.4.0-py3-none-any.whl", hash = "sha256:1a94089dea2427e09cae9b023c01ac9cb6fd0a61faf015252eb139af4263e180"},
 ]
 
 [package.dependencies]
@@ -398,53 +398,45 @@ tests = ["asttokens (>=2.1.0)", "coverage", "coverage-enable-subprocess", "ipyth
 
 [[package]]
 name = "ezdxf"
-version = "1.1.4"
+version = "1.2.0"
 description = "A Python package to create/manipulate DXF drawings."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "ezdxf-1.1.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:e17eccfcaebec61333a828f758596db5d6e474247478aace09eb3f550a4f26a0"},
-    {file = "ezdxf-1.1.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4cfbe32e1ff598daafb515c10e9dc14135fc87a201040a231e4971d63810e4c2"},
-    {file = "ezdxf-1.1.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:af83154c5dab3b8c93a3fd48fd9cf85bdabb18491319edfc3d5768e769193b43"},
-    {file = "ezdxf-1.1.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:105748069f2f37101aa829e0a2af0f8322bc88c928b89f1dd95781881b49ee29"},
-    {file = "ezdxf-1.1.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ab331d42f176778136eeaef3b85113135fe21df002f317171464017a0f38d777"},
-    {file = "ezdxf-1.1.4-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:2dcd53c22c6cb9000ce7719c77b1a87cfe160613fd4a9c94d9125f40a5881ac4"},
-    {file = "ezdxf-1.1.4-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:432735aae3bfeb8fcd6491f943a6fa80d22eb7e18c9d0d502b505ff7cdcae4c1"},
-    {file = "ezdxf-1.1.4-cp310-cp310-win_amd64.whl", hash = "sha256:cb39897620c1abb326b542a5cfb6a445751c3f3276d09a1e169bc4718b425ad6"},
-    {file = "ezdxf-1.1.4-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:7d6112c2445146d896e494db9ba98da2281b957758a31c125452955ae23e4175"},
-    {file = "ezdxf-1.1.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:2635ef1087f34852d962849816c0961c30cdf57d173aae809ee5bbdafc7cce99"},
-    {file = "ezdxf-1.1.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:e36b038a7a7d6ccd823fa2855722644ead92f582d8ea115d43334c6e3643a195"},
-    {file = "ezdxf-1.1.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1961e6c0322a2da840eff96e4aa7c28c2de56a47c37feec36dd17028e10a574e"},
-    {file = "ezdxf-1.1.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:af820d129ebc10254aa8ecfc7c03030914ab9dd0625dd2ed4e1f24a0abab0c8a"},
-    {file = "ezdxf-1.1.4-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:9d918f8e463e9fd8fd4d03b1d640ca124b4fdbaa8d55cb550200c9ac1e99e635"},
-    {file = "ezdxf-1.1.4-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:2621e9baaf88d8279f2e68044a91c8903027061445d25aed3b3e502dddba8099"},
-    {file = "ezdxf-1.1.4-cp311-cp311-win_amd64.whl", hash = "sha256:0538ef8c79a088a1820ca6d3e8a427ded6e2536c476efc74d3c871a5383dfb43"},
-    {file = "ezdxf-1.1.4-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:41394990949b6e9b0586b882ac16c848f2f8d8ba08e8a5fecba5ba6790d0fb27"},
-    {file = "ezdxf-1.1.4-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:842a59cfe194bc7bbb826e13010c35fd41979715c51f21123942e3a76981b584"},
-    {file = "ezdxf-1.1.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:66e1ee26482f7776aec792b00512b0de7b5e02591254c2c896792aa11d90a480"},
-    {file = "ezdxf-1.1.4-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e48906c6373f707e8d15b433b77525b54e394fc2349eb9310e072fb159081bc7"},
-    {file = "ezdxf-1.1.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d97fdfa241fbfa2041ab6e6260d1e04bbf9fdebadcff770b503b82a410fe32d4"},
-    {file = "ezdxf-1.1.4-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:3842a9d44f33df4c99b92d859aa5ef546b0c5457f30385b1d80176c55d531458"},
-    {file = "ezdxf-1.1.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:a4c76d726ce7b9ca0e1f819eab1570202a5ec486430af52f591d4916e2e11383"},
-    {file = "ezdxf-1.1.4-cp312-cp312-win_amd64.whl", hash = "sha256:66340dc180d14e81ef00f910c4b14254a1b1e2db20d6f25f76c2a5a23c5668a7"},
-    {file = "ezdxf-1.1.4-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:974daa3dc3906821b774781c6bae7b7a9731612c99158934f6285a9896aebdb2"},
-    {file = "ezdxf-1.1.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:fbb5413096549c4fc1e880a03eeb972d4cd8f70e0edc6abac18aea87da0d467b"},
-    {file = "ezdxf-1.1.4-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:de707b8b2c77d8fa1f68ef116014d4cd3921da23e3a4d649380a9940f75645d9"},
-    {file = "ezdxf-1.1.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:afd5d327538693f800f0fc15480e33cee7541e4f5f521180b519a5124db9a9e3"},
-    {file = "ezdxf-1.1.4-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:147025fd2aca7edf39bc6728ee1d031a4ff51db274dcaa22d296c9353cdbd843"},
-    {file = "ezdxf-1.1.4-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:d735af75c4f3d3696e29c93a9f11b049e2567631fb4d125179fa27af52f16007"},
-    {file = "ezdxf-1.1.4-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:875e73d96689be87f428d371ada353e312b4a2ccf1a2924b6db8ec349a785c8f"},
-    {file = "ezdxf-1.1.4-cp38-cp38-win_amd64.whl", hash = "sha256:d700857d397550c23ee4cad8bf5aedf24973a7799ab5fb5104eb4d47ab623f80"},
-    {file = "ezdxf-1.1.4-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:9e00fb9e08bb33601604096262eeeebe6151b85d621eed276d1d82bcdcd24532"},
-    {file = "ezdxf-1.1.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:91f30918e638aeb9214a889719cf4b5d54628081eb0c96ecc4f59809473ebb98"},
-    {file = "ezdxf-1.1.4-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:9af92008fab4c1888f7ae23eb005646d4f2abb0690038a1b05888cd203389993"},
-    {file = "ezdxf-1.1.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:31ab2b6f032ef93382b28ca8ee62e4c4a7f788868eadf92dbb650c6781ac8d91"},
-    {file = "ezdxf-1.1.4-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:01a225aab9e21b40936395f0cf3e878d5d84f553f8b71e839ba2cf6cd6f62f98"},
-    {file = "ezdxf-1.1.4-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:67cf2c8f1dd004942d9ee64daa5c3a582f7095331d25bc9be1127e3a84c8def5"},
-    {file = "ezdxf-1.1.4-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:c90844dd5a48e67832f48810b67d008d774838df9f97ec74493f128d923a01d6"},
-    {file = "ezdxf-1.1.4-cp39-cp39-win_amd64.whl", hash = "sha256:ca11c1daf3bbe792af5e175fb1b42f34c2f19a7d555a2b00a929a70d1a2a57ce"},
-    {file = "ezdxf-1.1.4-py3-none-any.whl", hash = "sha256:ef426d2d5dd0db1d04abdcc6bf86d2f198a08c15585963ba4f12d7762ac8fc47"},
-    {file = "ezdxf-1.1.4.zip", hash = "sha256:0f80ebb7cb6f53664be6e201f6b27009f1394b938d1e63e647592dacb7b17a50"},
+    {file = "ezdxf-1.2.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:2e1d838f39e84b4e3f0d9af73c9ba7f28453e7c793be1c9c6caadf60164b7016"},
+    {file = "ezdxf-1.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:027597f128504dc13b9d0cf720f0fe1a4540fc4e07c1b5f9d2dbbb46fa40936b"},
+    {file = "ezdxf-1.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ae44c062769e11914082f89db098dd02807a61c0a4cec4561457b2766d90e2e6"},
+    {file = "ezdxf-1.2.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:12578384a2bfb5420e8baa24ef03bd4ffe1ad7c6b8620119a3773252d49db4b3"},
+    {file = "ezdxf-1.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2fb1853ea3cb3032cc94968b4c7c15cbcdda59a3d596f95571cfb2370251c555"},
+    {file = "ezdxf-1.2.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:ac31830e9200f6d3f4b16343a7eb1f0adc6b8b712b27008df04d658a2f7b2c22"},
+    {file = "ezdxf-1.2.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:249d62932fef8f223d2c4fa59c3385a0c35aebd0f8183257c0faac79a9909868"},
+    {file = "ezdxf-1.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:ecfcafd596486873bfe044fab4be3a26c403e5fad10ed57e7309f5e34e77a809"},
+    {file = "ezdxf-1.2.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:bc2ec8da9d2578a31942a7c038f2f3208b397fb51f359dbc6cf176ae76a16693"},
+    {file = "ezdxf-1.2.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:4a70bec89cdc9e66025f2a71667b18ffdf005b8d4a2c6ad78b2d647555e4bb27"},
+    {file = "ezdxf-1.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:6f2d09b85c47c5b54fd95eb2b0d6b70df7b469a83a02b67fd003e55f36b0872d"},
+    {file = "ezdxf-1.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2c18a1cc5b6f094f98bbebda4212d6c3fbf1c40f2351d298955e26f770394c77"},
+    {file = "ezdxf-1.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:98fb974c2de051cd85f003f35a61389cd2c499200633d9b073d8c511921154f2"},
+    {file = "ezdxf-1.2.0-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:d228bf5b6d7ddb45f0e40184e7ca64e2a071420c1a81a02e5d12c8e0fd8358a7"},
+    {file = "ezdxf-1.2.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:4540f4a3efb52418bd514968268431b8c64ea1ecb9b5bb253d844cd361b60c13"},
+    {file = "ezdxf-1.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:1afa02f7a1ce9d7a9c33ad4f2b67153b00e7004387bfcd4c31437273fe680466"},
+    {file = "ezdxf-1.2.0-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:de52f8b5acdd27780ef063cf5062459f164a45b00169dc616c4f4368d1f980da"},
+    {file = "ezdxf-1.2.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:dd77982827c7cf6b064f84b8d043e1ac7ca9aba9deddb6729437995a4c7a2539"},
+    {file = "ezdxf-1.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4641222751e451ff1af85318adaa95b21c309c7ae94fd7db783afa4dbbcf8aec"},
+    {file = "ezdxf-1.2.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5fcac2fec3ee693313530feca156048f43351ba49f8e83c1e56cb3e25033cba8"},
+    {file = "ezdxf-1.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5f49f9dca916ddf03bef6a4fbbea72184d672d9b32f3c2a86e9b11b6c509e2da"},
+    {file = "ezdxf-1.2.0-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:bc608e62ef16a7ebc16ff127845f2f92faf41733981605209eed1057e0f6d273"},
+    {file = "ezdxf-1.2.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:d48152512b0ee8b462bdd7ae08553c1c2ee680aa7b77a02b83c3ad1adc2db81a"},
+    {file = "ezdxf-1.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:0f6ad07bc19bbf74405b5a3cfe434b175a7cb20a9a9bd6cbae2eabb21fe057f2"},
+    {file = "ezdxf-1.2.0-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:876d77f2bbf7483cab20b2ac89523d2527aab2bbcb669a235d4e463a712445f7"},
+    {file = "ezdxf-1.2.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:a89cdec279e3a24989416329778170bbab863d495a443d7a803383341a12fcd2"},
+    {file = "ezdxf-1.2.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:8582d204935c64f1f8565123e4a7fce6f9ca00af077176ff7304e26d1284af30"},
+    {file = "ezdxf-1.2.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7890f9c759a3f3d8507efbc7e24290a4bf5f8b1fa0a66082e9be4d79daae7792"},
+    {file = "ezdxf-1.2.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:cbe01ab4c43edafa78e022f397c2270f49ced66bac74d3515243c6e33b049314"},
+    {file = "ezdxf-1.2.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:442dd36ae36ec6853898f3a8081999b68ed80c906a14f393b360b1441fa3f452"},
+    {file = "ezdxf-1.2.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:2a5f2f5e2cf8d8ac3b4ddf7414ca25ae575c2c8a7d0ac59d106c9a6b9741ecef"},
+    {file = "ezdxf-1.2.0-cp39-cp39-win_amd64.whl", hash = "sha256:67b844e21d5b174e5075136cf0e00c710d3333f1be0b41c889a56bfee984ead8"},
+    {file = "ezdxf-1.2.0-py3-none-any.whl", hash = "sha256:549b5714543cba8665c6f0fb1f269ab03270f2339eb22cd40fd35b1dbc22e4a4"},
+    {file = "ezdxf-1.2.0.zip", hash = "sha256:a34748ac31d414387dab72ecf819b1422b44d43b094045a5235f2ad268882942"},
 ]
 
 [package.dependencies]
@@ -454,12 +446,10 @@ pyparsing = ">=2.0.1"
 typing-extensions = ">=4.6.0"
 
 [package.extras]
-all = ["Cython", "PyMuPDF (>=1.20.0)", "PySide6", "matplotlib", "pytest", "setuptools", "wheel"]
-all5 = ["Cython", "PyMuPDF (>=1.20.0)", "PyQt5", "matplotlib", "pytest", "setuptools", "wheel"]
-dev = ["Cython", "pytest", "setuptools", "wheel"]
-draw = ["PyMuPDF (>=1.20.0)", "PySide6", "matplotlib"]
-draw5 = ["PyMuPDF (>=1.20.0)", "PyQt5", "matplotlib"]
-test = ["pytest"]
+dev = ["Cython", "Pillow", "PyMuPDF (>=1.20.0)", "PySide6", "matplotlib", "pytest", "setuptools", "wheel"]
+dev5 = ["Cython", "Pillow", "PyMuPDF (>=1.20.0)", "PyQt5", "matplotlib", "pytest", "setuptools", "wheel"]
+draw = ["Pillow", "PyMuPDF (>=1.20.0)", "PySide6", "matplotlib"]
+draw5 = ["Pillow", "PyMuPDF (>=1.20.0)", "PyQt5", "matplotlib"]
 
 [[package]]
 name = "fonttools"
@@ -681,22 +671,21 @@ testing = ["Django", "attrs", "colorama", "docopt", "pytest (<7.0.0)"]
 
 [[package]]
 name = "marshmallow"
-version = "3.20.2"
+version = "3.21.0"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "marshmallow-3.20.2-py3-none-any.whl", hash = "sha256:c21d4b98fee747c130e6bc8f45c4b3199ea66bc00c12ee1f639f0aeca034d5e9"},
-    {file = "marshmallow-3.20.2.tar.gz", hash = "sha256:4c1daff273513dc5eb24b219a8035559dc573c8f322558ef85f5438ddd1236dd"},
+    {file = "marshmallow-3.21.0-py3-none-any.whl", hash = "sha256:e7997f83571c7fd476042c2c188e4ee8a78900ca5e74bd9c8097afa56624e9bd"},
+    {file = "marshmallow-3.21.0.tar.gz", hash = "sha256:20f53be28c6e374a711a16165fb22a8dc6003e3f7cda1285e3ca777b9193885b"},
 ]
 
 [package.dependencies]
 packaging = ">=17.0"
 
 [package.extras]
-dev = ["pre-commit (>=2.4,<4.0)", "pytest", "pytz", "simplejson", "tox"]
-docs = ["alabaster (==0.7.15)", "autodocsumm (==0.2.12)", "sphinx (==7.2.6)", "sphinx-issues (==3.0.1)", "sphinx-version-warning (==1.1.2)"]
-lint = ["pre-commit (>=2.4,<4.0)"]
+dev = ["marshmallow[tests]", "pre-commit (>=3.5,<4.0)", "tox"]
+docs = ["alabaster (==0.7.16)", "autodocsumm (==0.2.12)", "sphinx (==7.2.6)", "sphinx-issues (==4.0.0)", "sphinx-version-warning (==1.1.2)"]
 tests = ["pytest", "pytz", "simplejson"]
 
 [[package]]
@@ -1165,12 +1154,12 @@ files = [
 
 [[package]]
 name = "pygltflib"
-version = "1.16.1"
+version = "1.16.2"
 description = "Python library for reading, writing and managing 3D objects in the Khronos Group gltf and gltf2 formats."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pygltflib-1.16.1.tar.gz", hash = "sha256:ccea04343382bacaa8f00f4cf0bfdaada468ba0e4f174f88d701af0695761bf3"},
+    {file = "pygltflib-1.16.2.tar.gz", hash = "sha256:4f9481f5841b0b8fb7b271b0414b394b503405260a6ee0cf2c330a5420d19b64"},
 ]
 
 [package.dependencies]
@@ -1280,13 +1269,13 @@ files = [
 
 [[package]]
 name = "sniffio"
-version = "1.3.0"
+version = "1.3.1"
 description = "Sniff out which async library your code is running under"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "sniffio-1.3.0-py3-none-any.whl", hash = "sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384"},
-    {file = "sniffio-1.3.0.tar.gz", hash = "sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101"},
+    {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
+    {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
 ]
 
 [[package]]
@@ -1374,13 +1363,13 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.9.0"
+version = "4.10.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.9.0-py3-none-any.whl", hash = "sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd"},
-    {file = "typing_extensions-4.9.0.tar.gz", hash = "sha256:23478f88c37f27d76ac8aee6c905017a143b0b1b886c3c9f66bc2fd94f9f5783"},
+    {file = "typing_extensions-4.10.0-py3-none-any.whl", hash = "sha256:69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475"},
+    {file = "typing_extensions-4.10.0.tar.gz", hash = "sha256:b0abd7c89e8fb96f98db18d86106ff1d90ab692004eb746cf6eda2682f91b3cb"},
 ]
 
 [[package]]
@@ -1696,4 +1685,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "16d385dac0b8683b9d66b91696658ecf47a60fd19e08278f189c79858fe95563"
+content-hash = "b319fd1a01b16c61a1e5a3050a22e4898d8faea9ab85de6ae4bc82849b1a4025"
