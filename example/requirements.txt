@@ -1,3 +1,2 @@
-build123d==0.4.0
-yacv-server==0.1.0
-asyncio==3.4.3
+build123d
+yacv-server

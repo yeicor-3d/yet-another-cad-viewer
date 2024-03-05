@@ -40,7 +40,7 @@ export class NetworkManager extends EventTarget {
         }
     }
 
-    private monitorDevServer(url: string) {
+    private monitorDevServer(url: URL) {
         // WARNING: This will spam the console logs with failed requests when the server is down
         let eventSource = new EventSource(url);
         eventSource.onmessage = (event) => {
