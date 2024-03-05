@@ -62,3 +62,7 @@ class BufferedPubSub(Generic[T]):
     def buffer(self) -> List[T]:
         """Returns a shallow copy of the list of buffered events"""
         return self._buffer[:]
+
+    def delete(self, event: T):
+        """Deletes an event from the buffer"""
+        self._buffer.remove(event)

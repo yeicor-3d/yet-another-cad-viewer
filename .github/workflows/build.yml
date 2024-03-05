@@ -21,7 +21,7 @@ jobs:
       - uses: "actions/upload-artifact@v4"
         with:
           name: "frontend"
-          path: "./dist"
+          path: "dist"
           retention-days: 5
 
   build-backend:
@@ -29,9 +29,6 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
-      - uses: "actions/setup-node@v4"
-        with:
-          cache: "yarn"
       - run: "pipx install poetry"
       - uses: "actions/setup-python@v5"
         with:
@@ -45,9 +42,6 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
-      - uses: "actions/setup-node@v4"
-        with:
-          cache: "yarn"
       - run: "pipx install poetry"
       - uses: "actions/setup-python@v5"
         with:
@@ -59,5 +53,23 @@ jobs:
       - uses: "actions/upload-artifact@v4"
         with:
           name: "logo"
-          path: "./assets/logo_build"
+          path: "assets/logo_build"
+          retention-days: 5
+
+  build-example:
+    name: "Build example"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: "pip install -r example/requirements.txt"
+      - run: "cd example && python object.py"
+      - run: "mv example/export/object.glb example/export/example.glb"
+      - uses: "actions/upload-artifact@v4"
+        with:
+          name: "example"
+          path: "example/export"
           retention-days: 5

@@ -129,6 +129,20 @@ Pygments = ">=2.2.0"
 watchfiles = ">=0.10"
 
 [[package]]
+name = "aiohttp-sse"
+version = "2.2.0"
+description = "Server-sent events  support for aiohttp."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "aiohttp-sse-2.2.0.tar.gz", hash = "sha256:a48dd5774031d3f41a29e159ebdbb93e89c8f37c1e9e83e196296be51885a5c2"},
+    {file = "aiohttp_sse-2.2.0-py3-none-any.whl", hash = "sha256:339f9803bcf4682a2060e75548760d86abe4424a0d92ba66ff4985de3bd743dc"},
+]
+
+[package.dependencies]
+aiohttp = ">=3.0"
+
+[[package]]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
@@ -1685,4 +1699,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b319fd1a01b16c61a1e5a3050a22e4898d8faea9ab85de6ae4bc82849b1a4025"
+content-hash = "734e26c5b174a1b5d0942e9b67d6fff679e1e7e06c5f2fd9978911befc9aec3c"

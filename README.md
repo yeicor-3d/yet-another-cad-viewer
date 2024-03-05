@@ -13,14 +13,14 @@ in a web browser.
 - View and interact with topological entities: faces, edges, vertices and locations.
 - Control clipping planes and transparency of each model.
 - Select any entity and measure bounding box size and distances.
-- Fully-featured [static deployment](#static-deployment): just upload the viewer and models to your server.
-- [Live lazy updates](#live-updates) while editing the CAD model (using the `yacv-server` package).
+- Fully-featured static deployment: just upload the viewer and models to your server.
+- Hot reloading while editing the CAD model (using the `yacv-server` package).
 
-## Usage & demo
+## Usage
 
-The [logo](yacv_server/logo.py) also works as an example of how to use the viewer.
+The [example](example) is a fully working project that demonstrates how to use the viewer.
 
-### Live updates
+### Hot reloading
 
 To see the live updates you will need to run the [yacv_server](yacv_server) and
 open [the viewer](https://yeicor-3d.github.io/yet-another-cad-viewer/) with

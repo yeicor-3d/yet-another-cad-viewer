@@ -24,8 +24,10 @@ export class NetworkManager extends EventTarget {
      * Updates will be emitted as "update" events, including the download URL and the model name.
      */
     async load(url: string) {
-        if (url.startsWith("ws://") || url.startsWith("wss://")) {
-            this.monitorWebSocket(url);
+        if (url.startsWith("dev+")) {
+            let baseUrl = new URL(url.slice(4));
+            baseUrl.searchParams.set("api_updates", "true");
+            this.monitorDevServer(baseUrl);
         } else {
             // Get the last part of the URL as the "name" of the model
             let name = url.split("/").pop();
@@ -38,21 +40,20 @@ export class NetworkManager extends EventTarget {
         }
     }
 
-    private monitorWebSocket(url: string) {
+    private monitorDevServer(url: string) {
         // WARNING: This will spam the console logs with failed requests when the server is down
-        let ws = new WebSocket(url);
-        ws.onmessage = (event) => {
+        let eventSource = new EventSource(url);
+        eventSource.onmessage = (event) => {
             let data = JSON.parse(event.data);
             console.debug("WebSocket message", data);
             let urlObj = new URL(url);
-            urlObj.protocol = urlObj.protocol === "ws:" ? "http:" : "https:";
+            urlObj.searchParams.delete("api_updates");
             urlObj.searchParams.set("api_object", data.name);
             this.foundModel(data.name, data.hash, urlObj.toString());
         };
-        ws.onerror = () => ws.close();
-        ws.onclose = () => setTimeout(() => this.monitorWebSocket(url), settings.monitorEveryMs);
-        let timeoutFaster = setTimeout(() => ws.close(), settings.monitorOpenTimeoutMs);
-        ws.onopen = () => clearTimeout(timeoutFaster);
+        eventSource.onerror = () => { // Retry after a very short delay
+            setTimeout(() => this.monitorDevServer(url), settings.monitorEveryMs);
+        }
     }
 
     private foundModel(name: string, hash: string | null, url: string) {

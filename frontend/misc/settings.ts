@@ -10,11 +10,11 @@ export const settings = {
         // @ts-ignore
         // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
-        "ws://127.0.0.1:32323/"
+        "dev+http://127.0.0.1:32323/"
     ],
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     monitorEveryMs: 100,
-    monitorOpenTimeoutMs: 100,
+    monitorOpenTimeoutMs: 1000,
     // ModelViewer settings
     autoplay: true,
     arModes: 'webxr scene-viewer quick-look',

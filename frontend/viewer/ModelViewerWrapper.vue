@@ -1,12 +1,9 @@
-<script lang="ts">
-</script>
-
 <script setup lang="ts">
 import {settings} from "../misc/settings";
-import {onMounted, inject, type Ref} from "vue";
-import {$scene, $renderer} from "@google/model-viewer/lib/model-viewer-base";
+import {inject, onMounted, type Ref, ref, watch} from "vue";
+import {VList, VListItem} from "vuetify/lib/components/index.mjs";
+import {$renderer, $scene} from "@google/model-viewer/lib/model-viewer-base";
 import Loading from "../misc/Loading.vue";
-import {ref, watch} from "vue";
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
@@ -152,7 +149,13 @@ watch(disableTap, (value) => {
                 :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :skybox-image="settings.background"
                 :environment-image="settings.background">
     <slot></slot> <!-- Controls, annotations, etc. -->
-    <loading class="annotation initial-load-banner"></loading>
+    <div class="annotation initial-load-banner">
+      Trying to load models from...
+      <v-list v-for="src in settings.preload" :key="src">
+        <v-list-item>{{ src }}</v-list-item>
+      </v-list>
+      <loading></loading>
+    </div>
   </model-viewer>
 
   <!-- The SVG overlay for fake 3D lines attached to the model -->
@@ -201,5 +204,16 @@ watch(disableTap, (value) => {
   width: 100%;
   height: 100dvh;
   pointer-events: none;
+}
+
+.initial-load-banner {
+  width: 300px;
+  margin: auto;
+  margin-top: 3em;
+  overflow: hidden;
+}
+
+.initial-load-banner .v-list-item {
+  overflow: hidden;
 }
 </style>

@@ -3,7 +3,6 @@ import os
 import time
 
 from aiohttp import web
-from build123d import Vector
 
 from server import Server
 
@@ -21,6 +20,7 @@ show = server.show
 show_object = show
 show_image = server.show_image
 show_all = server.show_cad_all
+export_all = server.export_all
 
 
 def _get_app() -> web.Application:

@@ -12,6 +12,12 @@ updates:
       interval: "weekly"
       day: "saturday"
       time: "09:00"
+  - package-ecosystem: "pip"
+    directory: "/example"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "09:00"
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows/"
     schedule:

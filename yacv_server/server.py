@@ -12,6 +12,7 @@ import aiohttp_cors
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
 from aiohttp import web
+from aiohttp_sse import sse_response
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
@@ -59,6 +60,7 @@ class UpdatesApiFullData(UpdatesApiData):
         self.kwargs = kwargs
 
     def to_json(self) -> str:
+        # noinspection PyUnresolvedReferences
         return super().to_json()
 
 
@@ -71,10 +73,13 @@ class Server:
     app = web.Application()
     runner: web.AppRunner
     thread: Optional[Thread] = None
+    startup_complete = asyncio.Event()
     do_shutdown = asyncio.Event()
+    at_least_one_client = asyncio.Event()
     show_events = BufferedPubSub[UpdatesApiFullData]()
     object_events: Dict[str, BufferedPubSub[bytes]] = {}
     object_events_lock = asyncio.Lock()
+    frontend_lock = asyncio.Lock()  # To avoid exiting too early while frontend makes requests
 
     def __init__(self, *args, **kwargs):
         # --- Routes ---
@@ -108,6 +113,11 @@ class Server:
         signal.signal(signal.SIGINT | signal.SIGTERM, self.stop)
         atexit.register(self.stop)
         self.thread.start()
+        logger.info('Server started (requested)...')
+        # Wait for the server to be ready before returning
+        while not self.startup_complete.is_set():
+            time.sleep(0.01)
+        logger.info('Server started (received)...')
 
     # noinspection PyUnusedLocal
     def stop(self, *args):
@@ -115,10 +125,30 @@ class Server:
         if self.thread is None:
             print('Cannot stop server because it is not running')
             return
-        # FIXME: Wait for at least one client to confirm ready before stopping in case we are too fast?
+
+        # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
+        logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
+        try:
+            while not self.at_least_one_client.is_set():
+                time.sleep(0.01)
+        except KeyboardInterrupt:
+            pass
+
+        logger.info('Stopping server (waiting for no more frontend requests)...')
+        acquired = time.time()
+        while time.time() - acquired < 1.0:
+            if self.frontend_lock.locked():
+                acquired = time.time()
+            time.sleep(0.01)
+
+        # Stop the server in the background
         self.loop.call_soon_threadsafe(lambda *a: self.do_shutdown.set())
-        self.thread.join(timeout=12)
+        logger.info('Stopping server (sent)...')
+
+        # Wait for the server to stop gracefully
+        self.thread.join(timeout=30)
         self.thread = None
+        logger.info('Stopping server (confirmed)...')
         if len(args) >= 1 and args[0] in (signal.SIGINT, signal.SIGTERM):
             sys.exit(0)  # Exit with success
 
@@ -135,15 +165,18 @@ class Server:
         await runner.setup()
         site = web.TCPSite(runner, os.getenv('YACV_HOST', 'localhost'), int(os.getenv('YACV_PORT', 32323)))
         await site.start()
-        # print(f'Server started at {site.name}')
+        logger.info('Server started (sent)...')
+        self.startup_complete.set()
         # Wait for a signal to stop the server while running
         await self.do_shutdown.wait()
-        # print('Shutting down server...')
-        await runner.cleanup()
+        logger.info('Stopping server (received)...')
+        await runner.shutdown()
+        # await runner.cleanup()  # Gets stuck?
+        logger.info('Stopping server (done)...')
 
     async def _entrypoint(self, request: web.Request) -> web.StreamResponse:
         """Main entrypoint to the server, which automatically serves the frontend/updates/objects"""
-        if request.headers.get('Upgrade', '').lower() == 'websocket':  # WebSocket -> updates API
+        if request.query.get('api_updates', '') != '':  # ?api_updates -> updates API
             return await self._api_updates(request)
         elif request.query.get('api_object', '') != '':  # ?api_object={name} -> object API
             request.match_info['name'] = request.query['api_object']
@@ -151,36 +184,32 @@ class Server:
         else:  # Anything else -> frontend index.html
             return await _index_handler(request)
 
-    async def _api_updates(self, request: web.Request) -> web.WebSocketResponse:
+    async def _api_updates(self, request: web.Request) -> web.StreamResponse:
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
-        ws = web.WebSocketResponse()
-        await ws.prepare(request)
+        self.at_least_one_client.set()
+        async with sse_response(request) as resp:
+            logger.debug('Client connected: %s', request.remote)
+            resp.ping_interval = 0.1  # HACK: forces flushing of the buffer
 
-        async def _send_api_updates():
-            subscription = self.show_events.subscribe()
+            # Send buffered events first, while keeping a lock
+            async with self.frontend_lock:
+                for data in self.show_events.buffer():
+                    logger.debug('Sending info about %s to %s: %s', data.name, request.remote, data)
+                    # noinspection PyUnresolvedReferences
+                    await resp.send(data.to_json())
+
+            # Send future events over the same connection
+            subscription = self.show_events.subscribe(include_buffered=False)
             try:
                 async for data in subscription:
                     logger.debug('Sending info about %s to %s: %s', data.name, request.remote, data)
                     # noinspection PyUnresolvedReferences
-                    await ws.send_str(data.to_json())
+                    await resp.send(data.to_json())
             finally:
                 await subscription.aclose()
+                logger.debug('Client disconnected: %s', request.remote)
 
-        # Start sending updates to the client automatically
-        send_task = asyncio.create_task(_send_api_updates())
-        receive_task = asyncio.create_task(ws.receive())
-        try:
-            logger.debug('Client connected: %s', request.remote)
-            # Wait for the client to close the connection (or send a message)
-            done, pending = await asyncio.wait([send_task, receive_task], return_when=asyncio.FIRST_COMPLETED)
-            # Make sure to stop sending updates to the client and close the connection
-            for task in pending:
-                task.cancel()
-        finally:
-            await ws.close()
-            logger.debug('Client disconnected: %s', request.remote)
-
-        return ws
+        return resp
 
     obj_counter = 0
 
@@ -188,6 +217,13 @@ class Server:
                      kwargs=None):
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
+        # Remove a previous object with the same name
+        for old_event in self.show_events.buffer():
+            if old_event.name == name:
+                self.show_events.delete(old_event)
+                if name in self.object_events:
+                    del self.object_events[name]
+                break
         precomputed_info = UpdatesApiFullData(name=name, hash=hash, obj=obj, kwargs=kwargs or {})
         self.show_events.publish_nowait(precomputed_info)
         logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
@@ -245,35 +281,34 @@ class Server:
 
     async def _api_object(self, request: web.Request) -> web.Response:
         """Returns the object file with the matching name, building it if necessary."""
-        # Export the object (or fail if not found)
-        exported_glb = await self.export(request.match_info['name'])
+        async with self.frontend_lock:
+            # Export the object (or fail if not found)
+            exported_glb = await self.export(request.match_info['name'])
 
-        # Wrap the GLB in a response and return it
-        response = web.Response(body=exported_glb)
-        response.content_type = 'model/gltf-binary'
-        response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
-        return response
+            # Wrap the GLB in a response and return it
+            response = web.Response(body=exported_glb)
+            response.content_type = 'model/gltf-binary'
+            response.headers['Content-Disposition'] = f'attachment; filename="{request.match_info["name"]}.glb"'
+            return response
 
     def shown_object_names(self) -> list[str]:
         """Returns the names of all objects that have been shown"""
         return list([obj.name for obj in self.show_events.buffer()])
+
+    def _shown_object(self, name: str) -> Optional[UpdatesApiFullData]:
+        """Returns the object with the given name, if it exists"""
+        for obj in self.show_events.buffer():
+            if obj.name == name:
+                return obj
+        return None
 
     async def export(self, name: str) -> bytes:
         """Export the given previously-shown object to a single GLB file, building it if necessary."""
         start = time.time()
 
         # Check that the object to build exists and grab it if it does
-        found = False
-        obj: Optional[TopoDS_Shape] = None
-        kwargs: Optional[Dict[str, any]] = None
-        subscription = self.show_events.buffer()
-        for data in subscription:
-            if data.name == name:
-                obj = data.obj
-                kwargs = data.kwargs
-                found = True  # Required because obj could be None
-                break
-        if not found:
+        event = self._shown_object(name)
+        if not event:
             raise web.HTTPNotFound(text=f'No object named {name} was previously shown')
 
         # Use the lock to ensure that we don't build the object twice
@@ -286,19 +321,21 @@ class Server:
 
                 def _build_object():
                     # Build and publish the object (once)
-                    gltf = tessellate(obj, tolerance=kwargs.get('tolerance', 0.1),
-                                      angular_tolerance=kwargs.get('angular_tolerance', 0.1),
-                                      faces=kwargs.get('faces', True),
-                                      edges=kwargs.get('edges', True),
-                                      vertices=kwargs.get('vertices', True))
+                    gltf = tessellate(event.obj, tolerance=event.kwargs.get('tolerance', 0.1),
+                                      angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
+                                      faces=event.kwargs.get('faces', True),
+                                      edges=event.kwargs.get('edges', True),
+                                      vertices=event.kwargs.get('vertices', True))
                     glb_list_of_bytes = gltf.save_to_bytes()
                     publish_to.publish_nowait(b''.join(glb_list_of_bytes))
                     logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start,
                                 len(gltf.meshes[0].primitives))
 
-                # We should build it fully even if we are cancelled, so we use a separate task
-                # Furthermore, building is CPU-bound, so we use the default executor
-                await asyncio.get_running_loop().run_in_executor(None, _build_object)
+                # await asyncio.get_running_loop().run_in_executor(None, _build_object)
+                # The previous line has problems with auto-closed loop on script exit
+                # and is cancellable, so instead run blocking code in async context :(
+                logger.debug('Building object %s... %s', name, event.obj)
+                _build_object()
 
         # In either case return the elements of a subscription to the async generator
         subscription = self.object_events[name].subscribe()
@@ -306,3 +343,15 @@ class Server:
             return await anext(subscription)
         finally:
             await subscription.aclose()
+
+    def export_all(self, folder: str) -> None:
+        """Export all previously-shown objects to GLB files in the given folder"""
+        import asyncio
+
+        async def _export_all():
+            os.makedirs(folder, exist_ok=True)
+            for name in self.shown_object_names():
+                with open(os.path.join(folder, f'{name}.glb'), 'wb') as f:
+                    f.write(await self.export(name))
+
+        asyncio.run(_export_all())

@@ -17,6 +17,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # TODO: Update versions automatically
+
   deploy-frontend:
     runs-on: "ubuntu-latest"
     environment:
@@ -33,6 +35,12 @@ jobs:
         with:
           workflow: "build.yml"
           name: "logo"
+          path: "./public"
+          allow_forks: false
+      - uses: "dawidd6/action-download-artifact@v3"
+        with:
+          workflow: "build.yml"
+          name: "example"
           path: "./public"
           allow_forks: false
       - uses: "actions/configure-pages@v4"
