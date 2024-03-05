@@ -61,15 +61,16 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
+      - run: "pipx install poetry"
       - uses: "actions/setup-python@v5"
         with:
           python-version: "3.11"
-          cache: "pip"
-      - run: "cd example && pip install $(cat requirements.txt)"
-      - run: "cd example && python object.py"
-      - run: "mv example/export/object.glb example/export/example.glb"
+          cache: "poetry"
+      - run: "SKIP_BUILD_FRONTEND=true poetry install"
+      - run: "PYTHONPATH=yacv_server YACV_STOP_EARLY=true poetry run python example/object.py"
+      - run: "mv export/object.glb export/example.glb"
       - uses: "actions/upload-artifact@v4"
         with:
           name: "example"
-          path: "example/export"
+          path: "export"
           retention-days: 5

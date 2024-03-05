@@ -126,20 +126,21 @@ class Server:
             print('Cannot stop server because it is not running')
             return
 
-        # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
-        logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
-        try:
-            while not self.at_least_one_client.is_set():
-                time.sleep(0.01)
-        except KeyboardInterrupt:
-            pass
+        if os.getenv('YACV_STOP_EARLY', '') == '':
+            # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
+            logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
+            try:
+                while not self.at_least_one_client.is_set():
+                    time.sleep(0.01)
+            except KeyboardInterrupt:
+                pass
 
-        logger.info('Stopping server (waiting for no more frontend requests)...')
-        acquired = time.time()
-        while time.time() - acquired < 1.0:
-            if self.frontend_lock.locked():
-                acquired = time.time()
-            time.sleep(0.01)
+            logger.info('Stopping server (waiting for no more frontend requests)...')
+            acquired = time.time()
+            while time.time() - acquired < 1.0:
+                if self.frontend_lock.locked():
+                    acquired = time.time()
+                time.sleep(0.01)
 
         # Stop the server in the background
         self.loop.call_soon_threadsafe(lambda *a: self.do_shutdown.set())
