@@ -2,7 +2,7 @@ import asyncio
 from typing import List, TypeVar, \
     Generic, AsyncGenerator
 
-from mylogger import logger
+from yacv_server.mylogger import logger
 
 T = TypeVar('T')
 

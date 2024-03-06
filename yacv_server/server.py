@@ -16,10 +16,10 @@ from aiohttp_sse import sse_response
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from cad import get_shape, grab_all_cad, image_to_gltf
-from mylogger import logger
-from pubsub import BufferedPubSub
-from tessellate import _hashcode, tessellate
+from yacv_server.cad import get_shape, grab_all_cad, image_to_gltf
+from yacv_server.mylogger import logger
+from yacv_server.pubsub import BufferedPubSub
+from yacv_server.tessellate import _hashcode, tessellate
 
 # Find the frontend folder (optional, but recommended)
 FILE_DIR = os.path.dirname(__file__)

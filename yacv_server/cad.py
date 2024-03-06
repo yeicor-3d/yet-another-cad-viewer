@@ -7,7 +7,7 @@ from typing import Optional, Union, List, Tuple
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
 
-from gltf import GLTFMgr
+from yacv_server.gltf import GLTFMgr
 
 CADLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and Locations for now
 

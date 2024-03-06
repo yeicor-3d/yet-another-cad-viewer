@@ -13,9 +13,9 @@ from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Shape, Vertex, Face, Location
 from pygltflib import GLTF2
 
-import mylogger
-from cad import CADLike
-from gltf import GLTFMgr
+from yacv_server.mylogger import logger
+from yacv_server.cad import CADLike
+from yacv_server.gltf import GLTFMgr
 
 
 def tessellate(
@@ -68,7 +68,7 @@ def _tessellate_face(
     face.mesh(tolerance, angular_tolerance)
     poly = BRep_Tool.Triangulation_s(face.wrapped, TopLoc_Location())
     if poly is None:
-        mylogger.logger.warn("No triangulation found for face")
+        logger.warn("No triangulation found for face")
         return GLTF2()
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
 

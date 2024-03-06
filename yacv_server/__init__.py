@@ -4,7 +4,7 @@ import time
 
 from aiohttp import web
 
-from server import Server
+from yacv_server.server import Server
 
 server = Server()
 """The server instance. This is the main entry point to serve CAD objects and other data to the frontend."""
