@@ -127,7 +127,7 @@ class Server:
             return
 
         graceful_secs_connect = float(os.getenv('YACV_GRACEFUL_SECS_CONNECT', 12.0))
-        graceful_secs_request = float(os.getenv('YACV_GRACEFUL_SECS_REQUEST', 1.0))
+        graceful_secs_request = float(os.getenv('YACV_GRACEFUL_SECS_REQUEST', 5.0))
         # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
         logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
         start = time.time()
