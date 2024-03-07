@@ -50,12 +50,14 @@ function syncOrthoCamera(force: boolean) {
   let perspectiveCam: PerspectiveCamera = (scene as any).__perspectiveCamera;
   if (force || perspectiveCam && scene.camera != perspectiveCam) {
     // Get zoom level from perspective camera
-    let dist = scene.getTarget().distanceToSquared(perspectiveCam.position);
-    let w = scene.aspect * dist ** 1.1 / 4000;
-    let h = dist ** 1.1 / 4000;
+    let lookAtCenter = scene.getTarget().clone().add(scene.target.position);
+    let perspectiveWidthAtCenter =
+        2 * Math.tan(perspectiveCam.fov * Math.PI / 180 / 2) * perspectiveCam.position.distanceTo(lookAtCenter);
+    let w = perspectiveWidthAtCenter;
+    let h = perspectiveWidthAtCenter / scene.aspect;
     (scene as any).camera = new OrthographicCamera(-w, w, h, -h, perspectiveCam.near, perspectiveCam.far);
     scene.camera.position.copy(perspectiveCam.position);
-    scene.camera.lookAt(scene.getTarget().clone().add(scene.target.position));
+    scene.camera.lookAt(lookAtCenter);
     if (force) scene.queueRender() // Force rerender of model-viewer
     requestAnimationFrame(() => syncOrthoCamera(false));
   }

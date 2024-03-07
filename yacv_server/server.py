@@ -126,21 +126,23 @@ class Server:
             print('Cannot stop server because it is not running')
             return
 
-        if os.getenv('YACV_STOP_EARLY', '') == '':
-            # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
-            logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
-            try:
-                while not self.at_least_one_client.is_set():
-                    time.sleep(0.01)
-            except KeyboardInterrupt:
-                pass
-
-            logger.info('Stopping server (waiting for no more frontend requests)...')
-            acquired = time.time()
-            while time.time() - acquired < 1.0:
-                if self.frontend_lock.locked():
-                    acquired = time.time()
+        graceful_secs_connect = float(os.getenv('YACV_GRACEFUL_SECS_CONNECT', 12.0))
+        graceful_secs_request = float(os.getenv('YACV_GRACEFUL_SECS_REQUEST', 1.0))
+        # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
+        logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
+        start = time.time()
+        try:
+            while not self.at_least_one_client.is_set() and time.time() - start < graceful_secs_connect:
                 time.sleep(0.01)
+        except KeyboardInterrupt:
+            pass
+
+        logger.info('Stopping server (waiting for no more frontend requests)...')
+        start = time.time()
+        while time.time() - start < graceful_secs_request:
+            if self.frontend_lock.locked():
+                start = time.time()
+            time.sleep(0.01)
 
         # Stop the server in the background
         self.loop.call_soon_threadsafe(lambda *a: self.do_shutdown.set())
@@ -190,7 +192,6 @@ class Server:
         self.at_least_one_client.set()
         async with sse_response(request) as resp:
             logger.debug('Client connected: %s', request.remote)
-            resp.ping_interval = 0.1  # HACK: forces flushing of the buffer
 
             # Send buffered events first, while keeping a lock
             async with self.frontend_lock:
@@ -338,12 +339,12 @@ class Server:
                 logger.debug('Building object %s... %s', name, event.obj)
                 _build_object()
 
-        # In either case return the elements of a subscription to the async generator
-        subscription = self.object_events[name].subscribe()
-        try:
-            return await anext(subscription)
-        finally:
-            await subscription.aclose()
+            # In either case return the elements of a subscription to the async generator
+            subscription = self.object_events[name].subscribe()
+            try:
+                return await anext(subscription)
+            finally:
+                await subscription.aclose()
 
     def export_all(self, folder: str) -> None:
         """Export all previously-shown objects to GLB files in the given folder"""

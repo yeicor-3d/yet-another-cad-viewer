@@ -67,7 +67,7 @@ jobs:
           python-version: "3.11"
           cache: "poetry"
       - run: "SKIP_BUILD_FRONTEND=true poetry install"
-      - run: "PYTHONPATH=yacv_server YACV_STOP_EARLY=true poetry run python example/object.py"
+      - run: "PYTHONPATH=yacv_server YACV_DISABLE_SERVER=true poetry run python example/object.py"
       - run: "mv export/object.glb export/example.glb"
       - uses: "actions/upload-artifact@v4"
         with:

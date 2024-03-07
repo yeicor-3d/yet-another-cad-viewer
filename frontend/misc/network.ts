@@ -27,7 +27,7 @@ export class NetworkManager extends EventTarget {
         if (url.startsWith("dev+")) {
             let baseUrl = new URL(url.slice(4));
             baseUrl.searchParams.set("api_updates", "true");
-            this.monitorDevServer(baseUrl);
+            await this.monitorDevServer(baseUrl);
         } else {
             // Get the last part of the URL as the "name" of the model
             let name = url.split("/").pop();
@@ -40,27 +40,51 @@ export class NetworkManager extends EventTarget {
         }
     }
 
-    private monitorDevServer(url: URL) {
-        // WARNING: This will spam the console logs with failed requests when the server is down
-        let eventSource = new EventSource(url);
-        eventSource.onmessage = (event) => {
-            let data = JSON.parse(event.data);
-            console.debug("WebSocket message", data);
-            let urlObj = new URL(url);
-            urlObj.searchParams.delete("api_updates");
-            urlObj.searchParams.set("api_object", data.name);
-            this.foundModel(data.name, data.hash, urlObj.toString());
-        };
-        eventSource.onerror = () => { // Retry after a very short delay
-            setTimeout(() => this.monitorDevServer(url), settings.monitorEveryMs);
+    private async monitorDevServer(url: URL) {
+        try {
+            // WARNING: This will spam the console logs with failed requests when the server is down
+            let response = await fetch(url.toString());
+            console.log("Monitoring", url.toString(), response);
+            if (response.status === 200) {
+                let lines = readLinesStreamings(response.body!.getReader());
+                for await (let line of lines) {
+                    if (!line || !line.startsWith("data:")) continue;
+                    let data = JSON.parse(line.slice(5));
+                    console.debug("WebSocket message", data);
+                    let urlObj = new URL(url);
+                    urlObj.searchParams.delete("api_updates");
+                    urlObj.searchParams.set("api_object", data.name);
+                    this.foundModel(data.name, data.hash, urlObj.toString());
+                }
+            }
+        } catch (e) { // Ignore errors (retry very soon)
         }
+        setTimeout(() => this.monitorDevServer(url), settings.monitorEveryMs);
+        return;
     }
 
     private foundModel(name: string, hash: string | null, url: string) {
         let prevHash = this.knownObjectHashes[name];
+        // TODO: Detect and manage instances of the same object (same hash, different name)
         if (!hash || hash !== prevHash) {
             this.knownObjectHashes[name] = hash;
             this.dispatchEvent(new NetworkUpdateEvent(name, url));
         }
+    }
+}
+
+async function* readLinesStreamings(reader: ReadableStreamDefaultReader<Uint8Array>) {
+    let decoder = new TextDecoder();
+    let buffer = new Uint8Array();
+    while (true) {
+        let {value, done} = await reader.read();
+        if (done || !value) break;
+        buffer = new Uint8Array([...buffer, ...value]);
+        let text = decoder.decode(buffer);
+        let lines = text.split("\n");
+        for (let i = 0; i < lines.length - 1; i++) {
+            yield lines[i];
+        }
+        buffer = new Uint8Array([...buffer.slice(-1)]);
     }
 }

@@ -103,9 +103,10 @@ class GLTFMgr:
         indices_blob = indices.flatten().tobytes()
 
         # Check that all vertices are referenced by the indices
-        assert indices.max() == len(vertices) - 1, f"{indices.max()} != {len(vertices) - 1}"
-        assert indices.min() == 0
-        assert np.unique(indices.flatten()).size == len(vertices)
+        # This can happen on broken faces like on some fonts
+        # assert indices.max() == len(vertices) - 1, f"{indices.max()} != {len(vertices) - 1}"
+        # assert indices.min() == 0, f"min({indices}) != 0"
+        # assert np.unique(indices.flatten()).size == len(vertices)
 
         assert len(tex_coord) == 0 or tex_coord.ndim == 2
         assert len(tex_coord) == 0 or tex_coord.shape[1] == 2
