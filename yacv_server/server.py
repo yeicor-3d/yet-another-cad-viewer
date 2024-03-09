@@ -6,7 +6,7 @@ import sys
 import time
 from dataclasses import dataclass
 from threading import Thread
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Callable
 
 import aiohttp_cors
 from OCP.TopLoc import TopLoc_Location
@@ -16,7 +16,7 @@ from aiohttp_sse import sse_response
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from yacv_server.cad import get_shape, grab_all_cad, image_to_gltf
+from yacv_server.cad import get_shape, grab_all_cad, image_to_gltf, CADLike
 from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.tessellate import _hashcode, tessellate
@@ -47,12 +47,12 @@ class UpdatesApiData:
 
 
 class UpdatesApiFullData(UpdatesApiData):
-    obj: Optional[TopoDS_Shape]
+    obj: Optional[CADLike]
     """The OCCT object, if any (not serialized)"""
     kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
 
-    def __init__(self, name: str, hash: str, obj: Optional[TopoDS_Shape] = None,
+    def __init__(self, name: str, hash: str, obj: Optional[CADLike] = None,
                  kwargs: Optional[Dict[str, any]] = None):
         self.name = name
         self.hash = hash
@@ -215,7 +215,7 @@ class Server:
 
     obj_counter = 0
 
-    def _show_common(self, name: Optional[str], hash: str, start: float, obj: Optional[TopoDS_Shape] = None,
+    def _show_common(self, name: Optional[str], hash: str, start: float, obj: Optional[CADLike] = None,
                      kwargs=None):
         name = name or f'object_{self.obj_counter}'
         self.obj_counter += 1
@@ -231,7 +231,7 @@ class Server:
         logger.info('show_object(%s, %s) took %.3f seconds', name, hash, time.time() - start)
         return precomputed_info
 
-    def show(self, any_object: Union[bytes, TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
+    def show(self, any_object: Union[bytes, CADLike, any], name: Optional[str] = None, **kwargs):
         """Publishes "any" object to the server"""
         if isinstance(any_object, bytes):
             self.show_gltf(any_object, name, **kwargs)
@@ -257,7 +257,7 @@ class Server:
         # Publish it like any other GLTF object
         self.show_gltf(gltf, name, **kwargs)
 
-    def show_cad(self, obj: Union[TopoDS_Shape, any], name: Optional[str] = None, **kwargs):
+    def show_cad(self, obj: Union[CADLike, any], name: Optional[str] = None, **kwargs):
         """Publishes a CAD object to the server"""
         start = time.time()
 
@@ -346,14 +346,15 @@ class Server:
             finally:
                 await subscription.aclose()
 
-    def export_all(self, folder: str) -> None:
+    def export_all(self, folder: str, export_filter: Callable[[str, Optional[CADLike]], bool] = lambda name, obj: True):
         """Export all previously-shown objects to GLB files in the given folder"""
         import asyncio
 
         async def _export_all():
             os.makedirs(folder, exist_ok=True)
             for name in self.shown_object_names():
-                with open(os.path.join(folder, f'{name}.glb'), 'wb') as f:
-                    f.write(await self.export(name))
+                if export_filter(name, self._shown_object(name).obj):
+                    with open(os.path.join(folder, f'{name}.glb'), 'wb') as f:
+                        f.write(await self.export(name))
 
         asyncio.run(_export_all())
