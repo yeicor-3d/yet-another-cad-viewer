@@ -23,7 +23,7 @@
     "three": "^0.160.1",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
     "vue": "^3.4.21",
-    "vuetify": "^3.5.7"
+    "vuetify": "^3.5.8"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
