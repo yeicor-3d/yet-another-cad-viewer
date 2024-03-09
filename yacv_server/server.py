@@ -191,6 +191,7 @@ class Server:
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
         self.at_least_one_client.set()
         async with sse_response(request) as resp:
+            resp.ping_interval = 0.1  # HACK: Browsers don't receive instant updates without this
             logger.debug('Client connected: %s', request.remote)
 
             # Send buffered events first, while keeping a lock
