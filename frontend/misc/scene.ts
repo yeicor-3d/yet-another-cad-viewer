@@ -6,14 +6,11 @@ import {Vector3} from "three/src/math/Vector3.js"
 import {Box3} from "three/src/math/Box3.js"
 import {Matrix4} from "three/src/math/Matrix4.js"
 
-let latestModel: string | null = null;
-
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
     /** Loads a GLB model from a URL and adds it to the viewer or replaces it if the names match */
     static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string): Promise<Document> {
         let loadStart = performance.now();
-        latestModel = name; // To help load helpers only once per model load batch
 
         // Start merging into the current document, replacing or adding as needed
         document = await mergePartial(url, name, document);
@@ -22,12 +19,8 @@ export class SceneMgr {
 
         if (name !== extrasNameValueHelpers) {
             // Reload the helpers to fit the new model
-            // Only reload the helpers after a few milliseconds of no more models being added/removed
-            setTimeout(async () => {
-                if (name === latestModel) {
-                    document = await this.reloadHelpers(sceneUrl, document);
-                }
-            }, 10)
+            // TODO: Only reload the helpers after a few milliseconds of no more models being added/removed
+            await this.reloadHelpers(sceneUrl, document);
         } else {
             // Display the final fully loaded model
             let displayStart = performance.now();
