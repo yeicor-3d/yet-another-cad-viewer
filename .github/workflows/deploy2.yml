@@ -21,7 +21,6 @@ concurrency:
 jobs:
 
   rebuild: # Makes sure all artifacts are updated and use the new version
-    needs: "update-versions"
     uses: "./.github/workflows/build.yml"
     with:
       ref: "${{ inputs.ref }}"
