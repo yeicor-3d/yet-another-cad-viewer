@@ -6,6 +6,11 @@ on:
     branches:
       - "master"
   workflow_call:
+    inputs:
+      ref:
+        type: "string"
+        required: true
+        description: "The ref (branch or tag) to build"
 
 jobs:
 

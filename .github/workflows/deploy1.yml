@@ -1,0 +1,42 @@
+on:
+  push:
+    tags:
+      - "v**"
+
+jobs:
+
+  update-versions:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - run: "echo 'CLEAN_VERSION=${{ github.ref }}' | sed 's,refs/tags/v,,g' >> $GITHUB_ENV"
+      # Write the new version to package.json
+      - uses: "actions/setup-node@v4"
+      - run: "yarn version --new-version $CLEAN_VERSION --no-git-tag-version"
+      # Write the new version to pyproject.toml
+      - run: "pipx install poetry"
+      - uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - run: "poetry version $CLEAN_VERSION"
+      # Commit the changes and move the tag!
+      - run: |
+          git config --global user.email "yeicor@users.noreply.github.com"
+          git config --global user.name "Yeicor"
+          if git commit -am "Automatically update version to $CLEAN_VERSION"; then
+            git push
+            # Move the tag to the new commit
+            git tag -f -a "$VERSION" -m "$VERSION"
+            git push -f --tags # Force push the tag to GitHub
+            # The tag move will NOT trigger a new workflow
+          else
+            echo "No source change detected on version update (did you repeat a release tag??)"
+            exit 1
+          fi
+
+  rebuild: # Makes sure all artifacts are updated and use the new version for the next deployment steps
+    needs: "update-versions"
+    uses: "./.github/workflows/deploy2.yml"
+    with:
+      ref: "master"  # Ensure we are cloning the latest version of the repository
