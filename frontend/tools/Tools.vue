@@ -81,7 +81,7 @@ function toggleProjection() {
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
   // The camera change may take a few frames to take effect, dispatch the event after a delay
   requestIdleCallback(() => props.viewer?.elem?.dispatchEvent(
-      new CustomEvent('camera-change', {detail: {source: 'none'}})))
+      new CustomEvent('camera-change', {detail: {source: 'none'}})), {timeout: 100})
 }
 
 async function centerCamera() {

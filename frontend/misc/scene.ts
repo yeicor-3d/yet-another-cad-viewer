@@ -9,7 +9,7 @@ import {Matrix4} from "three/src/math/Matrix4.js"
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
     /** Loads a GLB model from a URL and adds it to the viewer or replaces it if the names match */
-    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string): Promise<Document> {
+    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string, updateHelpers: boolean = true, reloadScene: boolean = true): Promise<Document> {
         let loadStart = performance.now();
 
         // Start merging into the current document, replacing or adding as needed
@@ -17,11 +17,13 @@ export class SceneMgr {
 
         console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
 
-        if (name !== extrasNameValueHelpers) {
+        if (updateHelpers) {
             // Reload the helpers to fit the new model
-            // TODO: Only reload the helpers after a few milliseconds of no more models being added/removed
-            await this.reloadHelpers(sceneUrl, document);
-        } else {
+            await this.reloadHelpers(sceneUrl, document, reloadScene);
+            reloadScene = false;
+        }
+
+        if (reloadScene) {
             // Display the final fully loaded model
             let displayStart = performance.now();
             document = await this.showCurrentDoc(sceneUrl, document);
@@ -31,7 +33,7 @@ export class SceneMgr {
         return document;
     }
 
-    private static async reloadHelpers(sceneUrl: Ref<string>, document: Document): Promise<Document> {
+    private static async reloadHelpers(sceneUrl: Ref<string>, document: Document, reloadScene: boolean): Promise<Document> {
         let bb = SceneMgr.getBoundingBox(document);
 
         // Create the helper axes and grid box
@@ -40,7 +42,7 @@ export class SceneMgr {
         newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
         newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
         let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-        return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl);
+        return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
     }
 
     static getBoundingBox(document: Document): Box3 {
@@ -67,7 +69,7 @@ export class SceneMgr {
     }
 
     /** Removes a model from the viewer */
-    static async removeModel(sceneUrl: Ref<string>, document: Document, name: string): Promise<Document> {
+    static async removeModel(sceneUrl: Ref<string>, document: Document, name: string, updateHelpers: boolean = true, reloadScene: boolean = true): Promise<Document> {
         let loadStart = performance.now();
 
         // Remove the model from the document
@@ -75,8 +77,10 @@ export class SceneMgr {
 
         console.log("Model", name, "removed in", performance.now() - loadStart, "ms");
 
-        // Reload the helpers to fit the new model (will also show the document)
-        document = await this.reloadHelpers(sceneUrl, document);
+        if (updateHelpers) {
+            // Reload the helpers to fit the new model (will also show the document)
+            document = await this.reloadHelpers(sceneUrl, document, reloadScene);
+        }
 
         return document;
     }

@@ -58,8 +58,8 @@ def grab_all_cad() -> List[Tuple[str, CADLike]]:
     return shapes
 
 
-def image_to_gltf(source: str | bytes, center: any, ppmm: int, name: Optional[str] = None,
-                  save_mime: str = 'image/jpeg') -> Tuple[bytes, str]:
+def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = None, height: Optional[float] = None,
+                  name: Optional[str] = None, save_mime: str = 'image/jpeg') -> Tuple[bytes, str]:
     """Convert an image to a GLTF CAD object, indicating the center location and pixels per millimeter."""
     from PIL import Image
     import io
@@ -105,11 +105,17 @@ def image_to_gltf(source: str | bytes, center: any, ppmm: int, name: Optional[st
 
     # Build the gltf
     mgr = GLTFMgr(image=(img_buf, save_mime))
+    if width is None and height is None:
+        raise ValueError('At least one of width or height must be specified')  # Fallback to pixels == mm?
+    elif width is None:
+        width = img.width / img.height * height
+    elif height is None:
+        height = height or img.height / img.width * width  # Apply default aspect ratio if unspecified
     mgr.add_face([
-        vert(plane.origin - plane.x_dir * img.width / (2 * ppmm) - plane.y_dir * img.height / (2 * ppmm)),
-        vert(plane.origin + plane.x_dir * img.width / (2 * ppmm) - plane.y_dir * img.height / (2 * ppmm)),
-        vert(plane.origin + plane.x_dir * img.width / (2 * ppmm) + plane.y_dir * img.height / (2 * ppmm)),
-        vert(plane.origin - plane.x_dir * img.width / (2 * ppmm) + plane.y_dir * img.height / (2 * ppmm)),
+        vert(plane.origin - plane.x_dir * width / 2 - plane.y_dir * height / 2),
+        vert(plane.origin + plane.x_dir * width / 2 - plane.y_dir * height / 2),
+        vert(plane.origin + plane.x_dir * width / 2 + plane.y_dir * height / 2),
+        vert(plane.origin - plane.x_dir * width / 2 + plane.y_dir * height / 2),
     ], [
         (0, 2, 1),
         (0, 3, 2),

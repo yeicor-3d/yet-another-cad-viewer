@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yacv-server"
-version = "0.4.4"  # TODO: Update automatically by CI on release (also for package.json!)
+version = "0.5.0"  # TODO: Update automatically by CI on release (also for package.json!)
 description = "Yet Another CAD Viewer (server)"
 authors = ["Yeicor <4929005+Yeicor@users.noreply.github.com>"]
 license = "MIT"
@@ -15,17 +15,11 @@ python = "^3.9"
 
 # CAD
 build123d = "^0.4.0"
-ocp-tessellate = "^2.0.6"
-
-# Web
-aiohttp = "^3.9.3"
-aiohttp-sse = "^2.2.0"
-aiohttp-cors = "^0.7.0"
-aiohttp-devtools = "^1.1.2"
 
 # Misc
 pygltflib = "^1.16.2"
 pillow = "^10.2.0"
+iterators = "^0.2.0"
 
 [tool.poetry.build]
 generate-setup-file = false

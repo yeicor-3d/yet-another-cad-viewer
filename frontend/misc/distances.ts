@@ -26,7 +26,6 @@ function getCenterAndVertexList(obj: MObject3D, scene: ModelScene): {
         vertices.push(vertex);
     }
     center = center.divideScalar(ind.count);
-    console.log("center", center)
     return {center, vertices};
 }
 
@@ -46,7 +45,6 @@ export function distances(a: MObject3D, b: MObject3D, scene: ModelScene): {
 
     // Find the closest and farthest vertices.
     // TODO: Compute actual min and max distances between the two objects.
-    // FIXME: Working for points and lines, but not triangles...
     // FIXME: Really slow... (use a BVH or something)
     let minDistance = Infinity;
     let minDistanceVertices = [new Vector3(), new Vector3()];

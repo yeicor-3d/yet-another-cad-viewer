@@ -47,7 +47,7 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
     }
     scene.queueRender();
     requestIdleCallback(() => props.elem?.dispatchEvent(
-        new CustomEvent('camera-change', {detail: {source: 'none'}})))
+        new CustomEvent('camera-change', {detail: {source: 'none'}})), {timeout: 100})
   }
   return gizmo;
 }
@@ -60,7 +60,7 @@ let gizmo: HTMLElement & { update: () => void }
 function updateGizmo() {
   if (gizmo.isConnected) {
     gizmo.update();
-    requestIdleCallback(updateGizmo);
+    requestIdleCallback(updateGizmo, {timeout: 250});
   }
 }
 
@@ -69,7 +69,7 @@ let reinstall = () => {
   if (gizmo) container.value.removeChild(gizmo);
   gizmo = createGizmo(container.value, props.scene as ModelScene) as typeof gizmo;
   container.value.appendChild(gizmo);
-  requestIdleCallback(updateGizmo); // Low priority updates
+  requestIdleCallback(updateGizmo, {timeout: 250}); // Low priority updates
 }
 onMounted(reinstall)
 onUpdated(reinstall);

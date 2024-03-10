@@ -1,19 +1,36 @@
 import {settings} from "./settings";
 
-export class NetworkUpdateEvent extends Event {
+const batchTimeout = 250; // ms
+
+class NetworkUpdateEventModel {
     name: string;
     url: string;
+    // TODO: Detect and manage instances of the same object (same hash, different name)
+    hash: string | null;
+    isRemove: boolean;
 
-    constructor(name: string, url: string) {
-        super("update");
+    constructor(name: string, url: string, hash: string | null, isDelete: boolean) {
         this.name = name;
         this.url = url;
+        this.hash = hash;
+        this.isRemove = isDelete;
+    }
+}
+
+export class NetworkUpdateEvent extends Event {
+    models: NetworkUpdateEventModel[];
+
+    constructor(models: NetworkUpdateEventModel[]) {
+        super("update");
+        this.models = models;
     }
 }
 
 /** Listens for updates and emits events when a model changes */
 export class NetworkManager extends EventTarget {
     private knownObjectHashes: { [name: string]: string | null } = {};
+    private bufferedUpdates: NetworkUpdateEventModel[] = [];
+    private batchTimeout: number | null = null;
 
     /**
      * Tries to load a new model (.glb) from the given URL.
@@ -36,7 +53,7 @@ export class NetworkManager extends EventTarget {
             let response = await fetch(url, {method: "HEAD"});
             let hash = response.headers.get("etag");
             // Only trigger an update if the hash has changed
-            this.foundModel(name, hash, url);
+            this.foundModel(name, hash, url, false);
         }
     }
 
@@ -44,17 +61,17 @@ export class NetworkManager extends EventTarget {
         try {
             // WARNING: This will spam the console logs with failed requests when the server is down
             let response = await fetch(url.toString());
-            console.log("Monitoring", url.toString(), response);
+            // console.log("Monitoring", url.toString(), response);
             if (response.status === 200) {
                 let lines = readLinesStreamings(response.body!.getReader());
                 for await (let line of lines) {
                     if (!line || !line.startsWith("data:")) continue;
                     let data = JSON.parse(line.slice(5));
-                    console.debug("WebSocket message", data);
+                    // console.debug("WebSocket message", data);
                     let urlObj = new URL(url);
                     urlObj.searchParams.delete("api_updates");
                     urlObj.searchParams.set("api_object", data.name);
-                    this.foundModel(data.name, data.hash, urlObj.toString());
+                    this.foundModel(data.name, data.hash, urlObj.toString(), data.is_remove);
                 }
             }
         } catch (e) { // Ignore errors (retry very soon)
@@ -63,12 +80,21 @@ export class NetworkManager extends EventTarget {
         return;
     }
 
-    private foundModel(name: string, hash: string | null, url: string) {
+    private foundModel(name: string, hash: string | null, url: string, isRemove: boolean) {
         let prevHash = this.knownObjectHashes[name];
-        // TODO: Detect and manage instances of the same object (same hash, different name)
-        if (!hash || hash !== prevHash) {
+        let hashToCheck = hash + (isRemove ? "-remove" : "");
+        // console.debug("Found model", name, "with hash", hash, "and previous hash", prevHash);
+        if (!hash || hashToCheck !== prevHash) {
             this.knownObjectHashes[name] = hash;
-            this.dispatchEvent(new NetworkUpdateEvent(name, url));
+            let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
+            this.bufferedUpdates.push(newModel);
+
+            // Optimization: try to batch updates automatically for faster rendering
+            if (this.batchTimeout !== null) clearTimeout(this.batchTimeout);
+            this.batchTimeout = setTimeout(() => {
+                this.dispatchEvent(new NetworkUpdateEvent(this.bufferedUpdates));
+                this.bufferedUpdates = [];
+            }, batchTimeout);
         }
     }
 }

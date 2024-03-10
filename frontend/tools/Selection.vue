@@ -54,15 +54,22 @@ let selectionListener = (event: MouseEvent) => {
   }
 
   // Set raycaster parameters
+  let paramScale = 1; // Make it easier to select vertices/edges based on camera distance
+  if (props.viewer?.scene) {
+    let scene = props.viewer.scene;
+    let lookAtCenter = scene.getTarget().clone().add(scene.target.position);
+    paramScale = scene.camera.position.distanceTo(lookAtCenter) / 150;
+    // console.log('paramScale', paramScale)
+  }
   if (selectFilter.value === 'Any (S)') {
-    raycaster.params.Line.threshold = 0.2;
-    raycaster.params.Points.threshold = 0.8;
+    raycaster.params.Line.threshold = paramScale;
+    raycaster.params.Points.threshold = paramScale * 2;  // Make vertices easier to select than edges
   } else if (selectFilter.value === '(E)dges') {
-    raycaster.params.Line.threshold = 0.8;
+    raycaster.params.Line.threshold = paramScale;
     raycaster.params.Points.threshold = 0.0;
   } else if (selectFilter.value === '(V)ertices') {
     raycaster.params.Line.threshold = 0.0;
-    raycaster.params.Points.threshold = 0.8;
+    raycaster.params.Points.threshold = paramScale;
   } else if (selectFilter.value === '(F)aces') {
     raycaster.params.Line.threshold = 0.0;
     raycaster.params.Points.threshold = 0.0;
@@ -74,7 +81,7 @@ let selectionListener = (event: MouseEvent) => {
   const ndcCoords = scene.getNDC(event.clientX, event.clientY);
   raycaster.setFromCamera(ndcCoords, scene.camera);
   if (!scene.camera.isPerspectiveCamera) {
-    // Need to fix the ray direction for ortho camera FIXME: Still buggy...
+    // Need to fix the ray direction for ortho camera FIXME: Still buggy for off-center clicks
     raycaster.ray.direction.copy(scene.camera.getWorldDirection(new Vector3()));
   }
   //console.log('Ray', raycaster.ray);
@@ -87,19 +94,36 @@ let selectionListener = (event: MouseEvent) => {
 
   // Find all hit objects and select the wanted one based on the filter
   const hits = raycaster.intersectObject(scene, true);
-  let hit = hits.find((hit: Intersection<Object3D>) => {
-    if (!hit.object) return false;
-    const kind = hit.object.type
-    let isFace = kind === 'Mesh' || kind === 'SkinnedMesh';
-    let isEdge = kind === 'Line' || kind === 'LineSegments';
-    let isVertex = kind === 'Points';
-    const kindOk = (selectFilter.value === 'Any (S)') ||
-        (isFace && selectFilter.value === '(F)aces') ||
-        (isEdge && selectFilter.value === '(E)dges') ||
-        (isVertex && selectFilter.value === '(V)ertices');
-    return hit.object.visible && !hit.object.userData.noHit && kindOk;
-  }) as Intersection<MObject3D> | undefined;
-  //console.log('Hit', hit)
+  let hit = hits
+      // Check feasibility
+      .filter((hit: Intersection<Object3D>) => {
+        if (!hit.object) return false;
+        const kind = hit.object.type
+        let isFace = kind === 'Mesh' || kind === 'SkinnedMesh';
+        let isEdge = kind === 'Line' || kind === 'LineSegments';
+        let isVertex = kind === 'Points';
+        const kindOk = (selectFilter.value === 'Any (S)') ||
+            (isFace && selectFilter.value === '(F)aces') ||
+            (isEdge && selectFilter.value === '(E)dges') ||
+            (isVertex && selectFilter.value === '(V)ertices');
+        return (!isFace || hit.object.visible) && !hit.object.userData.noHit && kindOk;
+      })
+      // Sort for highlighting partially hidden edges/vertices
+      .sort((a, b) => {
+        function lowerIsBetter(hit: Intersection<Object3D>) {
+          let score = hit.distance;
+          // Faces are easier to hit than 0-width edges/vertices, so we need to adjust scores
+          if (hit.object.type === 'Mesh' || hit.object.type === 'SkinnedMesh') score += paramScale;
+          // Edges are easier to hit than vertices, so we need to adjust scores
+          if (hit.object.type === 'Line' || hit.object.type === 'LineSegments') score += paramScale / 2;
+          return score;
+        }
+
+        return lowerIsBetter(a) - lowerIsBetter(b);
+      })
+      // Return the best hit
+      [0] as Intersection<MObject3D> | undefined;
+  // console.log('Hit', hit)
 
   if (!highlightNextSelection.value[0]) {
     // If we are selecting, toggle the selection or deselect all if no hit
@@ -126,7 +150,7 @@ let selectionListener = (event: MouseEvent) => {
 }
 
 function select(hit: Intersection<MObject3D>) {
-  console.log('Selecting', hit.object.name)
+  // console.log('Selecting', hit.object.name)
   if (selected.value.find((m) => m.object.name === hit.object.name) === undefined) {
     selected.value.push(hit);
   }
@@ -141,7 +165,7 @@ function select(hit: Intersection<MObject3D>) {
 }
 
 function deselect(hit: Intersection<MObject3D>, alsoRemove = true) {
-  console.log('Deselecting', hit.object.name)
+  // console.log('Deselecting', hit.object.name)
   if (alsoRemove) {
     // Remove the matching object from the selection
     let toRemove = selected.value.findIndex((m) => m.object.name === hit.object.name);
@@ -293,6 +317,8 @@ function updateBoundingBox() {
     }
     let from = new Vector3(...corners[edge[0]]);
     let to = new Vector3(...corners[edge[1]]);
+    let length = to.clone().sub(from).length();
+    if (length < 0.05) continue; // Skip very small edges (e.g. a single point)
     let color = [AxesColors.x, AxesColors.y, AxesColors.z][edgeI][1]; // Secondary colors
     let lineCacheKey = JSON.stringify([from, to]);
     let matchingLine = boundingBoxLines[lineCacheKey];
@@ -300,7 +326,7 @@ function updateBoundingBox() {
       boundingBoxLinesToRemove = boundingBoxLinesToRemove.filter((l) => l !== lineCacheKey);
     } else {
       let newLineId = props.viewer?.addLine3D(from, to,
-          to.clone().sub(from).length().toFixed(1) + "mm", {
+          length.toFixed(1) + "mm", {
             "stroke": "rgb(" + color.join(',') + ")",
             "stroke-width": "2"
           });
@@ -337,7 +363,7 @@ function updateDistances() {
   let distanceLinesToRemove = Object.keys(distanceLines);
 
   function ensureLine(from: Vector3, to: Vector3, text: string, color: string) {
-    console.log('ensureLine', from, to, text, color)
+    // console.log('ensureLine', from, to, text, color)
     let lineCacheKey = JSON.stringify([from, to]);
     let matchingLine = distanceLines[lineCacheKey];
     if (matchingLine) {
@@ -444,7 +470,7 @@ window.addEventListener('keydown', (event) => {
 
 .select-parent .v-btn {
   position: relative;
-  top: -42px;
+  top: -20px;
 }
 
 .select-only {

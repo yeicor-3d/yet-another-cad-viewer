@@ -73,7 +73,7 @@ function addLine3D(p1: Vector3, p2: Vector3, centerText?: string, lineAttrs: { [
     lineAttrs: lineAttrs
   };
   scene.value.queueRender() // Needed to update the hotspots
-  requestIdleCallback(() => onCameraChangeLine(id));
+  requestIdleCallback(() => onCameraChangeLine(id), {timeout: 100});
   return id;
 }
 

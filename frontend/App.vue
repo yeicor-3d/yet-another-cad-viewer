@@ -32,8 +32,18 @@ const disableTap = ref(false);
 const setDisableTap = (val: boolean) => disableTap.value = val;
 provide('disableTap', {disableTap, setDisableTap});
 
-async function onModelLoadRequest(model: NetworkUpdateEvent) {
-  sceneDocument.value = await SceneMgr.loadModel(sceneUrl, sceneDocument.value, model.name, model.url);
+async function onModelLoadRequest(event: NetworkUpdateEvent) {
+  // Load a new batch of models to optimize rendering time
+  let doc = sceneDocument.value;
+  for (let model of event.models) {
+    let isLast = event.models[event.models.length - 1].url == model.url;
+    if (!model.isRemove) {
+      doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast, isLast);
+    } else {
+      doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast);
+    }
+  }
+  sceneDocument.value = doc
   triggerRef(sceneDocument); // Why not triggered automatically?
 }
 
