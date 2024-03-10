@@ -17,7 +17,14 @@ jobs:
         with: # Ensure we are not in a detached HEAD state
           ref: "master"
       # Check that the tag commit is the latest master commit
-      - run: "[[ $(git rev-parse ${{ github.ref }}) == $(git rev-parse master) ]] || exit 1"
+      - run: |
+          git fetch --tags
+          tag_commit=$(git rev-parse ${{ github.ref }})
+          master_commit=$(git rev-parse master)
+          if [ "$tag_commit" != "$master_commit" ]; then
+              echo "The tag commit ($tag_commit) is not the latest master commit ($master_commit)"
+              exit 1
+          fi
       - run: "echo 'CLEAN_VERSION=${{ github.ref }}' | sed 's,refs/tags/v,,g' >> $GITHUB_ENV"
       # Write the new version to package.json
       - uses: "actions/setup-node@v4"
