@@ -34,7 +34,7 @@ jobs:
           if git commit -am "Automatically update version to $CLEAN_VERSION"; then
             git push
             # Move the tag to the new commit
-            git tag -f -a "$VERSION" -m "$VERSION"
+            git tag -f -a "$CLEAN_VERSION" -m "$CLEAN_VERSION"
             git push -f --tags # Force push the tag to GitHub
             # The tag move will NOT trigger a new workflow
           else
