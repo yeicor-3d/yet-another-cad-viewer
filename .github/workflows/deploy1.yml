@@ -3,7 +3,7 @@ on:
     tags:
       - "v**"
 
-permissions:  # Same as deploy2.yml
+permissions: # Same as deploy2.yml
   contents: "write"
   pages: "write"
   id-token: "write"
@@ -14,6 +14,8 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
+        with: # Ensure we are not in a detached HEAD state
+          ref: "master"
       - run: "echo 'CLEAN_VERSION=${{ github.ref }}' | sed 's,refs/tags/v,,g' >> $GITHUB_ENV"
       # Write the new version to package.json
       - uses: "actions/setup-node@v4"
