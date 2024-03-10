@@ -7,7 +7,7 @@ from http.server import SimpleHTTPRequestHandler
 
 from iterators import TimeoutIterator
 
-from mylogger import logger
+from yacv_server.mylogger import logger
 
 # Find the frontend folder (optional, but recommended)
 FILE_DIR = os.path.dirname(__file__)

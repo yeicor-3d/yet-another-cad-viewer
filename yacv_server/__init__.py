@@ -1,6 +1,6 @@
 import os
 
-from cad import image_to_gltf
+from yacv_server.cad import image_to_gltf
 from yacv_server.yacv import YACV
 
 yacv = YACV()

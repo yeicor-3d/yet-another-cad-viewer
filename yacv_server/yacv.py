@@ -18,8 +18,8 @@ from OCP.TopoDS import TopoDS_Shape
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from myhttp import HTTPHandler
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
+from yacv_server.myhttp import HTTPHandler
 from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.tessellate import _hashcode, tessellate
@@ -302,10 +302,10 @@ def _preprocess_cad(obj: CADLike, **kwargs) -> CADCoreLike:
 _find_var_name_count = 0
 
 
-def _find_var_name(obj: any) -> str:
+def _find_var_name(obj: any, avoid_levels: int = 2) -> str:
     """A hacky way to get a stable name for an object that may change over time"""
     global _find_var_name_count
-    for frame in inspect.stack():
+    for frame in inspect.stack()[avoid_levels:]:
         for key, value in frame.frame.f_locals.items():
             if value is obj:
                 return key
