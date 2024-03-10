@@ -1,8 +1,9 @@
 {
   "name": "yet-another-cad-viewer",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "",
   "license": "MIT",
+  "private": true,
   "author": "Yeicor <4929005+Yeicor@users.noreply.github.com>",
   "type": "module",
   "scripts": {

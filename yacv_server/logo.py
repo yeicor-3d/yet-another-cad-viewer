@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
 
-    testing_server = bool(os.getenv('TESTING_SERVER', 'False'))
+    testing_server = os.getenv('TESTING_SERVER', 'False') == 'True'
 
     if not testing_server:
         # Start an offline server to export the CAD part of the logo in a way compatible with the frontend
