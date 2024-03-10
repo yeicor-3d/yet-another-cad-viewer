@@ -1,4 +1,5 @@
 import atexit
+import copy
 import inspect
 import os
 import signal
@@ -7,8 +8,9 @@ import threading
 import time
 from dataclasses import dataclass
 from http.server import ThreadingHTTPServer
+from importlib.metadata import version
 from threading import Thread
-from typing import Optional, Dict, Union, Callable
+from typing import Optional, Dict, Union, Callable, List
 
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
@@ -17,7 +19,7 @@ from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
 from myhttp import HTTPHandler
-from yacv_server.cad import get_shape, grab_all_cad, image_to_gltf, CADLike
+from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.tessellate import _hashcode, tessellate
@@ -35,13 +37,16 @@ class UpdatesApiData:
     """Whether to remove the object from the scene"""
 
 
+YACVSupported = Union[bytes, CADCoreLike]
+
+
 class UpdatesApiFullData(UpdatesApiData):
-    obj: Optional[CADLike]
+    obj: YACVSupported
     """The OCCT object, if any (not serialized)"""
     kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
 
-    def __init__(self, name: str, _hash: str, is_remove: bool = False, obj: Optional[CADLike] = None,
+    def __init__(self, obj: YACVSupported, name: str, _hash: str, is_remove: bool = False,
                  kwargs: Optional[Dict[str, any]] = None):
         self.name = name
         self.hash = _hash
@@ -59,7 +64,7 @@ class YACV:
     server: Optional[ThreadingHTTPServer]
     startup_complete: threading.Event
     show_events: BufferedPubSub[UpdatesApiFullData]
-    object_events: Dict[str, BufferedPubSub[bytes]]
+    build_events: Dict[str, BufferedPubSub[bytes]]
     object_events_lock: threading.Lock
 
     def __init__(self):
@@ -68,13 +73,13 @@ class YACV:
         self.startup_complete = threading.Event()
         self.at_least_one_client = threading.Event()
         self.show_events = BufferedPubSub()
-        self.object_events = {}
+        self.build_events = {}
         self.object_events_lock = threading.Lock()
         self.frontend_lock = threading.Lock()
+        logger.info('Using yacv-server v%s', version('yacv-server'))
 
     def start(self):
         """Starts the web server in the background"""
-        print('yacv>start')
         assert self.server_thread is None, "Server currently running, cannot start another one"
         assert self.startup_complete.is_set() is False, "Server already started"
         # Start the server in a separate daemon thread
@@ -92,7 +97,7 @@ class YACV:
     def stop(self, *args):
         """Stops the web server"""
         if self.server_thread is None:
-            print('Cannot stop server because it is not running')
+            logger.error('Cannot stop server because it is not running')
             return
 
         graceful_secs_connect = float(os.getenv('YACV_GRACEFUL_SECS_CONNECT', 12.0))
@@ -130,7 +135,6 @@ class YACV:
 
     def _run_server(self):
         """Runs the web server"""
-        print('yacv>run_server', inspect.stack())
         logger.info('Starting server...')
         self.server = ThreadingHTTPServer(
             (os.getenv('YACV_HOST', 'localhost'), int(os.getenv('YACV_PORT', 32323))),
@@ -140,119 +144,115 @@ class YACV:
         self.startup_complete.set()
         self.server.serve_forever()
 
-    def _show_common(self, name: Optional[str], _hash: str, start: float, obj: Optional[CADLike] = None,
-                     kwargs=None):
+    def show(self, *objs: List[YACVSupported], names: Optional[Union[str, List[str]]] = None, **kwargs):
+        # Prepare the arguments
+        start = time.time()
+        names = names or [_find_var_name(obj) for obj in objs]
+        if isinstance(names, str):
+            names = [names]
+        assert len(names) == len(objs), 'Number of names must match the number of objects'
+
+        # Handle auto clearing of previous objects
         if kwargs.get('auto_clear', True):
-            self.clear()
-        name = name or f'object_{len(self.show_events.buffer())}'
-        # Remove a previous object with the same name
+            self.clear(except_names=names)
+
+        # Remove a previous object event with the same name
         for old_event in self.show_events.buffer():
-            if old_event.name == name:
+            if old_event.name in names:
                 self.show_events.delete(old_event)
-                if name in self.object_events:
-                    del self.object_events[name]
-                break
-        precomputed_info = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=kwargs or {})
-        self.show_events.publish(precomputed_info)
-        logger.info('show_object(%s, %s) took %.3f seconds', name, _hash, time.time() - start)
-        return precomputed_info
+                if old_event.name in self.build_events:
+                    del self.build_events[old_event.name]
 
-    def show(self, any_object: Union[bytes, CADLike, any], name: Optional[str] = None, **kwargs):
-        """Publishes "any" object to the server"""
-        if isinstance(any_object, bytes):
-            self.show_gltf(any_object, name, **kwargs)
-        else:
-            self.show_cad(any_object, name, **kwargs)
+        # Publish the show event
+        for obj, name in zip(objs, names):
+            if not isinstance(obj, bytes):
+                obj = _preprocess_cad(obj, **kwargs)
+            _hash = _hashcode(obj, **kwargs)
+            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=kwargs or {})
+            self.show_events.publish(event)
 
-    def show_gltf(self, gltf: bytes, name: Optional[str] = None, **kwargs):
-        """Publishes any single-file GLTF object to the server."""
-        start = time.time()
-        # Precompute the info and send it to the client as if it was a CAD object
-        precomputed_info = self._show_common(name, _hashcode(gltf, **kwargs), start, kwargs=kwargs)
-        # Also pre-populate the GLTF data for the object API
-        publish_to = BufferedPubSub[bytes]()
-        publish_to.publish(gltf)
-        publish_to.publish(b'')  # Signal the end of the stream
-        self.object_events[precomputed_info.name] = publish_to
-
-    def show_image(self, source: str | bytes, center: any, width: Optional[float] = None,
-                   height: Optional[float] = None, name: Optional[str] = None, save_mime: str = 'image/jpeg', **kwargs):
-        """Publishes an image as a quad GLTF object, indicating the center location and pixels per millimeter."""
-        # Convert the image to a GLTF CAD object
-        gltf, name = image_to_gltf(source, center, width, height, name, save_mime)
-        # Publish it like any other GLTF object
-        self.show_gltf(gltf, name, **kwargs)
-
-    def show_cad(self, obj: Union[CADLike, any], name: Optional[str] = None, **kwargs):
-        """Publishes a CAD object to the server"""
-        start = time.time()
-
-        # Get the shape of a CAD-like object
-        obj = get_shape(obj)
-
-        # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
-        if isinstance(obj, TopoDS_Shape):
-            obj = Shape(obj).rotate(Axis.X, -90).wrapped
-        elif isinstance(obj, TopLoc_Location):
-            tmp_location = Location(obj)
-            tmp_location.position = Vector(tmp_location.position.X, tmp_location.position.Z,
-                                           -tmp_location.position.Y)
-            tmp_location.orientation = Vector(tmp_location.orientation.X - 90, tmp_location.orientation.Y,
-                                              tmp_location.orientation.Z)
-            obj = tmp_location.wrapped
-
-        self._show_common(name, _hashcode(obj, **kwargs), start, obj, kwargs)
+        logger.info('show %s took %.3f seconds', names, time.time() - start)
 
     def show_cad_all(self, **kwargs):
         """Publishes all CAD objects in the current scope to the server"""
-        for name, obj in grab_all_cad():
-            self.show_cad(obj, name, **kwargs)
+        all_cad = grab_all_cad()
+        self.show(*[cad for _, cad in all_cad], names=[name for name, _ in all_cad], **kwargs)
 
     def remove(self, name: str):
         """Removes a previously-shown object from the scene"""
-        shown_object = self._shown_object(name)
-        if shown_object:
-            shown_object.is_remove = True
+        show_events = self._show_events(name)
+        if len(show_events) > 0:
+            # Ensure only the new remove event remains for this name
+            for old_show_event in show_events:
+                self.show_events.delete(old_show_event)
+
+            # Delete any cached object builds
             with self.object_events_lock:
-                if name in self.object_events:
-                    del self.object_events[name]
-            self.show_events.publish(shown_object)
+                if name in self.build_events:
+                    del self.build_events[name]
 
-    def clear(self):
+            # Publish the remove event
+            show_event = copy.copy(show_events[-1])
+            show_event.is_remove = True
+            self.show_events.publish(show_event)
+
+    def clear(self, except_names: List[str] = None):
         """Clears all previously-shown objects from the scene"""
+        if except_names is None:
+            except_names = []
         for event in self.show_events.buffer():
-            self.remove(event.name)
+            if event.name not in except_names:
+                self.remove(event.name)
 
-    def shown_object_names(self) -> list[str]:
+    def shown_object_names(self, apply_removes: bool = True) -> List[str]:
         """Returns the names of all objects that have been shown"""
-        return list([obj.name for obj in self.show_events.buffer()])
-
-    def _shown_object(self, name: str) -> Optional[UpdatesApiFullData]:
-        """Returns the object with the given name, if it exists"""
+        res = []
         for obj in self.show_events.buffer():
-            if obj.name == name:
-                return obj
-        return None
+            if not obj.is_remove or not apply_removes:
+                res.append(obj.name)
+            else:
+                res.remove(obj.name)
+        return res
+
+    def _show_events(self, name: str, apply_removes: bool = True) -> List[UpdatesApiFullData]:
+        """Returns the show events with the given name"""
+        res = []
+        for event in self.show_events.buffer():
+            if event.name == name:
+                if not event.is_remove or not apply_removes:
+                    res.append(event)
+                else:
+                    # Also remove the previous events
+                    for old_event in res:
+                        if old_event.name == event.name:
+                            res.remove(old_event)
+        return res
 
     def export(self, name: str) -> Optional[bytes]:
         """Export the given previously-shown object to a single GLB file, building it if necessary."""
         start = time.time()
 
         # Check that the object to build exists and grab it if it does
-        event = self._shown_object(name)
-        if event is None:
+        events = self._show_events(name)
+        if len(events) == 0:
+            logger.warning('Object %s not found', name)
             return None
+        event = events[-1]
 
         # Use the lock to ensure that we don't build the object twice
         with self.object_events_lock:
             # If there are no object events for this name, we need to build the object
-            if name not in self.object_events:
+            if name not in self.build_events:
+                logger.debug('Building object %s with hash %s', name, event.hash)
+
                 # Prepare the pubsub for the object
                 publish_to = BufferedPubSub[bytes]()
-                self.object_events[name] = publish_to
+                self.build_events[name] = publish_to
 
-                def _build_object():
-                    # Build and publish the object (once)
+                # Build and publish the object (once)
+                if isinstance(event.obj, bytes):  # Already a GLTF
+                    publish_to.publish(event.obj)
+                else:  # CAD object to tessellate and convert to GLTF
                     gltf = tessellate(event.obj, tolerance=event.kwargs.get('tolerance', 0.1),
                                       angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
                                       faces=event.kwargs.get('faces', True),
@@ -263,24 +263,51 @@ class YACV:
                     logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start,
                                 len(gltf.meshes[0].primitives))
 
-                # await asyncio.get_running_loop().run_in_executor(None, _build_object)
-                # The previous line has problems with auto-closed loop on script exit
-                # and is cancellable, so instead run blocking code in async context :(
-                logger.debug('Building object %s... %s', name, event.obj)
-                _build_object()
-
             # In either case return the elements of a subscription to the async generator
-            subscription = self.object_events[name].subscribe()
+            subscription = self.build_events[name].subscribe()
             try:
                 return next(subscription)
             finally:
                 subscription.close()
 
     def export_all(self, folder: str,
-                   export_filter: Callable[[str, Optional[CADLike]], bool] = lambda name, obj: True):
+                   export_filter: Callable[[str, Optional[CADCoreLike]], bool] = lambda name, obj: True):
         """Export all previously-shown objects to GLB files in the given folder"""
         os.makedirs(folder, exist_ok=True)
         for name in self.shown_object_names():
-            if export_filter(name, self._shown_object(name).obj):
+            if export_filter(name, self._show_events(name)[-1].obj):
                 with open(os.path.join(folder, f'{name}.glb'), 'wb') as f:
                     f.write(self.export(name))
+
+
+# noinspection PyUnusedLocal
+def _preprocess_cad(obj: CADLike, **kwargs) -> CADCoreLike:
+    # Get the shape of a CAD-like object
+    obj = get_shape(obj)
+
+    # Convert Z-up (OCCT convention) to Y-up (GLTF convention)
+    if isinstance(obj, TopoDS_Shape):
+        obj = Shape(obj).rotate(Axis.X, -90).wrapped
+    elif isinstance(obj, TopLoc_Location):
+        tmp_location = Location(obj)
+        tmp_location.position = Vector(tmp_location.position.X, tmp_location.position.Z,
+                                       -tmp_location.position.Y)
+        tmp_location.orientation = Vector(tmp_location.orientation.X - 90, tmp_location.orientation.Y,
+                                          tmp_location.orientation.Z)
+        obj = tmp_location.wrapped
+
+    return obj
+
+
+_find_var_name_count = 0
+
+
+def _find_var_name(obj: any) -> str:
+    """A hacky way to get a stable name for an object that may change over time"""
+    global _find_var_name_count
+    for frame in inspect.stack():
+        for key, value in frame.frame.f_locals.items():
+            if value is obj:
+                return key
+    _find_var_name_count += 1
+    return 'unknown_var_' + str(_find_var_name_count)

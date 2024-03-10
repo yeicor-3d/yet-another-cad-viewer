@@ -22,41 +22,34 @@ def build_logo(text: bool = True) -> Dict[str, Union[Part, Location, str]]:
     logo_img_location = logo_obj.faces().group_by(Axis.X)[0].face().center_location  # Avoid overlapping:
     logo_img_location.position = Vector(logo_img_location.position.X - 4e-2, logo_img_location.position.Y,
                                         logo_img_location.position.Z)
+
     logo_img_path = os.path.join(ASSETS_DIR, 'img.jpg')
+    img_bytes, img_name = prepare_image(logo_img_path, logo_img_location, height=18)
 
     fox_glb_bytes = open(os.path.join(ASSETS_DIR, 'fox.glb'), 'rb').read()
 
-    return {'fox': fox_glb_bytes, 'logo': logo_obj, 'location': logo_img_location, 'img_path': logo_img_path}
-
-
-def show_logo(parts: Dict[str, Union[Part, Location, str]]) -> None:
-    """Shows the prebuilt logo parts"""
-    from yacv_server import show_image, show_object
-    for name, part in parts.items():
-        if isinstance(part, str):
-            show_image(source=part, center=parts['location'], height=18, auto_clear=False)
-        else:
-            show_object(part, name, auto_clear=False)
+    return {'fox': fox_glb_bytes, 'logo': logo_obj, 'location': logo_img_location, img_name: img_bytes}
 
 
 if __name__ == "__main__":
-    from yacv_server import export_all, remove
     import logging
 
     logging.basicConfig(level=logging.DEBUG)
 
-    testing_server = os.getenv('TESTING_SERVER', 'False') == 'True'
+    testing_server = os.getenv('TESTING_SERVER') is not None
 
     if not testing_server:
         # Start an offline server to export the CAD part of the logo in a way compatible with the frontend
         # If this is not set, the server will auto-start on import and show_* calls will provide live updates
         os.environ['YACV_DISABLE_SERVER'] = 'True'
 
-        # Build the CAD part of the logo
+    from yacv_server import export_all, remove, prepare_image, show
+
+    # Build the CAD part of the logo
     logo = build_logo()
 
     # Add the CAD part of the logo to the server
-    show_logo(logo)
+    show(*[obj for obj in logo.values()], names=[name for name in logo.keys()])
 
     if testing_server:
         remove('location')  # Test removing a part

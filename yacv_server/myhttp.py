@@ -116,14 +116,16 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     # noinspection PyUnresolvedReferences
                     to_send = data.to_json()
                     write_chunk(f'data: {to_send}\n\n')
-                    for i in range(200):  # Need to fill browser buffers for instant updates!
-                        write_chunk(':flush\n\n')
         except BrokenPipeError:  # Client disconnected normally
             pass
         finally:
-            it.interrupt()
-            subscription.close()
             logger.debug('Updates client disconnected')
+            try:
+                it.interrupt()
+                next(it)  # Make sure the iterator is interrupted before trying to close the subscription
+                subscription.close()
+            except BaseException as e:
+                logger.debug('Ignoring error while closing subscription: %s', e)
 
     def _api_object(self, obj_name: str):
         """Returns the object file with the matching name, building it if necessary."""

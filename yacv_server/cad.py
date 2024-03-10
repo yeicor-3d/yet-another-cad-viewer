@@ -9,10 +9,11 @@ from OCP.TopoDS import TopoDS_Shape
 
 from yacv_server.gltf import GLTFMgr
 
-CADLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and Locations for now
+CADCoreLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and Locations for now
+CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
 
 
-def get_shape(obj: any, error: bool = True) -> Optional[CADLike]:
+def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
     """ Get the shape of a CAD-like object """
 
     # Try to grab a shape if a different type of object was passed
@@ -45,7 +46,7 @@ def get_shape(obj: any, error: bool = True) -> Optional[CADLike]:
         return None
 
 
-def grab_all_cad() -> List[Tuple[str, CADLike]]:
+def grab_all_cad() -> List[Tuple[str, CADCoreLike]]:
     """ Grab all shapes by inspecting the stack """
     import inspect
     stack = inspect.stack()
@@ -60,7 +61,7 @@ def grab_all_cad() -> List[Tuple[str, CADLike]]:
 
 def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = None, height: Optional[float] = None,
                   name: Optional[str] = None, save_mime: str = 'image/jpeg') -> Tuple[bytes, str]:
-    """Convert an image to a GLTF CAD object, indicating the center location and pixels per millimeter."""
+    """Convert an image to a GLTF CAD object."""
     from PIL import Image
     import io
     import os

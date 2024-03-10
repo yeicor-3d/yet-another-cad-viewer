@@ -35,6 +35,7 @@ export class SceneMgr {
 
     private static async reloadHelpers(sceneUrl: Ref<string>, document: Document, reloadScene: boolean): Promise<Document> {
         let bb = SceneMgr.getBoundingBox(document);
+        if (!bb) return document;
 
         // Create the helper axes and grid box
         let helpersDoc = new Document();
@@ -45,7 +46,8 @@ export class SceneMgr {
         return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
     }
 
-    static getBoundingBox(document: Document): Box3 {
+    static getBoundingBox(document: Document): Box3 | null {
+        if (document.getRoot().listNodes().length === 0) return null;
         // Get bounding box of the model and use it to set the size of the helpers
         let bbMin: number[] = [1e6, 1e6, 1e6];
         let bbMax: number[] = [-1e6, -1e6, -1e6];

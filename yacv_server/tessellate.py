@@ -13,13 +13,13 @@ from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Shape, Vertex, Face, Location
 from pygltflib import GLTF2
 
-from yacv_server.cad import CADLike
+from yacv_server.cad import CADCoreLike
 from yacv_server.gltf import GLTFMgr
 from yacv_server.mylogger import logger
 
 
 def tessellate(
-        cad_like: CADLike,
+        cad_like: CADCoreLike,
         tolerance: float = 0.1,
         angular_tolerance: float = 0.1,
         faces: bool = True,

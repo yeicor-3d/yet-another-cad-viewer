@@ -32,11 +32,13 @@ const disableTap = ref(false);
 const setDisableTap = (val: boolean) => disableTap.value = val;
 provide('disableTap', {disableTap, setDisableTap});
 
-async function onModelLoadRequest(event: NetworkUpdateEvent) {
-  // Load a new batch of models to optimize rendering time
+async function onModelUpdateRequest(event: NetworkUpdateEvent) {
+  // Load/unload a new batch of models to optimize rendering time
+  console.log("Received model update request", event.models);
   let doc = sceneDocument.value;
-  for (let model of event.models) {
-    let isLast = event.models[event.models.length - 1].url == model.url;
+  for (let modelIndex in event.models) {
+    let isLast = parseInt(modelIndex) === event.models.length - 1;
+    let model = event.models[modelIndex];
     if (!model.isRemove) {
       doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast, isLast);
     } else {
@@ -54,7 +56,7 @@ async function onModelRemoveRequest(name: string) {
 
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
-networkMgr.addEventListener('update', (e) => onModelLoadRequest(e as NetworkUpdateEvent));
+networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
 // Start loading all configured models ASAP
 for (let model of settings.preload) {
   networkMgr.load(model);

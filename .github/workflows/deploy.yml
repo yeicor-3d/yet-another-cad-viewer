@@ -2,7 +2,6 @@ on:
   push:
     tags:
       - "v**"
-  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -17,9 +16,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # TODO: Update versions automatically
+
+  update-versions:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      # Write the new version to package.json
+      - uses: "actions/setup-node@v4"
+      - run: "yarn version --new-version ${{ github.ref }}"
+      # Write the new version to pyproject.toml
+      - run: "pipx install poetry"
+      - uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - run: "poetry version ${{ github.ref }}"
+
+  rebuild: # Makes sure all artifacts are updated and use the new version
+    needs: "update-versions"
+    uses: "./.github/workflows/build.yml"
 
   deploy-frontend:
+    needs: "rebuild"
     runs-on: "ubuntu-latest"
     environment:
       name: "github-pages"
@@ -57,4 +75,12 @@ jobs:
           tag: "${{ github.ref }}"
           overwrite: true
 
-  # TODO: deploy-backend
+  deploy-backend:
+    needs: "rebuild"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "JRubics/poetry-publish@v2"
+        with:
+          python-version: "3.11"
+          pypi_token: "${{ secrets.PYPI_TOKEN }}"

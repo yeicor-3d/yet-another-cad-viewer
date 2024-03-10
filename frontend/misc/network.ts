@@ -82,10 +82,13 @@ export class NetworkManager extends EventTarget {
 
     private foundModel(name: string, hash: string | null, url: string, isRemove: boolean) {
         let prevHash = this.knownObjectHashes[name];
-        let hashToCheck = hash + (isRemove ? "-remove" : "");
         // console.debug("Found model", name, "with hash", hash, "and previous hash", prevHash);
-        if (!hash || hashToCheck !== prevHash) {
-            this.knownObjectHashes[name] = hash;
+        if (!hash || hash !== prevHash || isRemove) {
+            if (!isRemove) {
+                this.knownObjectHashes[name] = hash;
+            } else {
+                delete this.knownObjectHashes[name];
+            }
             let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
             this.bufferedUpdates.push(newModel);
 
