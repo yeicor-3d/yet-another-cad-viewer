@@ -35,6 +35,11 @@ jobs:
       - uses: "actions/download-artifact@v4"
         with: # Downloads all artifacts from the build job
           path: "./public"
+      - run: |  # Merge the subdirectories of public into a single directory
+          for dir in public/*; do
+            mv "$dir/"* public/
+            rmdir "$dir"
+          done
       - uses: "actions/configure-pages@v4"
       - uses: "actions/upload-pages-artifact@v3"
         with:
