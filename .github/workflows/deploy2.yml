@@ -74,7 +74,11 @@ jobs:
       - uses: "actions/setup-node@v4"
         with:
           cache: "yarn"
-      - uses: "JRubics/poetry-publish@v2.0"
+      - run: "pipx install poetry"
+      - uses: "actions/setup-python@v5"
         with:
-          python_version: "3.11"
-          pypi_token: "${{ secrets.PYPI_TOKEN }}"
+          python-version: "3.11"
+          cache: "poetry"
+      - run: "poetry install"
+      - run: "poetry publish --build"
+
