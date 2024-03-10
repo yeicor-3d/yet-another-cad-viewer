@@ -277,7 +277,9 @@ function updateBoundingBox() {
     }
     bb.applyMatrix4(new Matrix4().makeTranslation(props.viewer?.scene.getTarget()));
   } else {
-    bb = SceneMgr.getBoundingBox(sceneDocument.value);
+    let boundingBox = SceneMgr.getBoundingBox(sceneDocument.value);
+    if (!boundingBox) return; // No models. Should not happen.
+    bb = boundingBox
   }
   // Define each edge of the bounding box, to draw a line for each axis
   let corners = [

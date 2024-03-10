@@ -11,12 +11,12 @@ from yacv_server import show, export_all  # Check out other exported methods for
 # %%
 
 # Create a simple object
-with BuildPart() as obj:
+with BuildPart() as example:
     Box(10, 10, 5)
     Cylinder(4, 5, mode=Mode.SUBTRACT)
 
 # Show it in the frontend with hot-reloading
-show(obj)
+show(example)
 
 # %%
 

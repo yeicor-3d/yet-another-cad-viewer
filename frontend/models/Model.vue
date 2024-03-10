@@ -126,8 +126,9 @@ function onClipPlanesChange() {
     // Global value for all models, once set it cannot be unset (unknown for other models...)
     props.viewer.renderer.threeRenderer.localClippingEnabled = true;
     // Due to model-viewer's camera manipulation, the bounding box needs to be transformed
-    bbox = SceneMgr.getBoundingBox(sceneDocument.value);
-    bbox.translate(scene.getTarget());
+    let boundingBox = SceneMgr.getBoundingBox(sceneDocument.value);
+    if (!boundingBox) return; // No models. Should not happen.
+    bbox = boundingBox.translate(scene.getTarget());
   }
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
