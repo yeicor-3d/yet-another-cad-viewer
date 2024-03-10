@@ -206,13 +206,13 @@ class YACV:
 
     def shown_object_names(self, apply_removes: bool = True) -> List[str]:
         """Returns the names of all objects that have been shown"""
-        res = []
+        res = set()
         for obj in self.show_events.buffer():
             if not obj.is_remove or not apply_removes:
-                res.append(obj.name)
+                res.add(obj.name)
             else:
-                res.remove(obj.name)
-        return res
+                res.discard(obj.name)
+        return list(res)
 
     def _show_events(self, name: str, apply_removes: bool = True) -> List[UpdatesApiFullData]:
         """Returns the show events with the given name"""
