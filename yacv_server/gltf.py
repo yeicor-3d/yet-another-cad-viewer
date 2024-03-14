@@ -26,6 +26,8 @@ class GLTFMgr:
             textures=[Texture(source=0, sampler=0)],
             images=[Image(bufferView=0, mimeType=image[1])],
         )
+        # TODO: Reduce the number of draw calls by merging all faces into a single primitive, and using
+        #  color attributes + extension? to differentiate them (same for edges and vertices)
         self.gltf.set_binary_blob(image[0])
 
     def add_face(self, vertices_raw: List[Tuple[float, float, float]], indices_raw: List[Tuple[int, int, int]],

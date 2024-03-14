@@ -3,7 +3,6 @@ import {settings} from "../misc/settings";
 import {inject, onMounted, type Ref, ref, watch} from "vue";
 import {VList, VListItem} from "vuetify/lib/components/index.mjs";
 import {$renderer, $scene} from "@google/model-viewer/lib/model-viewer-base";
-import Loading from "../misc/Loading.vue";
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
@@ -154,7 +153,7 @@ watch(disableTap, (value) => {
       <v-list v-for="src in settings.preload" :key="src">
         <v-list-item>{{ src }}</v-list-item>
       </v-list>
-      <loading></loading>
+      <!-- Too much idle CPU usage: <loading></loading> -->
     </div>
   </model-viewer>
 
