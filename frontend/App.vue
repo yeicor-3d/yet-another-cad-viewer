@@ -35,15 +35,29 @@ provide('disableTap', {disableTap, setDisableTap});
 async function onModelUpdateRequest(event: NetworkUpdateEvent) {
   // Load/unload a new batch of models to optimize rendering time
   console.log("Received model update request", event.models);
+  let shutdownRequestIndex = event.models.findIndex((model) => model.isRemove == null);
+  let shutdownRequest = null;
+  if (shutdownRequestIndex !== -1) {
+    console.log("Will shut down the connection after this load, as requested by the server");
+    shutdownRequest = event.models.splice(shutdownRequestIndex, 1)[0];
+  }
   let doc = sceneDocument.value;
   for (let modelIndex in event.models) {
     let isLast = parseInt(modelIndex) === event.models.length - 1;
     let model = event.models[modelIndex];
-    if (!model.isRemove) {
-      doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast, isLast);
-    } else {
-      doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast);
+    try {
+      if (!model.isRemove) {
+        doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast, isLast);
+      } else {
+        doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast);
+      }
+    } catch (e) {
+      console.error("Error loading model", model, e);
     }
+  }
+  if (shutdownRequest !== null) {
+    console.log("Shutting down the connection as requested by the server");
+    event.disconnectForALittleBit();
   }
   sceneDocument.value = doc
   triggerRef(sceneDocument); // Why not triggered automatically?

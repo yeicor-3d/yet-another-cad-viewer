@@ -9,11 +9,11 @@ import {Matrix4} from "three/src/math/Matrix4.js"
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
     /** Loads a GLB model from a URL and adds it to the viewer or replaces it if the names match */
-    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string, updateHelpers: boolean = true, reloadScene: boolean = true): Promise<Document> {
+    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string, updateHelpers: boolean = true, reloadScene: boolean = true, networkFinished: () => void = () => {}): Promise<Document> {
         let loadStart = performance.now();
 
         // Start merging into the current document, replacing or adding as needed
-        document = await mergePartial(url, name, document);
+        document = await mergePartial(url, name, document, networkFinished);
 
         console.log("Model", name, "loaded in", performance.now() - loadStart, "ms");
 

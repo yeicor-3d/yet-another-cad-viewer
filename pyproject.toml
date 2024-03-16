@@ -19,7 +19,6 @@ build123d = "^0.4.0"
 # Misc
 pygltflib = "^1.16.2"
 pillow = "^10.2.0"
-iterators = "^0.2.0"
 
 [tool.poetry.build]
 generate-setup-file = false

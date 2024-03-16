@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from http.server import ThreadingHTTPServer
 from importlib.metadata import version
 from threading import Thread
-from typing import Optional, Dict, Union, Callable, List
+from typing import Optional, Dict, Union, Callable, List, Tuple
 
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
@@ -18,6 +18,7 @@ from OCP.TopoDS import TopoDS_Shape
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
+from rwlock import RWLock
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.myhttp import HTTPHandler
 from yacv_server.mylogger import logger
@@ -33,8 +34,8 @@ class UpdatesApiData:
     """Name of the object. Should be unique unless you want to overwrite the previous object"""
     hash: str
     """Hash of the object, to detect changes without rebuilding the object"""
-    is_remove: bool
-    """Whether to remove the object from the scene"""
+    is_remove: Optional[bool]
+    """Whether to remove the object from the scene. If None, this is a shutdown request"""
 
 
 YACVSupported = Union[bytes, CADCoreLike]
@@ -46,7 +47,7 @@ class UpdatesApiFullData(UpdatesApiData):
     kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
 
-    def __init__(self, obj: YACVSupported, name: str, _hash: str, is_remove: bool = False,
+    def __init__(self, obj: YACVSupported, name: str, _hash: str, is_remove: Optional[bool] = False,
                  kwargs: Optional[Dict[str, any]] = None):
         self.name = name
         self.hash = _hash
@@ -60,22 +61,42 @@ class UpdatesApiFullData(UpdatesApiData):
 
 
 class YACV:
+    """The main yacv_server class, which manages the web server and the CAD objects."""
+
+    # Startup
     server_thread: Optional[Thread]
+    """The main thread running the server (will spawn other threads for each request)"""
     server: Optional[ThreadingHTTPServer]
+    """The server object"""
     startup_complete: threading.Event
+    """Event to signal when the server has started"""
+
+    # Running
     show_events: BufferedPubSub[UpdatesApiFullData]
+    """PubSub for show events (objects to be shown in/removed from the scene)"""
     build_events: Dict[str, BufferedPubSub[bytes]]
-    object_events_lock: threading.Lock
+    """PubSub for build events (objects that were built)"""
+    build_events_lock: threading.Lock
+    """Lock to ensure that objects are only built once"""
+
+    # Shutdown
+    at_least_one_client: threading.Event
+    """Event to signal when at least one client has connected"""
+    shutting_down: threading.Event
+    """Event to signal when the server is shutting down"""
+    frontend_lock: RWLock
+    """Lock to ensure that the frontend has finished working before we shut down"""
 
     def __init__(self):
         self.server_thread = None
         self.server = None
         self.startup_complete = threading.Event()
-        self.at_least_one_client = threading.Event()
         self.show_events = BufferedPubSub()
         self.build_events = {}
-        self.object_events_lock = threading.Lock()
-        self.frontend_lock = threading.Lock()
+        self.build_events_lock = threading.Lock()
+        self.at_least_one_client = threading.Event()
+        self.shutting_down = threading.Event()
+        self.frontend_lock = RWLock()
         logger.info('Using yacv-server v%s', version('yacv-server'))
 
     def start(self):
@@ -100,38 +121,36 @@ class YACV:
             logger.error('Cannot stop server because it is not running')
             return
 
+        # Inform the server that we are shutting down
+        self.shutting_down.set()
+        # noinspection PyTypeChecker
+        self.show_events.publish(UpdatesApiFullData(name='__shutdown', _hash='', is_remove=None, obj=None))
+
+        # If we were too fast, ensure that at least one client has connected
         graceful_secs_connect = float(os.getenv('YACV_GRACEFUL_SECS_CONNECT', 12.0))
-        graceful_secs_request = float(os.getenv('YACV_GRACEFUL_SECS_REQUEST', 5.0))
-        # Make sure we can hold the lock for more than 100ms (to avoid exiting too early)
-        logger.info('Stopping server (waiting for at least one frontend request first, cancel with CTRL+C)...')
-        start = time.time()
-        try:
-            while not self.at_least_one_client.wait(
-                    graceful_secs_connect / 10) and time.time() - start < graceful_secs_connect:
-                time.sleep(0.01)
-        except KeyboardInterrupt:
-            pass
+        if graceful_secs_connect > 0:
+            start = time.time()
+            try:
+                if not self.at_least_one_client.is_set():
+                    logger.warning(
+                        'Waiting for at least one frontend request before stopping server, cancel with CTRL+C...')
+                while (not self.at_least_one_client.wait(graceful_secs_connect / 10) and
+                       time.time() - start < graceful_secs_connect):
+                    time.sleep(0.01)
+            except KeyboardInterrupt:
+                pass
 
-        logger.info('Stopping server (waiting for no more frontend requests)...')
-        start = time.time()
-        try:
-            while time.time() - start < graceful_secs_request:
-                if self.frontend_lock.locked():
-                    start = time.time()
-                time.sleep(0.01)
-        except KeyboardInterrupt:
-            pass
+        # Wait for the server to stop gracefully (all frontends to stop working)
+        graceful_secs_request = float(os.getenv('YACV_GRACEFUL_SECS_WORK', 1000000))
+        with self.frontend_lock.w_locked(timeout=graceful_secs_request):
+            # Stop the server
+            self.server.shutdown()
 
-        # Stop the server in the background
-        self.server.shutdown()
-        logger.info('Stopping server (sent)...')
-
-        # Wait for the server to stop gracefully
-        self.server_thread.join(timeout=30)
-        self.server_thread = None
-        logger.info('Stopping server (confirmed)...')
-        if len(args) >= 1 and args[0] in (signal.SIGINT, signal.SIGTERM):
-            sys.exit(0)  # Exit with success
+            # Wait for the server thread to stop
+            self.server_thread.join(timeout=30)
+            self.server_thread = None
+            if len(args) >= 1 and args[0] in (signal.SIGINT, signal.SIGTERM):
+                sys.exit(0)  # Exit with success
 
     def _run_server(self):
         """Runs the web server"""
@@ -187,7 +206,7 @@ class YACV:
                 self.show_events.delete(old_show_event)
 
             # Delete any cached object builds
-            with self.object_events_lock:
+            with self.build_events_lock:
                 if name in self.build_events:
                     del self.build_events[name]
 
@@ -228,8 +247,8 @@ class YACV:
                             res.remove(old_event)
         return res
 
-    def export(self, name: str) -> Optional[bytes]:
-        """Export the given previously-shown object to a single GLB file, building it if necessary."""
+    def export(self, name: str) -> Optional[Tuple[bytes, str]]:
+        """Export the given previously-shown object to a single GLB blob, building it if necessary."""
         start = time.time()
 
         # Check that the object to build exists and grab it if it does
@@ -240,7 +259,7 @@ class YACV:
         event = events[-1]
 
         # Use the lock to ensure that we don't build the object twice
-        with self.object_events_lock:
+        with self.build_events_lock:
             # If there are no object events for this name, we need to build the object
             if name not in self.build_events:
                 logger.debug('Building object %s with hash %s', name, event.hash)
@@ -266,7 +285,7 @@ class YACV:
             # In either case return the elements of a subscription to the async generator
             subscription = self.build_events[name].subscribe()
             try:
-                return next(subscription)
+                return next(subscription), event.hash
             finally:
                 subscription.close()
 
@@ -277,7 +296,7 @@ class YACV:
         for name in self.shown_object_names():
             if export_filter(name, self._show_events(name)[-1].obj):
                 with open(os.path.join(folder, f'{name}.glb'), 'wb') as f:
-                    f.write(self.export(name))
+                    f.write(self.export(name)[0])
 
 
 # noinspection PyUnusedLocal

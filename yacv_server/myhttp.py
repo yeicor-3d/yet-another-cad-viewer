@@ -1,11 +1,8 @@
 import io
 import os
-import threading
 import urllib.parse
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler
-
-from iterators import TimeoutIterator
 
 from yacv_server.mylogger import logger
 
@@ -26,13 +23,9 @@ OBJECTS_API_PATH = '/api/object'  # /{name}
 
 class HTTPHandler(SimpleHTTPRequestHandler):
     yacv: 'yacv.YACV'
-    frontend_lock: threading.Lock  # To avoid exiting too early while frontend makes requests
-    at_least_one_client: threading.Event
 
     def __init__(self, *args, yacv: 'yacv.YACV', **kwargs):
         self.yacv = yacv
-        self.frontend_lock = threading.Lock()
-        self.at_least_one_client = threading.Event()
         super().__init__(*args, **kwargs, directory=FRONTEND_BASE_PATH)
 
     def log_message(self, fmt, *args):
@@ -77,69 +70,65 @@ class HTTPHandler(SimpleHTTPRequestHandler):
 
     def _api_updates(self):
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", "text/event-stream")
-        self.send_header("Cache-Control", "no-cache")
-        # Chunked transfer encoding!
-        self.send_header("Transfer-Encoding", "chunked")
-        self.end_headers()
-        self.at_least_one_client.set()
-        logger.debug('Updates client connected')
 
-        def write_chunk(_chunk_data: str):
-            self.wfile.write(hex(len(_chunk_data))[2:].encode('utf-8'))
-            self.wfile.write(b'\r\n')
-            self.wfile.write(_chunk_data.encode('utf-8'))
-            self.wfile.write(b'\r\n')
-            self.wfile.flush()
+        # Keep a shared read lock to know if any frontend is still working before shutting down
+        with self.yacv.frontend_lock.r_locked():
 
-        write_chunk('retry: 100\n\n')
+            # Avoid accepting new connections while shutting down
+            if self.yacv.shutting_down.is_set() and not self.yacv.at_least_one_client.is_set():
+                self.send_error(HTTPStatus.SERVICE_UNAVAILABLE, 'Server is shutting down')
+                return
+            self.yacv.at_least_one_client.set()
+            logger.debug('Updates client connected')
 
-        # Send buffered events first, while keeping a lock
-        with self.frontend_lock:
-            for data in self.yacv.show_events.buffer():
-                logger.debug('Sending info about %s: %s', data.name, data)
-                # noinspection PyUnresolvedReferences
-                to_send = data.to_json()
-                write_chunk(f'data: {to_send}\n\n')
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            # Chunked transfer encoding!
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
 
-        # Send future events over the same connection
-        # Also send keep-alive to know if the client is still connected
-        subscription = self.yacv.show_events.subscribe(include_buffered=False)
-        it = TimeoutIterator(subscription, sentinel=None, reset_on_next=True, timeout=5.0)  # Keep-alive interval
-        try:
-            for data in it:
-                if data is None:
-                    write_chunk(':keep-alive\n\n')
-                else:
-                    logger.debug('Sending info about %s: %s', data.name, data)
-                    # noinspection PyUnresolvedReferences
-                    to_send = data.to_json()
-                    write_chunk(f'data: {to_send}\n\n')
-        except BrokenPipeError:  # Client disconnected normally
-            pass
-        finally:
-            logger.debug('Updates client disconnected')
+            def write_chunk(_chunk_data: str):
+                self.wfile.write(hex(len(_chunk_data))[2:].encode('utf-8'))
+                self.wfile.write(b'\r\n')
+                self.wfile.write(_chunk_data.encode('utf-8'))
+                self.wfile.write(b'\r\n')
+                self.wfile.flush()
+
+            write_chunk('retry: 100\n\n')
+
+            subscription = self.yacv.show_events.subscribe(yield_timeout=1.0)  # Keep-alive interval
             try:
-                it.interrupt()
-                next(it)  # Make sure the iterator is interrupted before trying to close the subscription
+                for data in subscription:
+                    if data is None:
+                        write_chunk(':keep-alive\n\n')
+                    else:
+                        logger.debug('Sending info about %s: %s', data.name, data)
+                        # noinspection PyUnresolvedReferences
+                        to_send = data.to_json()
+                        write_chunk(f'data: {to_send}\n\n')
+            except BrokenPipeError:  # Client disconnected normally
+                pass
+            finally:
                 subscription.close()
-            except BaseException as e:
-                logger.debug('Ignoring error while closing subscription: %s', e)
+
+        logger.debug('Updates client disconnected')
 
     def _api_object(self, obj_name: str):
         """Returns the object file with the matching name, building it if necessary."""
-        with self.frontend_lock:
-            # Export the object (or fail if not found)
-            exported_glb = self.yacv.export(obj_name)
-            if exported_glb is None:
-                self.send_error(HTTPStatus.NOT_FOUND, f'Object {obj_name} not found')
-                return io.BytesIO()
+        # Export the object (or fail if not found)
+        _export = self.yacv.export(obj_name)
+        if _export is None:
+            self.send_error(HTTPStatus.NOT_FOUND, f'Object {obj_name} not found')
+            return io.BytesIO()
 
-            # Wrap the GLB in a response and return it
-            self.send_response(HTTPStatus.OK)
-            self.send_header('Content-Type', 'model/gltf-binary')
-            self.send_header('Content-Length', str(len(exported_glb)))
-            self.send_header('Content-Disposition', f'attachment; filename="{obj_name}.glb"')
-            self.end_headers()
-            self.wfile.write(exported_glb)
+        exported_glb, _hash = _export
+
+        # Wrap the GLB in a response and return it
+        self.send_response(HTTPStatus.OK)
+        self.send_header('Content-Type', 'model/gltf-binary')
+        self.send_header('Content-Length', str(len(exported_glb)))
+        self.send_header('Content-Disposition', f'attachment; filename="{obj_name}.glb"')
+        self.send_header('E-Tag', f'"{_hash}"')
+        self.end_headers()
+        self.wfile.write(exported_glb)

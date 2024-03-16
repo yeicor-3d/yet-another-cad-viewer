@@ -319,17 +319,6 @@ test = ["pickleshare", "pytest (<7.1)", "pytest-asyncio (<0.22)", "testpath"]
 test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.22)", "pandas", "pickleshare", "pytest (<7.1)", "pytest-asyncio (<0.22)", "testpath", "trio"]
 
 [[package]]
-name = "iterators"
-version = "0.2.0"
-description = "Iterator utility classes and functions"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "iterators-0.2.0-py3-none-any.whl", hash = "sha256:1d7ff03f576c9de0e01bac66209556c066d6b1fc45583a99cfc9f4645be7900e"},
-    {file = "iterators-0.2.0.tar.gz", hash = "sha256:e9927a1ea1ef081830fd1512f3916857c36bd4b37272819a6cd29d0f44431b97"},
-]
-
-[[package]]
 name = "jedi"
 version = "0.19.1"
 description = "An autocompletion tool for Python that can be used for text editors."
@@ -962,4 +951,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d9746e99dd8861758730e68d12dc72d9ec5fb0101b3c070a7d7a373439c658a0"
+content-hash = "567ef9c980c250ace7e380098b810250a36b92dd2e824b5b4f4851898a675e09"

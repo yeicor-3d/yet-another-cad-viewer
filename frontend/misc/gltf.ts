@@ -12,9 +12,10 @@ export let extrasNameValueHelpers = "__helpers";
  *
  * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
-export async function mergePartial(url: string, name: string, document: Document): Promise<Document> {
+export async function mergePartial(url: string, name: string, document: Document, networkFinished: () => void = () => {}): Promise<Document> {
     // Load the new document
     let newDoc = await io.read(url);
+    networkFinished()
 
     // Remove any previous model with the same name
     await document.transform(dropByName(name));
