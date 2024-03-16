@@ -390,28 +390,28 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.19.12.tgz#c57c8afbb4054a3ab8317591a0b7320360b444ae"
   integrity sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA==
 
-"@gltf-transform/core@^3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-3.10.0.tgz#854e7345f23971e4e7367a29183a2d1b62d45e46"
-  integrity sha512-NxVKhSWvH0j1tjZE8Yl461HUMyZLmYmqcbqHw0TOcQd5Q1SV7Y5w6W68XMt9/amRfMAiJLLNREE7kbr+Z0Ydbw==
+"@gltf-transform/core@^3.10.0", "@gltf-transform/core@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-3.10.1.tgz#d99c060b499482ed2c3304466405bf4c10939831"
+  integrity sha512-50OYemknGNxjBmiOM6iJp04JAu0bl9jvXJfN/gFt9QdJO02cPDcoXlTfSPJG6TVWDcfl0xPlsx1vybcbPVGFcQ==
   dependencies:
     property-graph "^1.3.1"
 
-"@gltf-transform/extensions@^3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-3.10.0.tgz#4ae11c3fe8e2a77e6e9dd04ebf0931c7b0cd3690"
-  integrity sha512-dz/cf2toBzP+w3ES2VgMiINCN6q86MVGu1lHkT0El4No77Bje9fnHVEPrKwaDCsXi5YXUiG/u6686vK6jePwDA==
+"@gltf-transform/extensions@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-3.10.1.tgz#71664389cae46fb12eb97dc71eb96d86a0d7801f"
+  integrity sha512-xUS9K5fMvW2dkYN4VzxHg2aBPG54M2WqgIjQ7RoSyybMoD7DsPUyMyVgRja+aiTVt/Bxza2ve7zJBD3+tN+aTA==
   dependencies:
-    "@gltf-transform/core" "^3.10.0"
+    "@gltf-transform/core" "^3.10.1"
     ktx-parse "^0.6.0"
 
-"@gltf-transform/functions@^3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-3.10.0.tgz#bf0331c109ac948d19be7394d3afcfae84215cfd"
-  integrity sha512-FStbDaH7t2z74RyEeUQn3aBcybULbDkt72ZasC0s7DwQ2DFKKKOth4Zksi4g9+8URNM6vNa2JSfuO851dkJHEg==
+"@gltf-transform/functions@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-3.10.1.tgz#c40817740241c0ee770f4d1210ccc766e46d8ab2"
+  integrity sha512-Zs6+1qvTD9w40R5qv70E4wJXXacNQ46ZxjKKW6dmfGIyjT8bsSJmV3Tdj+WJ8R6lWXXZ8e2p3ZvAUfPDEG73bQ==
   dependencies:
-    "@gltf-transform/core" "^3.10.0"
-    "@gltf-transform/extensions" "^3.10.0"
+    "@gltf-transform/core" "^3.10.1"
+    "@gltf-transform/extensions" "^3.10.1"
     ktx-parse "^0.6.0"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
@@ -805,10 +805,10 @@
   resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.14.tgz#96b28c09a3587a76de380243f87bb7a2d63b4b23"
   integrity sha512-oANmFZMnFQvb219SSBIhI1Ih/r4CvHDOzkWyJS/XRqkMrGH5/kaPSA1hQhdIBzouaE+5KpE/f5ylI9cujmckQg==
 
-"@types/node@^20.11.25":
-  version "20.11.25"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.25.tgz#0f50d62f274e54dd7a49f7704cc16bfbcccaf49f"
-  integrity sha512-TBHyJxk2b7HceLVGFcpAUjsa5zIdsPWlR6XHfyGzd0SFu+/NFgQgMAl96MSDZgQDvJAvV6BKsFOrt6zIL09JDw==
+"@types/node@^20.11.28":
+  version "20.11.28"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.28.tgz#4fd5b2daff2e580c12316e457473d68f15ee6f66"
+  integrity sha512-M/GPWVS2wLkSkNHVeLkrF2fD5Lx5UC4PxA0uZcKc6QqbIQUJyW1jVjueJYi1z8n0I5PxYrtpnPnWglE+y9A0KA==
   dependencies:
     undici-types "~5.26.4"
 
@@ -2878,10 +2878,10 @@ tar@^6.1.11, tar@^6.1.2:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-terser@^5.29.1:
-  version "5.29.1"
-  resolved "https://registry.yarnpkg.com/terser/-/terser-5.29.1.tgz#44e58045b70c09792ba14bfb7b4e14ca8755b9fa"
-  integrity sha512-lZQ/fyaIGxsbGxApKmoPTODIzELy3++mXhS5hOqaAWZjQtpq/hFHAc+rm29NND1rYRxRWKcjuARNwULNXa5RtQ==
+terser@^5.29.2:
+  version "5.29.2"
+  resolved "https://registry.yarnpkg.com/terser/-/terser-5.29.2.tgz#c17d573ce1da1b30f21a877bffd5655dd86fdb35"
+  integrity sha512-ZiGkhUBIM+7LwkNjXYJq8svgkd+QK3UUr0wJqY4MieaezBSAIPgbSPZyIx0idM6XWK5CMzSWa8MJIzmRcB8Caw==
   dependencies:
     "@jridgewell/source-map" "^0.3.3"
     acorn "^8.8.2"
@@ -2992,10 +2992,10 @@ validate-npm-package-name@^5.0.0:
   dependencies:
     builtins "^5.0.0"
 
-vite@^5.1.5:
-  version "5.1.5"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-5.1.5.tgz#bdbc2b15e8000d9cc5172f059201178f9c9de5fb"
-  integrity sha512-BdN1xh0Of/oQafhU+FvopafUp6WaYenLU/NFoL5WyJL++GxkNfieKzBhM24H3HVsPQrlAqB7iJYTHabzaRed5Q==
+vite@^5.1.6:
+  version "5.1.6"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-5.1.6.tgz#706dae5fab9e97f57578469eef1405fc483943e4"
+  integrity sha512-yYIAZs9nVfRJ/AiOLCA91zzhjsHUgMjB+EigzFb6W2XTLO8JixBCKCjvhKZaye+NKYHCrkv3Oh50dH9EdLU2RA==
   dependencies:
     esbuild "^0.19.3"
     postcss "^8.4.35"
@@ -3031,10 +3031,10 @@ vue@^3.4.21:
     "@vue/server-renderer" "3.4.21"
     "@vue/shared" "3.4.21"
 
-vuetify@^3.5.8:
-  version "3.5.8"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.5.8.tgz#bc8f08dfd3314640e7b5d43b50138a26d650cbbf"
-  integrity sha512-8nGS+lKejZkev55HFwIfsRt+9fOqbeDQNmXxfmLKAlnUT8FtynVwbjAwHMtX/OQAQ3ZwRaR1ptqQQmx3OgxzbQ==
+vuetify@^3.5.9:
+  version "3.5.9"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.5.9.tgz#9cb3554f4b9bb7f3c277a10b99ab5944e6d04b03"
+  integrity sha512-tA3N2uWZFNSZRFNnXN841x4rWozYXKC0fGW/mJIwcKkQiI0+gmVCETtjF8bnOS7L1s0buWzw94uYTlXQa5AQ4w==
 
 walk-up-path@^3.0.1:
   version "3.0.1"

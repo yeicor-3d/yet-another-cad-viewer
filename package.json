@@ -1,6 +1,6 @@
 {
   "name": "yet-another-cad-viewer",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "",
   "license": "MIT",
   "private": true,
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@gltf-transform/core": "^3.10.0",
-    "@gltf-transform/functions": "^3.10.0",
+    "@gltf-transform/functions": "^3.10.1",
     "@google/model-viewer": "^3.4.0",
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/js": "^7.4.47",
@@ -24,11 +24,11 @@
     "three": "^0.160.1",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
     "vue": "^3.4.21",
-    "vuetify": "^3.5.8"
+    "vuetify": "^3.5.9"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
-    "@types/node": "^20.11.25",
+    "@types/node": "^20.11.28",
     "@types/three": "^0.160.0",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
@@ -37,9 +37,9 @@
     "commander": "^12.0.0",
     "generate-license-file": "^3.0.1",
     "npm-run-all2": "^6.1.1",
-    "terser": "^5.29.1",
+    "terser": "^5.29.2",
     "typescript": "~5.4.2",
-    "vite": "^5.1.5",
+    "vite": "^5.1.6",
     "vue-tsc": "^2.0.6"
   }
 }
