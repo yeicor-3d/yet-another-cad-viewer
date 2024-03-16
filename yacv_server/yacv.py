@@ -18,7 +18,7 @@ from OCP.TopoDS import TopoDS_Shape
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from rwlock import RWLock
+from yacv_server.rwlock import RWLock
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.myhttp import HTTPHandler
 from yacv_server.mylogger import logger
