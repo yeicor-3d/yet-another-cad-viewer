@@ -19,12 +19,12 @@ class NetworkUpdateEventModel {
 
 export class NetworkUpdateEvent extends Event {
     models: NetworkUpdateEventModel[];
-    disconnectForALittleBit: () => void;
+    disconnect: () => void;
 
-    constructor(models: NetworkUpdateEventModel[], disconnectForALittleBit: () => void) {
+    constructor(models: NetworkUpdateEventModel[], disconnect: () => void) {
         super("update");
         this.models = models;
-        this.disconnectForALittleBit = disconnectForALittleBit;
+        this.disconnect = disconnect;
     }
 }
 
@@ -59,45 +59,36 @@ export class NetworkManager extends EventTarget {
         }
     }
 
-    private async monitorDevServer(url: URL, pendingTimeout: { id: number } = {id: -1}) {
-        try {
-            // WARNING: This will spam the console logs with failed requests when the server is down
-            const controller = new AbortController();
-            let response = await fetch(url.toString(), {signal: controller.signal});
-            // console.log("Monitoring", url.toString(), response);
-            if (response.status === 200) {
-                let lines = readLinesStreamings(response.body!.getReader());
-                for await (let line of lines) {
-                    if (!line || !line.startsWith("data:")) continue;
-                    let data: { name: string, hash: string, is_remove: boolean | null } = JSON.parse(line.slice(5));
-                    // console.debug("WebSocket message", data);
-                    let urlObj = new URL(url);
-                    urlObj.searchParams.delete("api_updates");
-                    urlObj.searchParams.set("api_object", data.name);
-                    this.foundModel(data.name, data.hash, urlObj.toString(), data.is_remove, async () => {
-                        console.log("Disconnecting for a little bit");
-                        controller.abort();
-                        clearTimeout(pendingTimeout.id!);
-                        pendingTimeout.id = -2;
-                        setTimeout(() => {
-                            console.log("Reconnecting after a little bit");
-                            this.monitorDevServer(url, pendingTimeout)
-                        }, settings.monitorEveryMs * 50);
-                    });
+    private async monitorDevServer(url: URL, stop: () => boolean = () => false) {
+        while (!stop()) {
+            try {
+                // WARNING: This will spam the console logs with failed requests when the server is down
+                const controller = new AbortController();
+                let response = await fetch(url.toString(), {signal: controller.signal});
+                // console.log("Monitoring", url.toString(), response);
+                if (response.status === 200) {
+                    let lines = readLinesStreamings(response.body!.getReader());
+                    for await (let line of lines) {
+                        if (stop()) break;
+                        if (!line || !line.startsWith("data:")) continue;
+                        let data: { name: string, hash: string, is_remove: boolean | null } = JSON.parse(line.slice(5));
+                        // console.debug("WebSocket message", data);
+                        let urlObj = new URL(url);
+                        urlObj.searchParams.delete("api_updates");
+                        urlObj.searchParams.set("api_object", data.name);
+                        this.foundModel(data.name, data.hash, urlObj.toString(), data.is_remove, async () => {
+                            controller.abort(); // Notify the server that we are done
+                        });
+                    }
                 }
+                controller.abort();
+            } catch (e) { // Ignore errors (retry very soon)
             }
-        } catch (e) { // Ignore errors (retry very soon)
+            await new Promise(resolve => setTimeout(resolve, settings.monitorEveryMs));
         }
-        if (pendingTimeout.id >= -1) {
-            pendingTimeout.id = setTimeout(() => {
-                console.log("Reconnecting fast");
-                this.monitorDevServer(url, pendingTimeout)
-            }, settings.monitorEveryMs);
-        }
-        return;
     }
 
-    private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnectForALittleBit: () => void = () => {
+    private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnect: () => void = () => {
     }) {
         let prevHash = this.knownObjectHashes[name];
         // console.debug("Found model", name, "with hash", hash, "and previous hash", prevHash);
@@ -109,7 +100,7 @@ export class NetworkManager extends EventTarget {
                 if (!(name in this.knownObjectHashes)) return; // Nothing to remove...
                 delete this.knownObjectHashes[name];
                 // Also update buffered updates if the model is removed
-                //this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);
+                this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);
             }
             let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
             this.bufferedUpdates.push(newModel);
@@ -117,7 +108,7 @@ export class NetworkManager extends EventTarget {
             // Optimization: try to batch updates automatically for faster rendering
             if (this.batchTimeout !== null) clearTimeout(this.batchTimeout);
             this.batchTimeout = setTimeout(() => {
-                this.dispatchEvent(new NetworkUpdateEvent(this.bufferedUpdates, disconnectForALittleBit));
+                this.dispatchEvent(new NetworkUpdateEvent(this.bufferedUpdates, disconnect));
                 this.bufferedUpdates = [];
             }, batchTimeout);
         }

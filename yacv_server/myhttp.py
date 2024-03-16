@@ -75,7 +75,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         with self.yacv.frontend_lock.r_locked():
 
             # Avoid accepting new connections while shutting down
-            if self.yacv.shutting_down.is_set() and not self.yacv.at_least_one_client.is_set():
+            if self.yacv.shutting_down.is_set() and self.yacv.at_least_one_client.is_set():
                 self.send_error(HTTPStatus.SERVICE_UNAVAILABLE, 'Server is shutting down')
                 return
             self.yacv.at_least_one_client.set()

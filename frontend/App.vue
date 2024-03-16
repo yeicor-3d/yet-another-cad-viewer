@@ -57,7 +57,7 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
   }
   if (shutdownRequest !== null) {
     console.log("Shutting down the connection as requested by the server");
-    event.disconnectForALittleBit();
+    event.disconnect();
   }
   sceneDocument.value = doc
   triggerRef(sceneDocument); // Why not triggered automatically?
