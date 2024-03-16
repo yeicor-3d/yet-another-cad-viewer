@@ -390,10 +390,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.19.12.tgz#c57c8afbb4054a3ab8317591a0b7320360b444ae"
   integrity sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA==
 
-"@gltf-transform/core@^3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-3.10.0.tgz#854e7345f23971e4e7367a29183a2d1b62d45e46"
-  integrity sha512-NxVKhSWvH0j1tjZE8Yl461HUMyZLmYmqcbqHw0TOcQd5Q1SV7Y5w6W68XMt9/amRfMAiJLLNREE7kbr+Z0Ydbw==
+"@gltf-transform/core@^3.10.0", "@gltf-transform/core@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-3.10.1.tgz#d99c060b499482ed2c3304466405bf4c10939831"
+  integrity sha512-50OYemknGNxjBmiOM6iJp04JAu0bl9jvXJfN/gFt9QdJO02cPDcoXlTfSPJG6TVWDcfl0xPlsx1vybcbPVGFcQ==
   dependencies:
     property-graph "^1.3.1"
 
