@@ -36,26 +36,26 @@ def tessellate(
         shape = Shape(cad_like)
 
         # Perform tessellation tasks
-        edge_to_faces: Dict[TopoDS_Edge, List[TopoDS_Face]] = {}
-        vertex_to_faces: Dict[TopoDS_Vertex, List[TopoDS_Face]] = {}
+        edge_to_faces: Dict[str, List[TopoDS_Face]] = {}
+        vertex_to_faces: Dict[str, List[TopoDS_Face]] = {}
         if faces:
             for face in shape.faces():
                 _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
                 if edges:
                     for edge in face.edges():
-                        edge_to_faces[edge.wrapped] = edge_to_faces.get(edge.wrapped, []) + [face.wrapped]
+                        edge_to_faces[_hashcode(edge.wrapped)] = edge_to_faces.get(_hashcode(edge.wrapped), []) + [face.wrapped]
                 if vertices:
                     for vertex in face.vertices():
-                        vertex_to_faces[vertex.wrapped] = vertex_to_faces.get(vertex.wrapped, []) + [face.wrapped]
+                        vertex_to_faces[_hashcode(vertex.wrapped)] = vertex_to_faces.get(_hashcode(vertex.wrapped), []) + [face.wrapped]
         if edges:
             for edge in shape.edges():
-                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), angular_tolerance,
+                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(_hashcode(edge.wrapped), []), angular_tolerance,
                                  angular_tolerance)
         if vertices:
             for vertex in shape.vertices():
-                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []))
+                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(_hashcode(vertex.wrapped), []))
 
-    return mgr.gltf
+    return mgr.build()
 
 
 def _tessellate_face(
@@ -91,9 +91,9 @@ def _push_point(v: Tuple[float, float, float], faces: List[TopoDS_Face]) -> Tupl
         push_dir = (push_dir[0] + normal.X, push_dir[1] + normal.Y, push_dir[2] + normal.Z)
     if push_dir != (0, 0, 0):
         # Normalize the push direction by the number of faces and a constant factor
-        # NOTE: Don't overdo it, or metrics will be wrong
-        n = len(faces) / 1e-3
-        push_dir = (push_dir[0] / n, push_dir[1] / n, push_dir[2] / n)
+        # NOTE: Don't overdo it, or metrics will be (more) wrong
+        n = 1e-3 / len(faces)
+        push_dir = (push_dir[0] * n, push_dir[1] * n, push_dir[2] * n)
         # Push the vertex by the normal
         v = (v[0] + push_dir[0], v[1] + push_dir[1], v[2] + push_dir[2])
     return v
@@ -119,6 +119,9 @@ def _tessellate_edge(
             for i in range(1, discretizer.NbPoints() + 1)
         )
     ]
+
+    # Convert strip of vertices to a list of pairs of vertices
+    vertices = [(vertices[i], vertices[i + 1]) for i in range(len(vertices) - 1)]
     mgr.add_edge(vertices)
 
 

@@ -1,4 +1,4 @@
-import {Document, Scene, type Transform, WebIO, Buffer} from "@gltf-transform/core";
+import {Buffer, Document, Scene, type Transform, WebIO} from "@gltf-transform/core";
 import {unpartition} from "@gltf-transform/functions";
 
 let io = new WebIO();
@@ -12,10 +12,16 @@ export let extrasNameValueHelpers = "__helpers";
  *
  * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
-export async function mergePartial(url: string, name: string, document: Document, networkFinished: () => void = () => {}): Promise<Document> {
+export async function mergePartial(url: string, name: string, document: Document, networkFinished: () => void = () => {
+}): Promise<Document> {
+    // Fetch the complete document from the network
+    // This could be done at the same time as the document is being processed, but I wanted better metrics
+    let response = await fetch(url);
+    let buffer = await response.arrayBuffer();
+    networkFinished();
+
     // Load the new document
-    let newDoc = await io.read(url);
-    networkFinished()
+    let newDoc = await io.readBinary(new Uint8Array(buffer));
 
     // Remove any previous model with the same name
     await document.transform(dropByName(name));

@@ -8,8 +8,16 @@ import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelSc
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
 import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer";
 import type {Vector3} from "three";
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+import {BufferGeometry, Mesh} from "three";
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
+//@ts-ignore
+BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+//@ts-ignore
+BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+//@ts-ignore
+Mesh.prototype.raycast = acceleratedRaycast;
 
 const emit = defineEmits<{ load: [] }>()
 

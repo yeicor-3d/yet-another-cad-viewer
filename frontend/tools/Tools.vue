@@ -16,11 +16,11 @@ import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
 import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
-import type {Intersection} from "three";
 import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {defineAsyncComponent, type Ref, ref} from "vue";
+import type {SelectionInfo} from "./selection";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -39,10 +39,10 @@ const LicensesDialogContent = defineAsyncComponent({
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ findModel: [string] }>()
 
-let selection: Ref<Array<Intersection<MObject3D>>> = ref([]);
-let selectionFaceCount = () => selection.value.filter((s) => s.object.type == "Mesh" || s.object.type == "SkinnedMesh").length
-let selectionEdgeCount = () => selection.value.filter((s) => s.object.type == "Line").length
-let selectionVertexCount = () => selection.value.filter((s) => s.object.type == "Points").length
+let selection: Ref<Array<SelectionInfo>> = ref([]);
+let selectionFaceCount = () => selection.value.filter((s) => s.kind == 'face').length
+let selectionEdgeCount = () => selection.value.filter((s) => s.kind == 'edge').length
+let selectionVertexCount = () => selection.value.filter((s) => s.kind == "vertex").length
 
 function syncOrthoCamera(force: boolean) {
   let scene = props.viewer?.scene;

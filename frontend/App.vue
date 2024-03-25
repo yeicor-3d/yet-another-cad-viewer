@@ -47,9 +47,9 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
     let model = event.models[modelIndex];
     try {
       if (!model.isRemove) {
-        doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast, isLast);
+        doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast && settings.loadHelpers, isLast);
       } else {
-        doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast);
+        doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast && settings.loadHelpers, isLast);
       }
     } catch (e) {
       console.error("Error loading model", model, e);

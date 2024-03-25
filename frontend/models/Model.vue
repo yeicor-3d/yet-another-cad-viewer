@@ -25,13 +25,14 @@ import {
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
-import {SceneMgr} from "../misc/scene";
 import {BackSide, FrontSide} from "three/src/constants.js";
 import {Box3} from "three/src/math/Box3.js";
 import {Color} from "three/src/math/Color.js";
 import {Plane} from "three/src/math/Plane.js";
 import {Vector3} from "three/src/math/Vector3.js";
+import {Vector2} from "three/src/math/Vector2.js";
 import type {MObject3D} from "../tools/Selection.vue";
+import {toLineSegments} from "../misc/lines.js";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -44,6 +45,8 @@ let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah
 // Reactive properties
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
 const opacity = defineModel<number>("opacity", {default: 1});
+const wireframe = ref(false);
+// Clipping planes are handled in y-up space (swapped on interface, Z inverted later)
 const clipPlaneX = ref(1);
 const clipPlaneSwappedX = ref(false);
 const clipPlaneY = ref(1);
@@ -52,9 +55,18 @@ const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
 
 // Count the number of faces, edges and vertices
-let faceCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES).length).reduce((a, b) => a + b, 0)
-let edgeCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]).length).reduce((a, b) => a + b, 0)
-let vertexCount = props.meshes.map((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS).length).reduce((a, b) => a + b, 0)
+let faceCount = props.meshes
+    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES))
+    .map(p => (p.getExtras()?.face_triangles_end as any)?.length ?? 1)
+    .reduce((a, b) => a + b, 0)
+let edgeCount = props.meshes
+    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]))
+    .map(p => (p.getExtras()?.edge_points_end as any)?.length ?? 0)
+    .reduce((a, b) => a + b, 0)
+let vertexCount = props.meshes
+    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS))
+    .map(p => (p.getAttribute("POSITION")?.getCount() ?? 0))
+    .reduce((a, b) => a + b, 0)
 
 // Set initial defaults for the enabled features
 if (faceCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
@@ -73,7 +85,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
-      let childIsEdge = child.type == 'Line' || child.type == 'LineSegments'
+      let childIsEdge = child.type == 'Line' || child.type == 'LineSegments' || child.type == 'LineSegments2'
       let childIsVertex = child.type == 'Points'
       if (childIsFace || childIsEdge || childIsVertex) {
         let visible = newEnabledFeatures.includes(childIsFace ? 0 : childIsEdge ? 1 : childIsVertex ? 2 : -1);
@@ -111,6 +123,27 @@ function onOpacityChange(newOpacity: number) {
 
 watch(opacity, onOpacityChange);
 
+function onWireframeChange(newWireframe: boolean) {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+  // Iterate all primitives of the mesh and set their wireframe based on the enabled features
+  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
+  // of not actually removing the primitives from the scene graph
+  // console.log('Wireframe may have changed', newWireframe)
+  sceneModel.traverse((child: MObject3D) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      if (child.material && child.material.wireframe !== newWireframe) {
+        child.material.wireframe = newWireframe;
+        child.material.needsUpdate = true;
+      }
+    }
+  });
+  scene.queueRender()
+}
+
+watch(wireframe, onWireframeChange);
+
 let {sceneDocument} = inject<{ sceneDocument: ShallowRef<Document> }>('sceneDocument')!!;
 
 function onClipPlanesChange() {
@@ -125,22 +158,25 @@ function onClipPlanesChange() {
   if (props.viewer?.renderer && (enabledX || enabledY || enabledZ)) {
     // Global value for all models, once set it cannot be unset (unknown for other models...)
     props.viewer.renderer.threeRenderer.localClippingEnabled = true;
-    // Due to model-viewer's camera manipulation, the bounding box needs to be transformed
-    let boundingBox = SceneMgr.getBoundingBox(sceneDocument.value);
-    if (!boundingBox) return; // No models. Should not happen.
-    bbox = boundingBox.translate(scene.getTarget());
+    // Get the bounding box containing all features of this model
+    bbox = new Box3();
+    sceneModel.traverse((child: MObject3D) => {
+      if (child.userData[extrasNameKey] === modelName) {
+        bbox.expandByObject(child);
+      }
+    });
   }
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material) {
-        if (bbox) {
+        if (bbox?.isEmpty() == false) {
           let offsetX = bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x);
-          let offsetY = bbox.min.z + clipPlaneY.value * (bbox.max.z - bbox.min.z);
-          let offsetZ = bbox.min.y + clipPlaneZ.value * (bbox.max.y - bbox.min.y);
+          let offsetY = bbox.min.y + clipPlaneY.value * (bbox.max.y - bbox.min.y);
+          let offsetZ = bbox.min.z + (1 - clipPlaneZ.value) * (bbox.max.z - bbox.min.z);
           let planes = [
             new Plane(new Vector3(-1, 0, 0), offsetX),
-            new Plane(new Vector3(0, 0, 1), offsetY),
-            new Plane(new Vector3(0, -1, 0), offsetZ),
+            new Plane(new Vector3(0, -1, 0), offsetY),
+            new Plane(new Vector3(0, 0, 1), -offsetZ),
           ];
           if (clipPlaneSwappedX.value) planes[0].negate();
           if (clipPlaneSwappedY.value) planes[1].negate();
@@ -177,9 +213,16 @@ function onModelLoad() {
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
   let childrenToAdd: Array<MObject3D> = [];
+  let linesToImprove: Array<MObject3D> = [];
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
+        // Compute a BVH for faster raycasting (MUCH faster selection)
+        // @ts-ignore
+        child.geometry?.computeBoundsTree({indirect: true}); // indirect to avoid changing index order
+        // TODO: Accelerated raycast for lines and points (https://github.com/gkjohnson/three-mesh-bvh/issues/243)
+        // TODO: ParallelMeshBVHWorker
+
         // We could implement cutting planes using the stencil buffer:
         // https://threejs.org/examples/?q=clipping#webgl_clipping_stencil
         // But this is buggy for lots of models, so instead we just draw
@@ -194,29 +237,55 @@ function onModelLoad() {
           backChild.material.side = BackSide;
           backChild.material.color = new Color(0.25, 0.25, 0.25)
           child.userData.backChild = backChild;
+          backChild.userData.noHit = true;
           childrenToAdd.push(backChild as MObject3D);
         }
       }
-      // if (child.type == 'Line' || child.type == 'LineSegments') {
-      // child.material.linewidth = 3; // Not supported in WebGL2
-      // If wide lines are really needed, we need https://threejs.org/examples/?q=line#webgl_lines_fat
-      // }
+      if (child.type == 'Line' || child.type == 'LineSegments') {
+        // child.material.linewidth = 3; // Not supported in WebGL2
+        // Swap geometry with LineGeometry to support widths
+        // https://threejs.org/examples/?q=line#webgl_lines_fat
+        linesToImprove.push(child);
+      }
       if (child.type == 'Points') {
-        (child.material as any).size = 5;
+        (child.material as any).size = 7;
         child.material.needsUpdate = true;
       }
     }
   });
   childrenToAdd.forEach((child: MObject3D) => sceneModel.add(child));
-  scene.queueRender()
+  linesToImprove.forEach(async (line: MObject3D) => {
+    let line2 = await toLineSegments(line.geometry);
+    // Update resolution on resize
+    props.viewer!!.onElemReady((elem) => {
+      let l = () => {
+        line2.material.resolution.set(elem.clientWidth, elem.clientHeight);
+        line2.material.needsUpdate = true;
+      };
+      elem.addEventListener('resize', l); // TODO: Remove listener when line is replaced
+      l();
+    });
+    line2.computeLineDistances();
+    line2.userData = Object.assign({}, line.userData);
+    line.parent!.add(line2);
+    line.children.forEach((o) => line2.add(o));
+    line.visible = false;
+    line.userData.niceLine = line2;
+    // line.parent!.remove(line); // Keep it for better raycast and selection!
+    line2.userData.noHit = true;
+  });
 
   // Furthermore...
   // Enabled features may have been reset after a reload
   onEnabledFeaturesChange(enabledFeatures.value)
   // Opacity may have been reset after a reload
   onOpacityChange(opacity.value)
+  // Wireframe may have been reset after a reload
+  onWireframeChange(wireframe.value)
   // Clip planes may have been reset after a reload
   onClipPlanesChange()
+
+  scene.queueRender()
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
@@ -253,6 +322,10 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
           <v-tooltip activator="parent">Change opacity</v-tooltip>
           <svg-icon type="mdi" :path="mdiCircleOpacity"></svg-icon>
         </template>
+        <template v-slot:append>
+          <v-tooltip activator="parent">Wireframe</v-tooltip>
+          <v-checkbox-btn trueIcon="mdi-triangle-outline" falseIcon="mdi-triangle" v-model="wireframe"></v-checkbox-btn>
+        </template>
       </v-slider>
       <v-divider></v-divider>
       <v-slider v-model="clipPlaneX" hide-details min="0" max="1">
@@ -271,7 +344,7 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
           </v-checkbox-btn>
         </template>
       </v-slider>
-      <v-slider v-model="clipPlaneY" hide-details min="0" max="1">
+      <v-slider v-model="clipPlaneZ" hide-details min="0" max="1">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Clip plane Y</v-tooltip>
           <svg-icon type="mdi" :path="mdiCube" :rotate="-120"></svg-icon>
@@ -280,14 +353,14 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
         <template v-slot:append>
           <v-tooltip activator="parent">Swap clip plane Y</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
-                          v-model="clipPlaneSwappedY">
+                          v-model="clipPlaneSwappedZ">
             <template v-slot:label>
               <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
             </template>
           </v-checkbox-btn>
         </template>
       </v-slider>
-      <v-slider v-model="clipPlaneZ" hide-details min="0" max="1">
+      <v-slider v-model="clipPlaneY" hide-details min="0" max="1">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Clip plane Z</v-tooltip>
           <svg-icon type="mdi" :path="mdiCube"></svg-icon>
@@ -296,7 +369,7 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
         <template v-slot:append>
           <v-tooltip activator="parent">Swap clip plane Z</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
-                          v-model="clipPlaneSwappedZ">
+                          v-model="clipPlaneSwappedY">
             <template v-slot:label>
               <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
             </template>
@@ -358,5 +431,13 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
 
 .mdi-checkbox-marked-outline { /* HACK: mdi is not fully imported, only required icons... */
   background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19,19H5V5H15V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V11H19M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z"/></svg>');
+}
+
+.mdi-triangle { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M1 21h22L12 2"/></svg>');
+}
+
+.mdi-triangle-outline { /* HACK: mdi is not fully imported, only required icons... */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22M12 6l7.53 13H4.47"/></svg>');
 }
 </style>

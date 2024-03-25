@@ -1,16 +1,17 @@
 import {BufferAttribute, InterleavedBufferAttribute, Vector3} from 'three';
 import type {MObject3D} from "../tools/Selection.vue";
-import type { ModelScene } from '@google/model-viewer/lib/three-components/ModelScene';
+import type {ModelScene} from '@google/model-viewer/lib/three-components/ModelScene';
+import type {SelectionInfo} from "../tools/selection";
 
 
-function getCenterAndVertexList(obj: MObject3D, scene: ModelScene): {
+function getCenterAndVertexList(selInfo: SelectionInfo, scene: ModelScene): {
     center: Vector3,
     vertices: Array<Vector3>
 } {
-    obj.updateMatrixWorld();
-    let pos: BufferAttribute | InterleavedBufferAttribute = obj.geometry.getAttribute('position');
-    let ind: BufferAttribute | null = obj.geometry.index;
-    if (!ind) {
+    selInfo.object.updateMatrixWorld();
+    let pos: BufferAttribute | InterleavedBufferAttribute = selInfo.object.geometry.getAttribute('position');
+    let ind: BufferAttribute | null = selInfo.object.geometry.index;
+    if (ind === null) {
         ind = new BufferAttribute(new Uint16Array(pos.count), 1);
         for (let i = 0; i < pos.count; i++) {
             ind.array[i] = i;
@@ -18,14 +19,14 @@ function getCenterAndVertexList(obj: MObject3D, scene: ModelScene): {
     }
     let center = new Vector3();
     let vertices = [];
-    for (let i = 0; i < ind.count; i++) {
-        let index = ind.array[i];
+    for (let i = selInfo.indices[0]; i < selInfo.indices[1]; i++) {
+        let index = ind.getX(i)
         let vertex = new Vector3(pos.getX(index), pos.getY(index), pos.getZ(index));
-        vertex = scene.target.worldToLocal(obj.localToWorld(vertex));
+        vertex = scene.target.worldToLocal(selInfo.object.localToWorld(vertex));
         center.add(vertex);
         vertices.push(vertex);
     }
-    center = center.divideScalar(ind.count);
+    center = center.divideScalar(selInfo.indices[1] - selInfo.indices[0]);
     return {center, vertices};
 }
 
@@ -33,7 +34,7 @@ function getCenterAndVertexList(obj: MObject3D, scene: ModelScene): {
  * Given two THREE.Object3D objects, returns their closest and farthest vertices, and the geometric centers.
  * All of them are approximated and should not be used for precise calculations.
  */
-export function distances(a: MObject3D, b: MObject3D, scene: ModelScene): {
+export function distances(a: SelectionInfo, b: SelectionInfo, scene: ModelScene): {
     min: Array<Vector3>,
     center: Array<Vector3>,
     max: Array<Vector3>

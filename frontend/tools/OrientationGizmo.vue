@@ -8,7 +8,7 @@ import type {ModelViewerElement} from '@google/model-viewer';
 import {Vector3} from "three/src/math/Vector3.js";
 import {Matrix4} from "three/src/math/Matrix4.js";
 
-globalThis.THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
+(globalThis as any).THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
 const OrientationGizmo = OrientationGizmoRaw.default;
 

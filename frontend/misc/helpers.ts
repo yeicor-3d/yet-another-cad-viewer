@@ -1,3 +1,5 @@
+// noinspection JSVoidFunctionReturnValueUsed,JSUnresolvedReference
+
 import {Document, type TypedArray} from '@gltf-transform/core'
 import {Vector2} from "three/src/math/Vector2.js"
 import {Vector3} from "three/src/math/Vector3.js"
@@ -26,7 +28,7 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
     if (rawColors) {
         colors = doc.createAccessor(name + 'Color')
             .setArray(new Float32Array(rawColors) as TypedArray)
-            .setType('VEC3')
+            .setType('VEC4')
             .setBuffer(buffer);
     }
     const material = doc.createMaterial(name + 'Material')
@@ -39,6 +41,11 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
     if (rawColors) {
         geometry.setAttribute('COLOR_0', colors)
     }
+    if (mode == WebGL2RenderingContext.TRIANGLES) {
+        geometry.setExtras({face_triangles_end: [rawIndices.length / 6, rawIndices.length * 2 / 6, rawIndices.length * 3 / 6, rawIndices.length * 4 / 6, rawIndices.length * 5 / 6, rawIndices.length]})
+    } else if (mode == WebGL2RenderingContext.LINES) {
+        geometry.setExtras({edge_points_end: [rawIndices.length / 3, rawIndices.length * 2 / 3, rawIndices.length]})
+    }
     const mesh = doc.createMesh(name + 'Mesh').addPrimitive(geometry)
     const node = doc.createNode(name + 'Node').setMesh(mesh).setMatrix(transform.elements as any)
     scene.addChild(node)
@@ -48,21 +55,19 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
  * Create a new Axes helper as a GLTF model, useful for debugging positions and orientations.
  */
 export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
+    let rawIndices = [0, 1, 2, 3, 4, 5];
     let rawPositions = [
-        [0, 0, 0, size.x, 0, 0],
-        [0, 0, 0, 0, size.y, 0],
-        [0, 0, 0, 0, 0, -size.z],
+        0, 0, 0, size.x, 0, 0,
+        0, 0, 0, 0, size.y, 0,
+        0, 0, 0, 0, 0, -size.z,
     ];
-    let rawIndices = [0, 1];
     let rawColors = [
-        [...(AxesColors.x[0]), ...(AxesColors.x[1])],
-        [...(AxesColors.y[0]), ...(AxesColors.y[1])],
-        [...(AxesColors.z[0]), ...(AxesColors.z[1])],
-    ].map(g => g.map(x => x / 255.0));
-    buildSimpleGltf(doc, rawPositions[0], rawIndices, rawColors[0], transform, '__helper_axes');
-    buildSimpleGltf(doc, rawPositions[1], rawIndices, rawColors[1], transform, '__helper_axes');
-    buildSimpleGltf(doc, rawPositions[2], rawIndices, rawColors[2], transform, '__helper_axes');
-    buildSimpleGltf(doc, [0, 0, 0], [0], null, transform, '__helper_axes', WebGL2RenderingContext.POINTS);
+        ...(AxesColors.x[0]), 255, ...(AxesColors.x[1]), 255,
+        ...(AxesColors.y[0]), 255, ...(AxesColors.y[1]), 255,
+        ...(AxesColors.z[0]), 255, ...(AxesColors.z[1]), 255
+    ].map(x => x / 255.0);
+    buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, new Matrix4(), '__helper_axes'); // Axes at (0,0,0)!
+    buildSimpleGltf(doc, [0, 0, 0], [0], [1, 1, 1, 1], transform, '__helper_axes', WebGL2RenderingContext.POINTS);
 }
 
 /**
@@ -71,8 +76,10 @@ export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
  * The grid is built as a box of triangles (representing lines) looking to the inside of the box.
  * This ensures that only the back of the grid is always visible, regardless of the camera position.
  */
-export function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4 = new Matrix4(), divisions = 10) {
+export async function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4, divisions = 10) {
     // Create transformed positions for the inner faces of the box
+    let allPositions: number[] = [];
+    let allIndices: number[] = [];
     for (let axis of [new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, -1)]) {
         for (let positive of [1, -1]) {
             let offset = axis.clone().multiply(size.clone().multiplyScalar(0.5 * positive));
@@ -82,13 +89,25 @@ export function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4 
             if (axis.x) size2.set(size.z, size.y);
             if (axis.y) size2.set(size.x, size.z);
             if (axis.z) size2.set(size.x, size.y);
-            let transform = baseTransform.clone().multiply(translation).multiply(rotation);
-            newGridPlane(doc, size2, transform, divisions);
+            let transform = new Matrix4().multiply(translation).multiply(rotation);
+            let [rawPositions, rawIndices] = newGridPlane(size2, divisions);
+            let baseIndex = allPositions.length / 3;
+            for (let i of rawIndices) {
+                allIndices.push(i + baseIndex);
+            }
+            // Apply transform to the positions before adding them to the list
+            for (let i = 0; i < rawPositions.length; i += 3) {
+                let pos = new Vector3(rawPositions[i], rawPositions[i + 1], rawPositions[i + 2]);
+                pos.applyMatrix4(transform);
+                allPositions.push(pos.x, pos.y, pos.z);
+            }
         }
     }
+    let colors = new Array(allPositions.length / 3 * 4).fill(1);
+    buildSimpleGltf(doc, allPositions, allIndices, colors, baseTransform, '__helper_grid', WebGL2RenderingContext.TRIANGLES);
 }
 
-export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = new Matrix4(), divisions = 10, divisionWidth = 0.002) {
+export function newGridPlane(size: Vector2, divisions = 10, divisionWidth = 0.002): [number[], number[]] {
     const rawPositions = [];
     const rawIndices = [];
     // Build the grid as triangles
@@ -114,5 +133,5 @@ export function newGridPlane(doc: Document, size: Vector2, transform: Matrix4 = 
         rawIndices.push(baseIndex2, baseIndex2 + 1, baseIndex2 + 2);
         rawIndices.push(baseIndex2, baseIndex2 + 2, baseIndex2 + 3);
     }
-    buildSimpleGltf(doc, rawPositions, rawIndices, null, transform, '__helper_grid', WebGL2RenderingContext.TRIANGLES);
+    return [rawPositions, rawIndices];
 }

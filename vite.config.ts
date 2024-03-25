@@ -28,6 +28,7 @@ export default defineConfig({
     build: {
         assetsDir: '.',
         cssCodeSplit: false, // Small enough to inline
+        chunkSizeWarningLimit: 550, // Three.js is huge
     },
     define: {
         __APP_NAME__: JSON.stringify(name),

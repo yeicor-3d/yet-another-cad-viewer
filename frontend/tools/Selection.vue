@@ -6,24 +6,28 @@ import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {mdiCubeOutline, mdiCursorDefaultClick, mdiFeatureSearch, mdiRuler} from '@mdi/js';
 import type {Intersection, Material, Mesh, Object3D} from "three";
-import {Box3, Matrix4, Raycaster, Vector3} from "three";
+import {Box3, Color, Raycaster, Vector3} from "three";
 import type ModelViewerWrapperT from "../viewer/ModelViewerWrapper.vue";
 import {extrasNameKey} from "../misc/gltf";
 import {SceneMgr} from "../misc/scene";
 import {Document} from "@gltf-transform/core";
 import {AxesColors} from "../misc/helpers";
 import {distances} from "../misc/distances";
+import {highlight, highlightUndo, hitToSelectionInfo, type SelectionInfo} from "./selection";
 
 export type MObject3D = Mesh & {
   userData: { noHit?: boolean },
-  material: Material & { color: { r: number, g: number, b: number }, __prevBaseColorFactor?: [number, number, number] }
+  material: Material & {
+    color: Color,
+    wireframe?: boolean
+  }
 };
 
 let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
 let {setDisableTap} = inject<{ setDisableTap: (arg0: boolean) => void }>('disableTap')!!;
 let selectionEnabled = ref(false);
-let selected = defineModel<Array<Intersection<MObject3D>>>({default: []});
+let selected = defineModel<Array<SelectionInfo>>({default: []});
 let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
 let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
 let showDistances = ref<Boolean>(true);
@@ -92,8 +96,27 @@ let selectionListener = (event: MouseEvent) => {
   // let lineHandle = props.viewer?.addLine3D(actualFrom, actualTo, "Ray")
   // setTimeout(() => props.viewer?.removeLine3D(lineHandle), 30000)
 
-  // Find all hit objects and select the wanted one based on the filter
-  const hits = raycaster.intersectObject(scene, true);
+  // Find all hit objects and raycast the wanted ones based on the filter
+  let objects: Array<any> = [];
+  scene.traverse((obj) => {
+    const kind = obj.type
+    let isFace = kind === 'Mesh' || kind === 'SkinnedMesh';
+    let isEdge = kind === 'Line' || kind === 'LineSegments';
+    let isVertex = kind === 'Points';
+    if (obj.userData.noHit !== true &&
+        ((selectFilter.value === 'Any (S)' && (isFace || isEdge || isVertex)) ||
+            (selectFilter.value === '(F)aces' && isFace) ||
+            (selectFilter.value === '(E)dges' && isEdge) ||
+            (selectFilter.value === '(V)ertices' && isVertex))) {
+      objects.push(obj);
+    }
+  });
+  //console.log("Raycasting objects", objects)
+
+  // Run the raycaster on the selected objects only searching for the first hit
+  // @ts-ignore
+  raycaster.firstHitOnly = true;
+  const hits = raycaster.intersectObjects(objects, false);
   let hit = hits
       // Check feasibility
       .filter((hit: Intersection<Object3D>) => {
@@ -106,7 +129,7 @@ let selectionListener = (event: MouseEvent) => {
             (isFace && selectFilter.value === '(F)aces') ||
             (isEdge && selectFilter.value === '(E)dges') ||
             (isVertex && selectFilter.value === '(V)ertices');
-        return (!isFace || hit.object.visible) && !hit.object.userData.noHit && kindOk;
+        return (!isFace || hit.object.visible) && kindOk;
       })
       // Sort for highlighting partially hidden edges/vertices
       .sort((a, b) => {
@@ -123,17 +146,19 @@ let selectionListener = (event: MouseEvent) => {
       })
       // Return the best hit
       [0] as Intersection<MObject3D> | undefined;
-  // console.log('Hit', hit)
 
   if (!highlightNextSelection.value[0]) {
     // If we are selecting, toggle the selection or deselect all if no hit
-    if (hit) {
+    let selInfo: SelectionInfo | null = null;
+    if (hit) selInfo = hitToSelectionInfo(hit);
+    //console.log('Hit', hit, 'SelInfo', selInfo);
+    if (hit && selInfo !== null) {
       // Toggle selection
-      const wasSelected = selected.value.find((m) => m.object.name === hit?.object?.name) !== undefined;
+      const wasSelected = selected.value.find((m) => m.getKey() === selInfo.getKey()) !== undefined;
       if (wasSelected) {
-        deselect(hit)
+        deselect(selInfo)
       } else {
-        select(hit)
+        select(selInfo)
       }
     } else {
       deselectAll();
@@ -149,34 +174,22 @@ let selectionListener = (event: MouseEvent) => {
   scene.queueRender() // Force rerender of model-viewer
 }
 
-function select(hit: Intersection<MObject3D>) {
-  // console.log('Selecting', hit.object.name)
-  if (selected.value.find((m) => m.object.name === hit.object.name) === undefined) {
-    selected.value.push(hit);
+function select(selInfo: SelectionInfo) {
+  // console.log('Selecting', selInfo.object.name)
+  if (selected.value.find((m) => m.getKey() === selInfo.getKey()) === undefined) {
+    selected.value.push(selInfo);
   }
-  hit.object.material.__prevBaseColorFactor = [
-    hit.object.material.color.r,
-    hit.object.material.color.g,
-    hit.object.material.color.b,
-  ];
-  hit.object.material.color.r = 1;
-  hit.object.material.color.g = 0;
-  hit.object.material.color.b = 0;
+  highlight(selInfo);
 }
 
-function deselect(hit: Intersection<MObject3D>, alsoRemove = true) {
-  // console.log('Deselecting', hit.object.name)
+function deselect(selInfo: SelectionInfo, alsoRemove = true) {
+  // console.log('Deselecting', selInfo.object.name)
   if (alsoRemove) {
     // Remove the matching object from the selection
-    let toRemove = selected.value.findIndex((m) => m.object.name === hit.object.name);
+    let toRemove = selected.value.findIndex((m) => m.getKey() === selInfo.getKey());
     selected.value.splice(toRemove, 1);
   }
-  if (hit.object.material.__prevBaseColorFactor) {
-    hit.object.material.color.r = hit.object.material.__prevBaseColorFactor[0]
-    hit.object.material.color.g = hit.object.material.__prevBaseColorFactor[1]
-    hit.object.material.color.b = hit.object.material.__prevBaseColorFactor[2]
-    delete hit.object.material.__prevBaseColorFactor;
-  }
+  highlightUndo(selInfo);
 }
 
 function deselectAll(alsoRemove = true) {
@@ -273,9 +286,8 @@ function updateBoundingBox() {
   if (selected.value.length > 0) {
     bb = new Box3();
     for (let hit of selected.value) {
-      bb.expandByObject(hit.object);
+      bb.union(hit.getBox())
     }
-    bb.applyMatrix4(new Matrix4().makeTranslation(props.viewer?.scene.getTarget()));
   } else {
     let boundingBox = SceneMgr.getBoundingBox(sceneDocument.value);
     if (!boundingBox) return; // No models. Should not happen.
@@ -380,9 +392,7 @@ function updateDistances() {
   }
 
   // Add lines (if not already added)
-  let objA = selected.value[0].object;
-  let objB = selected.value[1].object;
-  let {min, center, max} = distances(objA, objB, props.viewer?.scene);
+  let {min, center, max} = distances(selected.value[0], selected.value[1], props.viewer?.scene);
   ensureLine(max[0], max[1], max[1].distanceTo(max[0]).toFixed(1) + "mm", "orange");
   ensureLine(center[0], center[1], center[1].distanceTo(center[0]).toFixed(1) + "mm", "green");
   ensureLine(min[0], min[1], min[1].distanceTo(min[0]).toFixed(1) + "mm", "cyan");

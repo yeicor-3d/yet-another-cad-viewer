@@ -24,11 +24,11 @@ def build_logo(text: bool = True) -> Dict[str, Union[Part, Location, str]]:
                                         logo_img_location.position.Z)
 
     logo_img_path = os.path.join(ASSETS_DIR, 'img.jpg')
-    img_bytes, img_name = prepare_image(logo_img_path, logo_img_location, height=18)
+    img_glb_bytes, img_name = image_to_gltf(logo_img_path, logo_img_location, height=18)
 
     fox_glb_bytes = open(os.path.join(ASSETS_DIR, 'fox.glb'), 'rb').read()
 
-    return {'fox': fox_glb_bytes, 'logo': logo_obj, 'location': logo_img_location, img_name: img_bytes}
+    return {'fox': fox_glb_bytes, 'logo': logo_obj, 'location': logo_img_location, img_name: img_glb_bytes}
 
 
 if __name__ == "__main__":
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         # If this is not set, the server will auto-start on import and show_* calls will provide live updates
         os.environ['YACV_DISABLE_SERVER'] = 'True'
 
-    from yacv_server import export_all, remove, prepare_image, show
+    from yacv_server import export_all, show, image_to_gltf
 
     # Build the CAD part of the logo
     logo = build_logo()
@@ -52,7 +52,8 @@ if __name__ == "__main__":
     show(*[obj for obj in logo.values()], names=[name for name in logo.keys()])
 
     if testing_server:
-        remove('location')  # Test removing a part
+        # remove('location')  # Test removing a part
+        pass
     else:
         # Save the complete logo to multiple GLB files
         export_all(os.path.join(ASSETS_DIR, 'logo_build'))

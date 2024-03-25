@@ -60,7 +60,8 @@ def grab_all_cad() -> List[Tuple[str, CADCoreLike]]:
 
 
 def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = None, height: Optional[float] = None,
-                  name: Optional[str] = None, save_mime: str = 'image/jpeg') -> Tuple[bytes, str]:
+                  name: Optional[str] = None, save_mime: str = 'image/jpeg', power_of_two: bool = True) \
+        -> Tuple[bytes, str]:
     """Convert an image to a GLTF CAD object."""
     from PIL import Image
     import io
@@ -101,17 +102,27 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
     # Load the image to a byte buffer
     img = Image.open(source)
     img_buf = io.BytesIO()
-    img.save(img_buf, format=format)
-    img_buf = img_buf.getvalue()
 
-    # Build the gltf
-    mgr = GLTFMgr(image=(img_buf, save_mime))
+    # Use the original dimensions for scaling the model
     if width is None and height is None:
         raise ValueError('At least one of width or height must be specified')  # Fallback to pixels == mm?
     elif width is None:
         width = img.width / img.height * height
     elif height is None:
         height = height or img.height / img.width * width  # Apply default aspect ratio if unspecified
+
+    # Resize the image to a power of two if requested (recommended for GLTF)
+    if power_of_two:
+        new_width = 2 ** (img.width - 1).bit_length()
+        new_height = 2 ** (img.height - 1).bit_length()
+        img = img.resize((new_width, new_height))
+
+    # Save the image to a buffer
+    img.save(img_buf, format=format)
+    img_buf = img_buf.getvalue()
+
+    # Build the gltf
+    mgr = GLTFMgr(image=(img_buf, save_mime))
     mgr.add_face([
         vert(plane.origin - plane.x_dir * width / 2 - plane.y_dir * height / 2),
         vert(plane.origin + plane.x_dir * width / 2 - plane.y_dir * height / 2),
@@ -125,7 +136,7 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
         (1, 0),
         (1, 1),
         (0, 1),
-    ])
+    ], (1, 1, 1, 1))
 
     # Return the GLTF binary blob and the suggested name of the image
-    return b''.join(mgr.gltf.save_to_bytes()), name
+    return b''.join(mgr.build().save_to_bytes()), name

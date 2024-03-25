@@ -12,6 +12,7 @@ export const settings = {
         // Websocket URLs automatically listen for new models from the python backend
         "dev+http://127.0.0.1:32323/"
     ],
+    loadHelpers: true,
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     monitorEveryMs: 100,
     monitorOpenTimeoutMs: 1000,

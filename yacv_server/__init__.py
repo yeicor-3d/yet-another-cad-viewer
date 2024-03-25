@@ -15,7 +15,7 @@ if 'YACV_DISABLE_SERVER' not in os.environ:
 # Expose some nice aliases using the default server instance
 show = yacv.show
 show_all = yacv.show_cad_all
-prepare_image = image_to_gltf
+image_to_gltf = image_to_gltf
 export_all = yacv.export_all
 remove = yacv.remove
 clear = yacv.clear
