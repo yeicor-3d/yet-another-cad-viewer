@@ -13,6 +13,7 @@ export const settings = {
         "dev+http://127.0.0.1:32323/"
     ],
     loadHelpers: true,
+    edgeWidth: 0, /* The default line size for edges, set to 0 to use basic gl.LINEs */
     displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
     monitorEveryMs: 100,
     monitorOpenTimeoutMs: 1000,

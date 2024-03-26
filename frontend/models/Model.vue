@@ -22,6 +22,7 @@ import {
   mdiRectangle,
   mdiRectangleOutline,
   mdiSwapHorizontal,
+  mdiVectorLine,
   mdiVectorRectangle
 } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
@@ -30,9 +31,9 @@ import {Box3} from "three/src/math/Box3.js";
 import {Color} from "three/src/math/Color.js";
 import {Plane} from "three/src/math/Plane.js";
 import {Vector3} from "three/src/math/Vector3.js";
-import {Vector2} from "three/src/math/Vector2.js";
 import type {MObject3D} from "../tools/Selection.vue";
 import {toLineSegments} from "../misc/lines.js";
+import {settings} from "../misc/settings.js";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -53,6 +54,7 @@ const clipPlaneY = ref(1);
 const clipPlaneSwappedY = ref(false);
 const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
+const edgeWidth = ref(settings.edgeWidth);
 
 // Count the number of faces, edges and vertices
 let faceCount = props.meshes
@@ -205,6 +207,63 @@ watch(clipPlaneSwappedZ, onClipPlanesChange);
 // Clip planes are also affected by the camera position, so we need to listen to camera changes
 props.viewer!!.onElemReady((elem) => elem.addEventListener('camera-change', onClipPlanesChange))
 
+let edgeWidthChangeCleanup = [] as Array<() => void>;
+
+function onEdgeWidthChange(newEdgeWidth: number) {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+  edgeWidthChangeCleanup.forEach((f) => f());
+  edgeWidthChangeCleanup = [];
+  let linesToImprove: Array<MObject3D> = [];
+  sceneModel.traverse((child: MObject3D) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      if (child.type == 'Line' || child.type == 'LineSegments') {
+        // child.material.linewidth = 3; // Not supported in WebGL2
+        // Swap geometry with LineGeometry to support widths
+        // https://threejs.org/examples/?q=line#webgl_lines_fat
+        if (newEdgeWidth > 0) linesToImprove.push(child);
+      }
+      if (child.type == 'Points') {
+        (child.material as any).size = newEdgeWidth > 0 ? newEdgeWidth * 50 : 5;
+        child.material.needsUpdate = true;
+      }
+    }
+  });
+  linesToImprove.forEach(async (line: MObject3D) => {
+    let line2 = await toLineSegments(line.geometry, newEdgeWidth);
+    // Update resolution on resize
+    let resizeListener = (elem: HTMLElement) => {
+      line2.material.resolution.set(elem.clientWidth, elem.clientHeight);
+      line2.material.needsUpdate = true;
+    };
+    props.viewer!!.onElemReady((elem) => {
+      elem.addEventListener('resize', () => resizeListener(elem));
+      resizeListener(elem);
+    });
+    // Copy the transform of the original line
+    line2.position.copy(line.position);
+    line2.computeLineDistances();
+    line2.userData = Object.assign({}, line.userData);
+    line.parent!.add(line2);
+    line.children.forEach((o) => line2.add(o));
+    line.visible = false;
+    line.userData.niceLine = line2;
+    // line.parent!.remove(line); // Keep it for better raycast and selection!
+    line2.userData.noHit = true;
+    edgeWidthChangeCleanup.push(() => {
+      line2.parent!.remove(line2);
+      line.visible = true;
+      props.viewer!!.onElemReady((elem) => {
+        elem.removeEventListener('resize', () => resizeListener(elem));
+      });
+    });
+  });
+  scene.queueRender()
+}
+
+watch(edgeWidth, onEdgeWidthChange);
+
 function onModelLoad() {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
@@ -213,7 +272,6 @@ function onModelLoad() {
   // Use the scene graph instead of the document to avoid reloading the same model, at the cost
   // of not actually removing the primitives from the scene graph
   let childrenToAdd: Array<MObject3D> = [];
-  let linesToImprove: Array<MObject3D> = [];
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
@@ -236,44 +294,14 @@ function onModelLoad() {
           backChild.material = child.material.clone();
           backChild.material.side = BackSide;
           backChild.material.color = new Color(0.25, 0.25, 0.25)
-          child.userData.backChild = backChild;
           backChild.userData.noHit = true;
+          child.userData.backChild = backChild;
           childrenToAdd.push(backChild as MObject3D);
         }
-      }
-      if (child.type == 'Line' || child.type == 'LineSegments') {
-        // child.material.linewidth = 3; // Not supported in WebGL2
-        // Swap geometry with LineGeometry to support widths
-        // https://threejs.org/examples/?q=line#webgl_lines_fat
-        linesToImprove.push(child);
-      }
-      if (child.type == 'Points') {
-        (child.material as any).size = 7;
-        child.material.needsUpdate = true;
       }
     }
   });
   childrenToAdd.forEach((child: MObject3D) => sceneModel.add(child));
-  linesToImprove.forEach(async (line: MObject3D) => {
-    let line2 = await toLineSegments(line.geometry);
-    // Update resolution on resize
-    props.viewer!!.onElemReady((elem) => {
-      let l = () => {
-        line2.material.resolution.set(elem.clientWidth, elem.clientHeight);
-        line2.material.needsUpdate = true;
-      };
-      elem.addEventListener('resize', l); // TODO: Remove listener when line is replaced
-      l();
-    });
-    line2.computeLineDistances();
-    line2.userData = Object.assign({}, line.userData);
-    line.parent!.add(line2);
-    line.children.forEach((o) => line2.add(o));
-    line.visible = false;
-    line.userData.niceLine = line2;
-    // line.parent!.remove(line); // Keep it for better raycast and selection!
-    line2.userData.noHit = true;
-  });
 
   // Furthermore...
   // Enabled features may have been reset after a reload
@@ -284,6 +312,8 @@ function onModelLoad() {
   onWireframeChange(wireframe.value)
   // Clip planes may have been reset after a reload
   onClipPlanesChange()
+  // Edge width may have been reset after a reload
+  onEdgeWidthChange(edgeWidth.value)
 
   scene.queueRender()
 }
@@ -325,6 +355,12 @@ props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
         <template v-slot:append>
           <v-tooltip activator="parent">Wireframe</v-tooltip>
           <v-checkbox-btn trueIcon="mdi-triangle-outline" falseIcon="mdi-triangle" v-model="wireframe"></v-checkbox-btn>
+        </template>
+      </v-slider>
+      <v-slider v-if="edgeCount > 0 || vertexCount > 0" v-model="edgeWidth" hide-details min="0" max="1">
+        <template v-slot:prepend>
+          <v-tooltip activator="parent">Edge and vertex sizes</v-tooltip>
+          <svg-icon type="mdi" :path="mdiVectorLine"></svg-icon>
         </template>
       </v-slider>
       <v-divider></v-divider>

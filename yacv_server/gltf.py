@@ -85,7 +85,7 @@ class GLTFMgr:
         self._faces_primitive.extras["face_triangles_end"].append(len(self.face_indices))
 
     def add_edge(self, vertices_raw: List[Tuple[Tuple[float, float, float], Tuple[float, float, float]]],
-                 color: Tuple[float, float, float, float] = (0.1, 0.1, 0.4, 1.0)):
+                 color: Tuple[float, float, float, float] = (0.1, 0.1, 1.0, 1.0)):
         """Add an edge to the GLTF mesh"""
         vertices_flat = [v for t in vertices_raw for v in t]  # Line from 0 to 1, 2 to 3, 4 to 5, etc.
         base_index = len(self.edge_positions) // 3
@@ -95,7 +95,7 @@ class GLTFMgr:
         self._edges_primitive.extras["edge_points_end"].append(len(self.edge_indices))
 
     def add_vertex(self, vertex: Tuple[float, float, float],
-                   color: Tuple[float, float, float, float] = (0.1, 0.4, 0.1, 1.0)):
+                   color: Tuple[float, float, float, float] = (0.1, 0.1, 0.1, 1.0)):
         """Add a vertex to the GLTF mesh"""
         base_index = len(self.vertex_positions) // 3
         self.vertex_indices.append(base_index)

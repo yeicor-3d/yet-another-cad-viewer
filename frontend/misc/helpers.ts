@@ -66,8 +66,14 @@ export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
         ...(AxesColors.y[0]), 255, ...(AxesColors.y[1]), 255,
         ...(AxesColors.z[0]), 255, ...(AxesColors.z[1]), 255
     ].map(x => x / 255.0);
-    buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, new Matrix4(), '__helper_axes'); // Axes at (0,0,0)!
-    buildSimpleGltf(doc, [0, 0, 0], [0], [1, 1, 1, 1], transform, '__helper_axes', WebGL2RenderingContext.POINTS);
+    // Axes at (0, 0, 0)
+    buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, new Matrix4(), '__helper_axes');
+    buildSimpleGltf(doc, [0, 0, 0], [0], [1, 1, 1, 1], new Matrix4(), '__helper_axes', WebGL2RenderingContext.POINTS);
+    // Axes at center
+    if (new Matrix4() != transform) {
+        buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, transform, '__helper_axes_center');
+        buildSimpleGltf(doc, [0, 0, 0], [0], [1, 1, 1, 1], transform, '__helper_axes_center', WebGL2RenderingContext.POINTS);
+    }
 }
 
 /**

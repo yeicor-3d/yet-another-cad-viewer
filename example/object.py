@@ -18,6 +18,7 @@ with BuildPart() as example:
 # Show it in the frontend with hot-reloading
 show(example)
 
+
 # %%
 
 # If running on CI, export the objects to .glb files for a static deployment
