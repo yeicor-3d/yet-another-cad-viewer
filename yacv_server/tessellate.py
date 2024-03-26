@@ -43,17 +43,17 @@ def tessellate(
                 _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
                 if edges:
                     for edge in face.edges():
-                        edge_to_faces[_hashcode(edge.wrapped)] = edge_to_faces.get(_hashcode(edge.wrapped), []) + [face.wrapped]
+                        edge_to_faces[(edge.wrapped)] = edge_to_faces.get((edge.wrapped), []) + [face.wrapped]
                 if vertices:
                     for vertex in face.vertices():
-                        vertex_to_faces[_hashcode(vertex.wrapped)] = vertex_to_faces.get(_hashcode(vertex.wrapped), []) + [face.wrapped]
+                        vertex_to_faces[(vertex.wrapped)] = vertex_to_faces.get((vertex.wrapped), []) + [face.wrapped]
         if edges:
             for edge in shape.edges():
-                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(_hashcode(edge.wrapped), []), angular_tolerance,
+                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get((edge.wrapped), []), angular_tolerance,
                                  angular_tolerance)
         if vertices:
             for vertex in shape.vertices():
-                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(_hashcode(vertex.wrapped), []))
+                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get((vertex.wrapped), []))
 
     return mgr.build()
 
@@ -65,12 +65,12 @@ def _tessellate_face(
         angular_tolerance: float = 0.1
 ):
     face = Shape(ocp_face)
-    face.mesh(tolerance, angular_tolerance)
+    # face.mesh(tolerance, angular_tolerance)
+    tri_mesh = face.tessellate(tolerance, angular_tolerance)
     poly = BRep_Tool.Triangulation_s(face.wrapped, TopLoc_Location())
     if poly is None:
         logger.warn("No triangulation found for face")
         return GLTF2()
-    tri_mesh = face.tessellate(tolerance, angular_tolerance)
 
     # Get UV of each face from the parameters
     uv = [
@@ -78,7 +78,7 @@ def _tessellate_face(
         for v in (poly.UVNode(i) for i in range(1, poly.NbNodes() + 1))
     ]
 
-    vertices = [(v.X, v.Y, v.Z) for v in tri_mesh[0]]
+    vertices = tri_mesh[0]
     indices = tri_mesh[1]
     mgr.add_face(vertices, indices, uv)
 

@@ -18,11 +18,11 @@ from OCP.TopoDS import TopoDS_Shape
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from yacv_server.rwlock import RWLock
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.myhttp import HTTPHandler
 from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
+from yacv_server.rwlock import RWLock
 from yacv_server.tessellate import _hashcode, tessellate
 
 
@@ -278,9 +278,10 @@ class YACV:
                                       edges=event.kwargs.get('edges', True),
                                       vertices=event.kwargs.get('vertices', True))
                     glb_list_of_bytes = gltf.save_to_bytes()
-                    publish_to.publish(b''.join(glb_list_of_bytes))
-                    logger.info('export(%s) took %.3f seconds, %d parts', name, time.time() - start,
-                                len(gltf.meshes[0].primitives))
+                    glb_bytes = b''.join(glb_list_of_bytes)
+                    publish_to.publish(glb_bytes)
+                    logger.info('export(%s) took %.3f seconds, %s', name, time.time() - start,
+                                sizeof_fmt(len(glb_bytes)))
 
             # In either case return the elements of a subscription to the async generator
             subscription = self.build_events[name].subscribe()
@@ -326,7 +327,15 @@ def _find_var_name(obj: any, avoid_levels: int = 2) -> str:
     global _find_var_name_count
     for frame in inspect.stack()[avoid_levels:]:
         for key, value in frame.frame.f_locals.items():
-            if value is obj:
+            if get_shape(value) is get_shape(obj):
                 return key
     _find_var_name_count += 1
     return 'unknown_var_' + str(_find_var_name_count)
+
+
+def sizeof_fmt(num, suffix="B"):
+    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"

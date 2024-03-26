@@ -70,7 +70,7 @@ class GLTFMgr:
     def _vertices_primitive(self) -> Primitive:
         return [p for p in self.gltf.meshes[0].primitives if p.mode == POINTS][0]
 
-    def add_face(self, vertices_raw: List[Tuple[float, float, float]], indices_raw: List[Tuple[int, int, int]],
+    def add_face(self, vertices_raw: List[Vector], indices_raw: List[Tuple[int, int, int]],
                  tex_coord_raw: List[Tuple[float, float]],
                  color: Tuple[float, float, float, float] = (1.0, 0.75, 0.0, 1.0)):
         """Add a face to the GLTF mesh"""
