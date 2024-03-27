@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yacv-server"
-version = "0.7.1"
+version = "0.8.0"
 description = "Yet Another CAD Viewer (server)"
 authors = ["Yeicor <4929005+Yeicor@users.noreply.github.com>"]
 license = "MIT"
