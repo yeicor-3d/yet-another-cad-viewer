@@ -80,6 +80,9 @@ export class NetworkManager extends EventTarget {
                             controller.abort(); // Notify the server that we are done
                         });
                     }
+                } else {
+                    // Server is down, wait a little longer before retrying
+                    await new Promise(resolve => setTimeout(resolve, 10 * settings.monitorEveryMs));
                 }
                 controller.abort();
             } catch (e) { // Ignore errors (retry very soon)

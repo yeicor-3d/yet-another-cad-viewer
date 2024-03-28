@@ -19,9 +19,8 @@ def build_logo(text: bool = True) -> Dict[str, Union[Part, Location, str]]:
                 Text('Yet Another\nCAD Viewer', 7, font_path='/usr/share/fonts/TTF/OpenSans-Regular.ttf')
             extrude(amount=1)
 
-    logo_img_location = logo_obj.faces().group_by(Axis.X)[0].face().center_location  # Avoid overlapping:
-    logo_img_location.position = Vector(logo_img_location.position.X - 4e-2, logo_img_location.position.Y,
-                                        logo_img_location.position.Z)
+    logo_img_location = logo_obj.faces().group_by(Axis.X)[0].face().center_location
+    logo_img_location *= Location((0, 0, 4e-2), (0, 0, 90))  # Avoid overlapping and adjust placement
 
     logo_img_path = os.path.join(ASSETS_DIR, 'img.jpg')
     img_glb_bytes, img_name = image_to_gltf(logo_img_path, logo_img_location, height=18)

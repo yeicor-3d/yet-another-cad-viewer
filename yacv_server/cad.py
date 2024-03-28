@@ -91,13 +91,6 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
     if not isinstance(center_loc, TopLoc_Location):
         raise ValueError('Center location not valid')
     plane = Plane(Location(center_loc))
-    # Convert coordinates system
-    plane.origin = Vector(plane.origin.X, plane.origin.Z, -plane.origin.Y)
-    plane.z_dir = -plane.y_dir
-    plane.y_dir = plane.z_dir
-
-    def vert(v: Vector) -> Tuple[float, float, float]:
-        return v.X, v.Y, v.Z
 
     # Load the image to a byte buffer
     img = Image.open(source)
@@ -121,13 +114,17 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
     img.save(img_buf, format=format)
     img_buf = img_buf.getvalue()
 
+    # Convert coordinates system as a last step (gltf is Y-up instead of Z-up)
+    def vert(v: Vector) -> Vector:
+        return Vector(v.X, v.Z, -v.Y)
+
     # Build the gltf
     mgr = GLTFMgr(image=(img_buf, save_mime))
     mgr.add_face([
-        vert(plane.origin - plane.x_dir * width / 2 - plane.y_dir * height / 2),
-        vert(plane.origin + plane.x_dir * width / 2 - plane.y_dir * height / 2),
-        vert(plane.origin + plane.x_dir * width / 2 + plane.y_dir * height / 2),
         vert(plane.origin - plane.x_dir * width / 2 + plane.y_dir * height / 2),
+        vert(plane.origin + plane.x_dir * width / 2 + plane.y_dir * height / 2),
+        vert(plane.origin + plane.x_dir * width / 2 - plane.y_dir * height / 2),
+        vert(plane.origin - plane.x_dir * width / 2 - plane.y_dir * height / 2),
     ], [
         (0, 2, 1),
         (0, 3, 2),
