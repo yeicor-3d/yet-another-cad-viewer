@@ -41,8 +41,7 @@ onMounted(() => {
     emit('load')
   });
   elem.value.addEventListener('camera-change', onCameraChange);
-  elem.value.addEventListener('progress',
-      (ev) => onProgress((ev as ProgressEvent).detail.totalProgress));
+  elem.value.addEventListener('progress', (ev) => onProgress((ev as any).detail.totalProgress));
 });
 
 // Handles loading the events for <model-viewer>'s slotted progress bar
