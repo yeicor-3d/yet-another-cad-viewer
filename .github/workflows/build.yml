@@ -25,6 +25,7 @@ jobs:
         with:
           cache: "yarn"
       - run: "yarn install"
+      - run: "git diff"  # Check if there are changes
       - run: "yarn build"
       - uses: "actions/upload-artifact@v4"
         with:
