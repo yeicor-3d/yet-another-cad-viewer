@@ -93,20 +93,22 @@ export class NetworkManager extends EventTarget {
 
     private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnect: () => void = () => {
     }) {
-        // console.debug("Found model", name, "with hash", hash, "and previous hash", prevHash);
-        // Also update buffered updates to have only the latest one per model
+        console.debug("Found model", name, "with hash", hash, "at", url, "isRemove", isRemove);
+
+        // We only care about the latest update per model name
         this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);
 
-        // Add the new model to the list of updates
-        let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
-        this.bufferedUpdates.push(newModel);
+        // Add the new model to the list of updates and dispatch the early update
+        let upd = new NetworkUpdateEventModel(name, url, hash, isRemove);
+        this.bufferedUpdates.push(upd);
+        this.dispatchEvent(new CustomEvent("update-early", {detail: this.bufferedUpdates}));
 
         // Optimization: try to batch updates automatically for faster rendering
         if (this.batchTimeout !== null) clearTimeout(this.batchTimeout);
         this.batchTimeout = setTimeout(() => {
             // Update known hashes for minimal updates
             for (let model of this.bufferedUpdates) {
-                if (model.hash && model.hash === this.knownObjectHashes[model.name]) {
+                if (model.isRemove == false && model.hash && model.hash === this.knownObjectHashes[model.name]) {
                     // Delete this useless update
                     let foundFirst = false;
                     this.bufferedUpdates = this.bufferedUpdates.filter(m => {

@@ -46,16 +46,16 @@ def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
         return None
 
 
-def grab_all_cad() -> List[Tuple[str, CADCoreLike]]:
+def grab_all_cad() -> set[Tuple[str, CADCoreLike]]:
     """ Grab all shapes by inspecting the stack """
     import inspect
     stack = inspect.stack()
-    shapes = []
+    shapes = set()
     for frame in stack:
         for key, value in frame.frame.f_locals.items():
             shape = get_shape(value, error=False)
-            if shape:
-                shapes.append((key, shape))
+            if shape and shape not in shapes:
+                shapes.add((key, shape))
     return shapes
 
 

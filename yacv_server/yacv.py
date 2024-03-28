@@ -194,7 +194,7 @@ class YACV:
 
     def show_cad_all(self, **kwargs):
         """Publishes all CAD objects in the current scope to the server"""
-        all_cad = grab_all_cad()
+        all_cad = list(grab_all_cad())  # List for reproducible iteration order
         self.show(*[cad for _, cad in all_cad], names=[name for name, _ in all_cad], **kwargs)
 
     def remove(self, name: str):

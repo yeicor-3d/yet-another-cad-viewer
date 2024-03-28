@@ -33,6 +33,10 @@ const setDisableTap = (val: boolean) => disableTap.value = val;
 provide('disableTap', {disableTap, setDisableTap});
 
 async function onModelUpdateRequest(event: NetworkUpdateEvent) {
+  // Trigger progress bar as soon as possible (also triggered earlier for each raw notification)
+  if (viewer.value && event.models.length > 0) {
+    viewer.value.onProgress(0.10);
+  }
   // Load/unload a new batch of models to optimize rendering time
   console.log("Received model update request", event.models);
   let shutdownRequestIndex = event.models.findIndex((model) => model.isRemove == null);
@@ -70,6 +74,8 @@ async function onModelRemoveRequest(name: string) {
 
 // Set up the load model event listener
 let networkMgr = new NetworkManager();
+networkMgr.addEventListener('update-early',
+    (e) => viewer.value?.onProgress((e as CustomEvent<Array<any>>).detail.length * 0.01));
 networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
 // Start loading all configured models ASAP
 for (let model of settings.preload) {

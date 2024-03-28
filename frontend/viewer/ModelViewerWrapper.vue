@@ -8,8 +8,8 @@ import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelSc
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
 import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer";
 import type {Vector3} from "three";
-import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import {BufferGeometry, Mesh} from "three";
+import {acceleratedRaycast, computeBoundsTree, disposeBoundsTree} from 'three-mesh-bvh';
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 //@ts-ignore
@@ -41,7 +41,31 @@ onMounted(() => {
     emit('load')
   });
   elem.value.addEventListener('camera-change', onCameraChange);
+  elem.value.addEventListener('progress',
+      (ev) => onProgress((ev as ProgressEvent).detail.totalProgress));
 });
+
+// Handles loading the events for <model-viewer>'s slotted progress bar
+const progressBar = ref<HTMLElement | null>(null);
+const updateBar = ref<HTMLElement | null>(null);
+let onProgressHideTimeout: number | null = null;
+const onProgress = (totalProgress: number) => {
+  if (!progressBar.value || !updateBar.value) return;
+  // Update the progress bar and ensure it's visible
+  progressBar.value.style.display = 'block';
+  progressBar.value.style.opacity = '1'; // Fade in
+  updateBar.value.style.width = `${totalProgress * 100}%`;
+  // Auto-hide smoothly when no progress is made for a while
+  if (onProgressHideTimeout) clearTimeout(onProgressHideTimeout);
+  onProgressHideTimeout = setTimeout(() => {
+    if (!progressBar.value) return;
+    progressBar.value.style.opacity = '0'; // Fade out
+    setTimeout(() => {
+      if (!progressBar.value) return;
+      progressBar.value.style.display = 'none'; // Actually hide
+    }, 300); // 0.3s fade out
+  }, 1000);
+};
 
 class Line3DData {
   startHotspot: HTMLElement = document.body
@@ -137,7 +161,7 @@ function entries(lines: { [id: number]: Line3DData }): [string, Line3DData][] {
   return Object.entries(lines);
 }
 
-defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D});
+defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D, onProgress});
 
 let {disableTap} = inject<{ disableTap: Ref<boolean> }>('disableTap')!!;
 watch(disableTap, (value) => {
@@ -155,13 +179,19 @@ watch(disableTap, (value) => {
                 :shadow-intensity="settings.shadowIntensity" interaction-prompt="none" :autoplay="settings.autoplay"
                 :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :skybox-image="settings.background"
                 :environment-image="settings.background">
-    <slot></slot> <!-- Controls, annotations, etc. -->
+    <slot></slot>
+    <!-- Display some information during initial load -->
     <div class="annotation initial-load-banner">
       Trying to load models from...
       <v-list v-for="src in settings.preload" :key="src">
         <v-list-item>{{ src }}</v-list-item>
       </v-list>
       <!-- Too much idle CPU usage: <loading></loading> -->
+    </div>
+
+    <!-- Customize the progress bar -->
+    <div class="progress-bar" slot="progress-bar" ref="progressBar">
+      <div class="update-bar" ref="updateBar"/>
     </div>
   </model-viewer>
 
@@ -222,5 +252,31 @@ watch(disableTap, (value) => {
 
 .initial-load-banner .v-list-item {
   overflow: hidden;
+}
+
+.progress-bar {
+  display: block;
+  pointer-events: none;
+  width: 100%;
+  height: 10%;
+  max-height: 2%;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate3d(-50%, 0%, 0);
+  border-radius: 25px;
+  box-shadow: 0 3px 10px 3px rgba(0, 0, 0, 0.5), 0 0 5px 1px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s;
+}
+
+.update-bar {
+  background-color: rgba(255, 255, 255, 0.9);
+  width: 0;
+  height: 100%;
+  border-radius: 25px;
+  float: left;
+  transition: width 0.3s;
 }
 </style>
