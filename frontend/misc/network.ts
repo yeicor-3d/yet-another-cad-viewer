@@ -93,28 +93,45 @@ export class NetworkManager extends EventTarget {
 
     private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnect: () => void = () => {
     }) {
-        let prevHash = this.knownObjectHashes[name];
         // console.debug("Found model", name, "with hash", hash, "and previous hash", prevHash);
-        if (!hash || hash !== prevHash || isRemove) {
-            // Update known hashes
-            if (isRemove == false) {
-                this.knownObjectHashes[name] = hash;
-            } else if (isRemove == true) {
-                if (!(name in this.knownObjectHashes)) return; // Nothing to remove...
-                delete this.knownObjectHashes[name];
-                // Also update buffered updates if the model is removed
-                this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);
-            }
-            let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
-            this.bufferedUpdates.push(newModel);
+        // Also update buffered updates to have only the latest one per model
+        this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);
 
-            // Optimization: try to batch updates automatically for faster rendering
-            if (this.batchTimeout !== null) clearTimeout(this.batchTimeout);
-            this.batchTimeout = setTimeout(() => {
-                this.dispatchEvent(new NetworkUpdateEvent(this.bufferedUpdates, disconnect));
-                this.bufferedUpdates = [];
-            }, batchTimeout);
-        }
+        // Add the new model to the list of updates
+        let newModel = new NetworkUpdateEventModel(name, url, hash, isRemove);
+        this.bufferedUpdates.push(newModel);
+
+        // Optimization: try to batch updates automatically for faster rendering
+        if (this.batchTimeout !== null) clearTimeout(this.batchTimeout);
+        this.batchTimeout = setTimeout(() => {
+            // Update known hashes for minimal updates
+            for (let model of this.bufferedUpdates) {
+                if (model.hash && model.hash === this.knownObjectHashes[model.name]) {
+                    // Delete this useless update
+                    let foundFirst = false;
+                    this.bufferedUpdates = this.bufferedUpdates.filter(m => {
+                        if (m === model) {
+                            if (!foundFirst) { // Remove only first full match
+                                foundFirst = true;
+                                return false;
+                            }
+                        }
+                        return true;
+                    })
+                } else {
+                    // Keep this update and update the last known hash
+                    if (model.isRemove == true) {
+                        if (model.name in this.knownObjectHashes) delete this.knownObjectHashes[model.name];
+                    } else if (model.isRemove == false) {
+                        this.knownObjectHashes[model.name] = model.hash;
+                    }
+                }
+            }
+
+            // Dispatch the event to actually update the models
+            this.dispatchEvent(new NetworkUpdateEvent(this.bufferedUpdates, disconnect));
+            this.bufferedUpdates = [];
+        }, batchTimeout);
     }
 }
 

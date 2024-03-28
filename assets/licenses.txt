@@ -2225,13 +2225,13 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - three@0.162.0
+ - three@0.160.1
 
 This package contains the following license and notice below:
 
 The MIT License
 
-Copyright © 2010-2024 three.js authors
+Copyright © 2010-2023 three.js authors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

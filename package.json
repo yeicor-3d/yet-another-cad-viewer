@@ -15,7 +15,8 @@
     "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
   },
   "dependencies": {
-    "@gltf-transform/core": "^3.10.0",
+    "@gltf-transform/core": "^3.10.1",
+    "@gltf-transform/extensions": "^3.10.1",
     "@gltf-transform/functions": "^3.10.1",
     "@google/model-viewer": "^3.4.0",
     "@jamescoyle/vue-icon": "^0.1.2",
