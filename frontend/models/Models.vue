@@ -36,9 +36,7 @@ function onRemove(mesh: Mesh) {
 }
 
 function findModel(name: string) {
-  console.log('Find model', name);
   if (!expandedNames.value.includes(name)) expandedNames.value.push(name);
-  console.log('Expanded', expandedNames.value);
 }
 
 defineExpose({findModel})

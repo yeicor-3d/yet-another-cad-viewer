@@ -93,7 +93,7 @@ export class NetworkManager extends EventTarget {
 
     private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnect: () => void = () => {
     }) {
-        console.debug("Found model", name, "with hash", hash, "at", url, "isRemove", isRemove);
+        // console.debug("Found model", name, "with hash", hash, "at", url, "isRemove", isRemove);
 
         // We only care about the latest update per model name
         this.bufferedUpdates = this.bufferedUpdates.filter(m => m.name !== name);

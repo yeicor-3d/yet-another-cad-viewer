@@ -13,23 +13,25 @@ export class SceneMgr {
         let loadStart = performance.now();
         let loadNetworkEnd: number;
 
-        // Start merging into the current document, replacing or adding as needed
-        document = await mergePartial(url, name, document, () => loadNetworkEnd = performance.now());
+        try {
+            // Start merging into the current document, replacing or adding as needed
+            document = await mergePartial(url, name, document, () => loadNetworkEnd = performance.now());
 
-        console.log("Model", name, "loaded in", performance.now() - loadNetworkEnd!, "ms after",
-            loadNetworkEnd! - loadStart, "ms of transferring data (maybe building the object on the server)");
+            console.log("Model", name, "loaded in", performance.now() - loadNetworkEnd!, "ms after",
+                loadNetworkEnd! - loadStart, "ms of transferring data (maybe building the object on the server)");
+        } finally {
+            if (updateHelpers) {
+                // Reload the helpers to fit the new model
+                await this.reloadHelpers(sceneUrl, document, reloadScene);
+                reloadScene = false;
+            }
 
-        if (updateHelpers) {
-            // Reload the helpers to fit the new model
-            await this.reloadHelpers(sceneUrl, document, reloadScene);
-            reloadScene = false;
-        }
-
-        if (reloadScene) {
-            // Display the final fully loaded model
-            let displayStart = performance.now();
-            document = await this.showCurrentDoc(sceneUrl, document);
-            console.log("Scene displayed in", performance.now() - displayStart, "ms");
+            if (reloadScene) {
+                // Display the final fully loaded model
+                let displayStart = performance.now();
+                document = await this.showCurrentDoc(sceneUrl, document);
+                console.log("Scene displayed in", performance.now() - displayStart, "ms");
+            }
         }
 
         return document;
@@ -97,7 +99,7 @@ export class SceneMgr {
         // Serialize the document into a GLB and update the viewerSrc
         let buffer = await toBuffer(document);
         let blob = new Blob([buffer], {type: 'model/gltf-binary'});
-        console.debug("Showing current doc", document, "as", Array.from(buffer));
+        console.debug("Showing current doc", document, "with", buffer.length, "total bytes");
         sceneUrl.value = URL.createObjectURL(blob);
 
         return document;
