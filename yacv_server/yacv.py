@@ -325,7 +325,7 @@ _find_var_name_count = 0
 def _find_var_name(obj: any, avoid_levels: int = 2) -> str:
     """A hacky way to get a stable name for an object that may change over time"""
     global _find_var_name_count
-    obj_shape = get_shape(obj)
+    obj_shape = get_shape(obj, error=False) or obj
     for frame in inspect.stack()[avoid_levels:]:
         for key, value in frame.frame.f_locals.items():
             if get_shape(value, error=False) is obj_shape:
