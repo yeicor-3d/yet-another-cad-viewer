@@ -2,10 +2,11 @@
 Utilities to work with CAD objects
 """
 import hashlib
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, Tuple
 
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
+from build123d import Compound, Shape
 
 from yacv_server.gltf import GLTFMgr
 
@@ -13,7 +14,7 @@ CADCoreLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and
 CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
 
 
-def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
+def get_shape(obj: CADLike, error: bool = True, in_iter: bool = False) -> Optional[CADCoreLike]:
     """ Get the shape of a CAD-like object """
 
     # Try to grab a shape if a different type of object was passed
@@ -39,6 +40,17 @@ def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
     # Return shapes
     if isinstance(obj, TopoDS_Shape):
         return obj
+
+    # Handle iterables like Build123d ShapeList by extracting all sub-shapes and making a compound
+    if not in_iter:
+        try:
+            obj_iter = iter(obj)
+            # print(obj, ' -> ', obj_iter)
+            shapes_raw = [get_shape(sub_obj, error=False, in_iter=True) for sub_obj in obj_iter]
+            shapes_bd = [Shape(shape) for shape in shapes_raw if shape is not None]
+            return get_shape(Compound(shapes_bd), error)
+        except TypeError:
+            pass
 
     if error:
         raise ValueError(f'Cannot show object of type {type(obj)} (submit issue?)')

@@ -43,10 +43,11 @@ const emit = defineEmits<{ remove: [] }>()
 
 let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
 
-// Reactive properties
-const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
-const opacity = defineModel<number>("opacity", {default: 1});
-const wireframe = ref(false);
+// Count the number of faces, edges and vertices
+let faceCount = ref(-1);
+let edgeCount = ref(-1);
+let vertexCount = ref(-1);
+
 // Clipping planes are handled in y-up space (swapped on interface, Z inverted later)
 const clipPlaneX = ref(1);
 const clipPlaneSwappedX = ref(false);
@@ -56,24 +57,10 @@ const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
 const edgeWidth = ref(settings.edgeWidth);
 
-// Count the number of faces, edges and vertices
-let faceCount = props.meshes
-    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES))
-    .map(p => (p.getExtras()?.face_triangles_end as any)?.length ?? 1)
-    .reduce((a, b) => a + b, 0)
-let edgeCount = props.meshes
-    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]))
-    .map(p => (p.getExtras()?.edge_points_end as any)?.length ?? 0)
-    .reduce((a, b) => a + b, 0)
-let vertexCount = props.meshes
-    .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS))
-    .map(p => (p.getAttribute("POSITION")?.getCount() ?? 0))
-    .reduce((a, b) => a + b, 0)
-
-// Set initial defaults for the enabled features
-if (faceCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
-if (edgeCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
-if (vertexCount === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
+// Misc properties
+const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
+const opacity = defineModel<number>("opacity", {default: 1});
+const wireframe = ref(false);
 
 // Listeners for changes in the properties (or viewer reloads)
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
@@ -81,9 +68,6 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  // Iterate all primitives of the mesh and set their visibility based on the enabled features
-  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
-  // of not actually removing the primitives from the scene graph
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
@@ -107,10 +91,6 @@ function onOpacityChange(newOpacity: number) {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  // Iterate all primitives of the mesh and set their opacity based on the enabled features
-  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
-  // of not actually removing the primitives from the scene graph
-  // console.log('Opacity may have changed', newOpacity)
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material && child.material.opacity !== newOpacity) {
@@ -129,10 +109,6 @@ function onWireframeChange(newWireframe: boolean) {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  // Iterate all primitives of the mesh and set their wireframe based on the enabled features
-  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
-  // of not actually removing the primitives from the scene graph
-  // console.log('Wireframe may have changed', newWireframe)
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
       if (child.material && child.material.wireframe !== newWireframe) {
@@ -268,9 +244,8 @@ function onModelLoad() {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
-  // Iterate all primitives of the mesh and set their visibility based on the enabled features
-  // Use the scene graph instead of the document to avoid reloading the same model, at the cost
-  // of not actually removing the primitives from the scene graph
+
+  // Add darkened back faces for all face objects to improve cutting planes
   let childrenToAdd: Array<MObject3D> = [];
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
@@ -302,6 +277,28 @@ function onModelLoad() {
     }
   });
   childrenToAdd.forEach((child: MObject3D) => sceneModel.add(child));
+
+  // Count the number of faces, edges and vertices
+  faceCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES))
+      .map(p => (p.getExtras()?.face_triangles_end as any)?.length ?? 1)
+      .reduce((a, b) => a + b, 0)
+  edgeCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]))
+      .map(p => (p.getExtras()?.edge_points_end as any)?.length ?? 0)
+      .reduce((a, b) => a + b, 0)
+  vertexCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS))
+      .map(p => (p.getAttribute("POSITION")?.getCount() ?? 0))
+      .reduce((a, b) => a + b, 0)
+
+  // Set the enabled features to all provided features
+  if (faceCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
+  else if (!enabledFeatures.value.includes(0)) enabledFeatures.value.push(0)
+  if (edgeCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
+  else if (!enabledFeatures.value.includes(1)) enabledFeatures.value.push(1)
+  if (vertexCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
+  else if (!enabledFeatures.value.includes(2)) enabledFeatures.value.push(2)
 
   // Furthermore...
   // Enabled features may have been reset after a reload
