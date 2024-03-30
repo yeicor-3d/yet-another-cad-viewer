@@ -2,7 +2,7 @@ import {settings} from "./settings";
 
 const batchTimeout = 250; // ms
 
-class NetworkUpdateEventModel {
+export class NetworkUpdateEventModel {
     name: string;
     url: string;
     // TODO: Detect and manage instances of the same object (same hash, different name)

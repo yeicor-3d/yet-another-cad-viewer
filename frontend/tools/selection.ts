@@ -3,6 +3,7 @@
 import type {MObject3D} from "./Selection.vue";
 import type {Intersection} from "three";
 import {Box3} from "three";
+import {extrasNameKey} from "../misc/gltf";
 
 /** Information about a single item in the selection */
 export class SelectionInfo {
@@ -17,6 +18,17 @@ export class SelectionInfo {
         this.object = object;
         this.kind = kind;
         this.indices = indices;
+    }
+
+    public getObjectName() {
+        return this.object.userData[extrasNameKey];
+    }
+
+    public matches(object: MObject3D) {
+        return this.getObjectName() === object.userData[extrasNameKey] &&
+            (this.kind === 'face' && (object.type === 'Mesh' || object.type === 'SkinnedMesh') ||
+                this.kind === 'edge' && (object.type === 'Line' || object.type === 'LineSegments') ||
+                this.kind === 'vertex' && object.type === 'Points')
     }
 
     public getKey() {

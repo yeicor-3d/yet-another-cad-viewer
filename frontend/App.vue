@@ -7,7 +7,7 @@ import Tools from "./tools/Tools.vue";
 import Models from "./models/Models.vue";
 import {VBtn, VLayout, VMain, VToolbarTitle} from "vuetify/lib/components/index.mjs";
 import {settings} from "./misc/settings";
-import {NetworkManager, NetworkUpdateEvent} from "./misc/network";
+import {NetworkManager, NetworkUpdateEvent, NetworkUpdateEventModel} from "./misc/network";
 import {SceneMgr} from "./misc/scene";
 import {Document} from "@gltf-transform/core";
 import type ModelViewerWrapperT from "./viewer/ModelViewerWrapper.vue";
@@ -28,6 +28,7 @@ const viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
 const sceneDocument = shallowRef(new Document());
 provide('sceneDocument', {sceneDocument});
 const models: Ref<InstanceType<typeof Models> | null> = ref(null)
+const tools: Ref<InstanceType<typeof Tools> | null> = ref(null)
 const disableTap = ref(false);
 const setDisableTap = (val: boolean) => disableTap.value = val;
 provide('disableTap', {disableTap, setDisableTap});
@@ -49,6 +50,7 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
   for (let modelIndex in event.models) {
     let isLast = parseInt(modelIndex) === event.models.length - 1;
     let model = event.models[modelIndex];
+    tools.value?.removeObjectSelections(model.name);
     try {
       if (!model.isRemove) {
         doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast && settings.loadHelpers, isLast);
@@ -68,8 +70,8 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
 }
 
 async function onModelRemoveRequest(name: string) {
-  sceneDocument.value = await SceneMgr.removeModel(sceneUrl, sceneDocument.value, name);
-  triggerRef(sceneDocument); // Why not triggered automatically?
+  await onModelUpdateRequest(new NetworkUpdateEvent([new NetworkUpdateEventModel(name, "", null, true)], () => {
+  }));
 }
 
 // Set up the load model event listener
@@ -114,7 +116,7 @@ async function loadModelManual() {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools :viewer="viewer" @findModel="(name) => models?.findModel(name)"/>
+      <tools ref="tools" :viewer="viewer" @findModel="(name) => models?.findModel(name)"/>
     </sidebar>
 
   </v-layout>

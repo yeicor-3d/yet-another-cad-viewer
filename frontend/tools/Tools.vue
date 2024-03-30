@@ -19,7 +19,7 @@ import type {ModelViewerElement} from '@google/model-viewer';
 import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
-import {defineAsyncComponent, type Ref, ref} from "vue";
+import {defineAsyncComponent, ref, type Ref} from "vue";
 import type {SelectionInfo} from "./selection";
 
 const SelectionComponent = defineAsyncComponent({
@@ -107,6 +107,15 @@ async function openGithub() {
   window.open('https://github.com/yeicor-3d/yet-another-cad-viewer', '_blank')
 }
 
+function removeObjectSelections(objName: string) {
+  for (let selInfo of selection.value.filter((s) => s.getObjectName() === objName)) {
+    selectionComp.value?.deselect(selInfo);
+  }
+  selectionComp.value?.updateBoundingBox();
+  selectionComp.value?.updateDistances();
+}
+
+defineExpose({removeObjectSelections});
 
 // Add keyboard shortcuts
 window.addEventListener('keydown', (event) => {
@@ -133,7 +142,7 @@ window.addEventListener('keydown', (event) => {
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
-  <selection-component :ref="selectionComp as any" :viewer="props.viewer as any" v-model="selection"
+  <selection-component ref="selectionComp" :viewer="props.viewer as any" v-model="selection"
                        @findModel="(name) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>
@@ -186,5 +195,9 @@ window.addEventListener('keydown', (event) => {
 .icon-detail + svg {
   position: relative;
   top: 5px;
+}
+
+h5 {
+  font-size: 14px;
 }
 </style>

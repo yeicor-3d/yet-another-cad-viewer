@@ -12,8 +12,8 @@ import {
   VTooltip,
 } from "vuetify/lib/components/index.mjs";
 import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
-import {Document, Mesh} from "@gltf-transform/core";
-import {inject, ref, type ShallowRef, watch} from "vue";
+import {Mesh} from "@gltf-transform/core";
+import {ref, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {
   mdiCircleOpacity,
@@ -85,7 +85,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   scene.queueRender()
 }
 
-watch(enabledFeatures, onEnabledFeaturesChange);
+watch(enabledFeatures, onEnabledFeaturesChange, {deep: true});
 
 function onOpacityChange(newOpacity: number) {
   let scene = props.viewer?.scene;
@@ -121,8 +121,6 @@ function onWireframeChange(newWireframe: boolean) {
 }
 
 watch(wireframe, onWireframeChange);
-
-let {sceneDocument} = inject<{ sceneDocument: ShallowRef<Document> }>('sceneDocument')!!;
 
 function onClipPlanesChange() {
   let scene = props.viewer?.scene;
@@ -245,9 +243,35 @@ function onModelLoad() {
   let sceneModel = (scene as any)?._model;
   if (!scene || !sceneModel) return;
 
+  // Count the number of faces, edges and vertices
+  const isFirstLoad = faceCount.value === -1;
+  faceCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES))
+      .map(p => (p.getExtras()?.face_triangles_end as any)?.length ?? 1)
+      .reduce((a, b) => a + b, 0)
+  edgeCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]))
+      .map(p => (p.getExtras()?.edge_points_end as any)?.length ?? 0)
+      .reduce((a, b) => a + b, 0)
+  vertexCount.value = props.meshes
+      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS))
+      .map(p => (p.getAttribute("POSITION")?.getCount() ?? 0))
+      .reduce((a, b) => a + b, 0)
+
+  // First time: set the enabled features to all provided features
+  if (isFirstLoad) {
+    if (faceCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
+    else if (!enabledFeatures.value.includes(0)) enabledFeatures.value.push(0)
+    if (edgeCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
+    else if (!enabledFeatures.value.includes(1)) enabledFeatures.value.push(1)
+    if (vertexCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
+    else if (!enabledFeatures.value.includes(2)) enabledFeatures.value.push(2)
+  }
+
   // Add darkened back faces for all face objects to improve cutting planes
   let childrenToAdd: Array<MObject3D> = [];
   sceneModel.traverse((child: MObject3D) => {
+    child.updateMatrixWorld();  // Objects are mostly static, so ensure updated matrices
     if (child.userData[extrasNameKey] === modelName) {
       if (child.type == 'Mesh' || child.type == 'SkinnedMesh') {
         // Compute a BVH for faster raycasting (MUCH faster selection)
@@ -277,28 +301,6 @@ function onModelLoad() {
     }
   });
   childrenToAdd.forEach((child: MObject3D) => sceneModel.add(child));
-
-  // Count the number of faces, edges and vertices
-  faceCount.value = props.meshes
-      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.TRIANGLES))
-      .map(p => (p.getExtras()?.face_triangles_end as any)?.length ?? 1)
-      .reduce((a, b) => a + b, 0)
-  edgeCount.value = props.meshes
-      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() in [WebGL2RenderingContext.LINE_STRIP, WebGL2RenderingContext.LINES]))
-      .map(p => (p.getExtras()?.edge_points_end as any)?.length ?? 0)
-      .reduce((a, b) => a + b, 0)
-  vertexCount.value = props.meshes
-      .flatMap((m) => m.listPrimitives().filter(p => p.getMode() === WebGL2RenderingContext.POINTS))
-      .map(p => (p.getAttribute("POSITION")?.getCount() ?? 0))
-      .reduce((a, b) => a + b, 0)
-
-  // Set the enabled features to all provided features
-  if (faceCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 0)
-  else if (!enabledFeatures.value.includes(0)) enabledFeatures.value.push(0)
-  if (edgeCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 1)
-  else if (!enabledFeatures.value.includes(1)) enabledFeatures.value.push(1)
-  if (vertexCount.value === 0) enabledFeatures.value = enabledFeatures.value.filter((f) => f !== 2)
-  else if (!enabledFeatures.value.includes(2)) enabledFeatures.value.push(2)
 
   // Furthermore...
   // Enabled features may have been reset after a reload

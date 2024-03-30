@@ -26,9 +26,10 @@ export default defineConfig({
         }
     },
     build: {
-        assetsDir: '.',
+        assetsDir: '.', // Support deploying to a subdirectory using relative URLs
         cssCodeSplit: false, // Small enough to inline
         chunkSizeWarningLimit: 550, // Three.js is big. Draco is even bigger but not likely to be used.
+        sourcemap: true, // For debugging production
     },
     define: {
         __APP_NAME__: JSON.stringify(name),

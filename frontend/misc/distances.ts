@@ -8,7 +8,6 @@ function getCenterAndVertexList(selInfo: SelectionInfo, scene: ModelScene): {
     center: Vector3,
     vertices: Array<Vector3>
 } {
-    selInfo.object.updateMatrixWorld();
     let pos: BufferAttribute | InterleavedBufferAttribute = selInfo.object.geometry.getAttribute('position');
     let ind: BufferAttribute | null = selInfo.object.geometry.index;
     if (ind === null) {

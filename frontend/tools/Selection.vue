@@ -33,21 +33,23 @@ let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
 let showDistances = ref<Boolean>(true);
 
 let mouseDownAt: [number, number] | null = null;
+let mouseDownTime = 0;
 let selectFilter = ref('Any (S)');
 const raycaster = new Raycaster();
 
 
-let selectionMoveListener = (event: MouseEvent) => {
+let mouseDownListener = (event: MouseEvent) => {
   mouseDownAt = [event.clientX, event.clientY];
+  mouseDownTime = performance.now();
   if (!selectionEnabled.value) return;
 };
 
-let selectionListener = (event: MouseEvent) => {
+let mouseUpListener = (event: MouseEvent) => {
   // If the mouse moved while clicked (dragging), avoid selection logic
   if (mouseDownAt) {
     let [x, y] = mouseDownAt;
     mouseDownAt = null;
-    if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5) {
+    if (Math.abs(event.clientX - x) > 5 || Math.abs(event.clientY - y) > 5 || performance.now() - mouseDownTime > 500) {
       return;
     }
   }
@@ -254,14 +256,29 @@ let onViewerReady = (viewer: typeof ModelViewerWrapperT) => {
   viewer.onElemReady((elem: ModelViewerElement) => {
     if (hasListeners) return;
     hasListeners = true;
-    elem.addEventListener('mouseup', selectionListener);
-    elem.addEventListener('mousedown', selectionMoveListener); // Avoid clicking when dragging
+    elem.addEventListener('mousedown', mouseDownListener); // Avoid clicking when dragging
+    elem.addEventListener('mouseup', mouseUpListener);
     elem.addEventListener('load', () => {
+      // After a reload of the scene, we need to recover object references and highlight them again
+      for (let sel of selected.value) {
+        let scene = props.viewer?.scene;
+        if (!scene) continue;
+        let foundObject = null;
+        scene.traverse((obj: MObject3D) => {
+          if (sel.matches(obj)) {
+            foundObject = obj as MObject3D;
+          }
+        });
+        if (foundObject) {
+          sel.object = foundObject;
+          highlight(sel);
+        } else {
+          selected.value = selected.value.filter((m) => m.getKey() !== sel.getKey());
+        }
+      }
       if (firstLoad) {
         toggleShowBoundingBox();
         firstLoad = false;
-      } else {
-        updateBoundingBox();
       }
     });
     elem.addEventListener('camera-change', onCameraChange);
@@ -405,6 +422,8 @@ function updateDistances() {
 
   return;
 }
+
+defineExpose({deselect, updateBoundingBox, updateDistances});
 
 // Add keyboard shortcuts
 window.addEventListener('keydown', (event) => {

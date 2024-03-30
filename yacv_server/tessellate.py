@@ -1,14 +1,9 @@
-import hashlib
-import io
-import re
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple
 
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
 from OCP.GCPnts import GCPnts_TangentialDeflection
-from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
-from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Shape, Vertex, Face, Location
 from pygltflib import GLTF2
@@ -130,30 +125,3 @@ def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex, faces: List[Topo
     mgr.add_vertex(_push_point((c.X, c.Y, c.Z), faces))
 
 
-def _hashcode(obj: Union[bytes, TopoDS_Shape], **extras) -> str:
-    """Utility to compute the hash code of a shape recursively without the need to tessellate it"""
-    # NOTE: obj.HashCode(MAX_HASH_CODE) is not stable across different runs of the same program
-    # This is best-effort and not guaranteed to be unique
-    hasher = hashlib.md5(usedforsecurity=False)
-    for k, v in extras.items():
-        hasher.update(str(k).encode())
-        hasher.update(str(v).encode())
-    if isinstance(obj, bytes):
-        hasher.update(obj)
-    elif isinstance(obj, TopLoc_Location):
-        sub_data = io.BytesIO()
-        obj.DumpJson(sub_data)
-        hasher.update(sub_data.getvalue())
-    elif isinstance(obj, TopoDS_Shape):
-        map_of_shapes = TopTools_IndexedMapOfShape()
-        TopExp.MapShapes_s(obj, map_of_shapes)
-        for i in range(1, map_of_shapes.Extent() + 1):
-            sub_shape = map_of_shapes.FindKey(i)
-            sub_data = io.BytesIO()
-            TopoDS_Shape.DumpJson(sub_shape, sub_data)
-            val = sub_data.getvalue()
-            val = re.sub(b'"this": "[^"]*"', b'', val)  # Remove memory address
-            hasher.update(val)
-    else:
-        raise ValueError(f'Cannot hash object of type {type(obj)}')
-    return hasher.hexdigest()

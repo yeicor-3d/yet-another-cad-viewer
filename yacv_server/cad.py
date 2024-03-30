@@ -2,9 +2,13 @@
 Utilities to work with CAD objects
 """
 import hashlib
+import io
+import re
 from typing import Optional, Union, Tuple
 
+from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
+from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Shape
 from build123d import Compound, Shape
 
@@ -14,7 +18,7 @@ CADCoreLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and
 CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
 
 
-def get_shape(obj: CADLike, error: bool = True, in_iter: bool = False) -> Optional[CADCoreLike]:
+def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
     """ Get the shape of a CAD-like object """
 
     # Try to grab a shape if a different type of object was passed
@@ -42,13 +46,22 @@ def get_shape(obj: CADLike, error: bool = True, in_iter: bool = False) -> Option
         return obj
 
     # Handle iterables like Build123d ShapeList by extracting all sub-shapes and making a compound
-    if not in_iter:
+    if isinstance(obj, list) or isinstance(obj, tuple) or isinstance(obj, set) or isinstance(obj, dict):
         try:
-            obj_iter = iter(obj)
+            if isinstance(obj, dict):
+                obj_iter = iter(obj.values())
+            else:
+                obj_iter = iter(obj)
             # print(obj, ' -> ', obj_iter)
-            shapes_raw = [get_shape(sub_obj, error=False, in_iter=True) for sub_obj in obj_iter]
-            shapes_bd = [Shape(shape) for shape in shapes_raw if shape is not None]
-            return get_shape(Compound(shapes_bd), error)
+            shapes_raw = [get_shape(sub_obj, error=False) for sub_obj in obj_iter]
+            # Silently drop non-shapes
+            shapes_raw_filtered = [shape for shape in shapes_raw if shape is not None]
+            if len(shapes_raw_filtered) > 0:  # Continue if we found at least one shape
+                # Sorting is required to improve hashcode consistency
+                shapes_raw_filtered_sorted = sorted(shapes_raw_filtered, key=lambda x: _hashcode(x))
+                # Build a single compound shape
+                shapes_bd = [Shape(shape) for shape in shapes_raw_filtered_sorted if shape is not None]
+                return get_shape(Compound(shapes_bd), error)
         except TypeError:
             pass
 
@@ -149,3 +162,32 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
 
     # Return the GLTF binary blob and the suggested name of the image
     return b''.join(mgr.build().save_to_bytes()), name
+
+
+def _hashcode(obj: Union[bytes, CADCoreLike], **extras) -> str:
+    """Utility to compute the STABLE hash code of a shape"""
+    # NOTE: obj.HashCode(MAX_HASH_CODE) is not stable across different runs of the same program
+    # This is best-effort and not guaranteed to be unique
+    hasher = hashlib.md5(usedforsecurity=False)
+    for k, v in extras.items():
+        hasher.update(str(k).encode())
+        hasher.update(str(v).encode())
+    if isinstance(obj, bytes):
+        hasher.update(obj)
+    elif isinstance(obj, TopLoc_Location):
+        sub_data = io.BytesIO()
+        obj.DumpJson(sub_data)
+        hasher.update(sub_data.getvalue())
+    elif isinstance(obj, TopoDS_Shape):
+        map_of_shapes = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_s(obj, map_of_shapes)
+        for i in range(1, map_of_shapes.Extent() + 1):
+            sub_shape = map_of_shapes.FindKey(i)
+            sub_data = io.BytesIO()
+            TopoDS_Shape.DumpJson(sub_shape, sub_data)
+            val = sub_data.getvalue()
+            val = re.sub(b'"this": "[^"]*"', b'', val)  # Remove memory address
+            hasher.update(val)
+    else:
+        raise ValueError(f'Cannot hash object of type {type(obj)}')
+    return hasher.hexdigest()
