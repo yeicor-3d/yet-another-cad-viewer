@@ -462,20 +462,18 @@ window.addEventListener('keydown', (event) => {
 </script>
 
 <template>
-  <div class="select-parent">
-    <v-btn icon @click="toggleSelection" :color="selectionEnabled ? 'surface-light' : ''">
-      <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable (s)election mode' : 'Enable (s)election mode' }}
-      </v-tooltip>
-      <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
-    </v-btn>
-    <v-tooltip :text="'Select only '  + selectFilter.toString().toLocaleLowerCase()" :open-on-click="false">
-      <template v-slot:activator="{ props }">
-        <v-select v-bind="props" class="select-only" variant="underlined"
-                  :items="['Any (S)', '(F)aces', '(E)dges', '(V)ertices']"
-                  v-model="selectFilter"/>
-      </template>
+  <v-btn icon @click="toggleSelection" :color="selectionEnabled ? 'surface-light' : ''">
+    <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable (s)election mode' : 'Enable (s)election mode' }}
     </v-tooltip>
-  </div>
+    <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
+  </v-btn>
+  <v-tooltip :text="'Select only '  + selectFilter.toString().toLocaleLowerCase()" :open-on-click="false">
+    <template v-slot:activator="{ props }">
+      <v-select v-bind="props" class="select-only" variant="underlined"
+                :items="['Any (S)', '(F)aces', '(E)dges', '(V)ertices']"
+                v-model="selectFilter"/>
+    </template>
+  </v-tooltip>
   <v-btn icon @click="toggleHighlightNextSelection" :color="highlightNextSelection[0] ? 'surface-light' : ''">
     <v-tooltip activator="parent">(H)ighlight the next clicked element in the models list</v-tooltip>
     <svg-icon type="mdi" :path="mdiFeatureSearch"/>
@@ -494,20 +492,11 @@ window.addEventListener('keydown', (event) => {
 </template>
 
 <style scoped>
-/* Very hacky styling... */
-.select-parent {
-  height: 48px;
-}
-
-.select-parent .v-btn {
-  position: relative;
-  top: -20px;
-}
-
 .select-only {
-  display: inline-block;
-  width: calc(100% - 48px);
+  float: right;
+  height: 36px;
   position: relative;
   top: -12px;
+  width: calc(100% - 48px);
 }
 </style>
