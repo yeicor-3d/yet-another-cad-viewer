@@ -24,7 +24,7 @@ from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.rwlock import RWLock
 from yacv_server.tessellate import tessellate
-from cad import _hashcode
+from yacv_server.cad import _hashcode
 
 
 @dataclass_json
