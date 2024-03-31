@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {VExpansionPanels} from "vuetify/lib/components/index.mjs";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {Document, Mesh} from "@gltf-transform/core";

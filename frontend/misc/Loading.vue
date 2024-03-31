@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import {VContainer, VRow, VCol, VProgressCircular} from "vuetify/lib/components/index.mjs";
+<script lang="ts" setup>
+import {VCol, VContainer, VProgressCircular, VRow} from "vuetify/lib/components/index.mjs";
 </script>
 
 <template>

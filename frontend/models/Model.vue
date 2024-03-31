@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
   VBtn,
   VBtnToggle,
@@ -33,7 +33,7 @@ import {Plane} from "three/src/math/Plane.js";
 import {Vector3} from "three/src/math/Vector3.js";
 import type {MObject3D} from "../tools/Selection.vue";
 import {toLineSegments} from "../misc/lines.js";
-import {settings} from "../misc/settings.js";
+import {settings} from "../misc/settings.js"
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -178,8 +178,6 @@ watch(clipPlaneZ, onClipPlanesChange);
 watch(clipPlaneSwappedX, onClipPlanesChange);
 watch(clipPlaneSwappedY, onClipPlanesChange);
 watch(clipPlaneSwappedZ, onClipPlanesChange);
-// Clip planes are also affected by the camera position, so we need to listen to camera changes
-props.viewer!!.onElemReady((elem) => elem.addEventListener('camera-change', onClipPlanesChange))
 
 let edgeWidthChangeCleanup = [] as Array<() => void>;
 
@@ -318,95 +316,101 @@ function onModelLoad() {
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
-props.viewer!!.onElemReady((elem) => elem.addEventListener('load', onModelLoad))
+const onViewerReady = (viewer: InstanceType<typeof ModelViewerWrapper>) => {
+  viewer?.onElemReady((elem: HTMLElement) => {
+    elem.addEventListener('before-render', onModelLoad);
+    elem.addEventListener('camera-change', onClipPlanesChange);
+  });
+};
+if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) as any, onViewerReady);
 </script>
 
 <template>
   <v-expansion-panel :value="modelName">
-    <v-expansion-panel-title expand-icon="hide-this-icon" collapse-icon="hide-this-icon">
-      <v-btn-toggle v-model="enabledFeatures" multiple @click.stop color="surface-light">
+    <v-expansion-panel-title collapse-icon="hide-this-icon" expand-icon="hide-this-icon">
+      <v-btn-toggle v-model="enabledFeatures" color="surface-light" multiple @click.stop>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Faces ({{ faceCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiRectangle" :rotate="90"></svg-icon>
+          <svg-icon :path="mdiRectangle" :rotate="90" type="mdi"></svg-icon>
         </v-btn>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Edges ({{ edgeCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiRectangleOutline" :rotate="90"></svg-icon>
+          <svg-icon :path="mdiRectangleOutline" :rotate="90" type="mdi"></svg-icon>
         </v-btn>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Vertices ({{ vertexCount }})</v-tooltip>
-          <svg-icon type="mdi" :path="mdiVectorRectangle" :rotate="90"></svg-icon>
+          <svg-icon :path="mdiVectorRectangle" :rotate="90" type="mdi"></svg-icon>
         </v-btn>
       </v-btn-toggle>
       <div class="model-name">{{ modelName }}</div>
       <v-spacer></v-spacer>
       <v-btn icon @click.stop="emit('remove')">
         <v-tooltip activator="parent">Remove</v-tooltip>
-        <svg-icon type="mdi" :path="mdiDelete"></svg-icon>
+        <svg-icon :path="mdiDelete" type="mdi"></svg-icon>
       </v-btn>
     </v-expansion-panel-title>
     <v-expansion-panel-text>
-      <v-slider v-model="opacity" hide-details min="0" max="1" :step="0.1">
+      <v-slider v-model="opacity" :step="0.1" hide-details max="1" min="0">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Change opacity</v-tooltip>
-          <svg-icon type="mdi" :path="mdiCircleOpacity"></svg-icon>
+          <svg-icon :path="mdiCircleOpacity" type="mdi"></svg-icon>
         </template>
         <template v-slot:append>
           <v-tooltip activator="parent">Wireframe</v-tooltip>
-          <v-checkbox-btn trueIcon="mdi-triangle-outline" falseIcon="mdi-triangle" v-model="wireframe"></v-checkbox-btn>
+          <v-checkbox-btn v-model="wireframe" falseIcon="mdi-triangle" trueIcon="mdi-triangle-outline"></v-checkbox-btn>
         </template>
       </v-slider>
-      <v-slider v-if="edgeCount > 0 || vertexCount > 0" v-model="edgeWidth" hide-details min="0" max="1">
+      <v-slider v-if="edgeCount > 0 || vertexCount > 0" v-model="edgeWidth" hide-details max="1" min="0">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Edge and vertex sizes</v-tooltip>
-          <svg-icon type="mdi" :path="mdiVectorLine"></svg-icon>
+          <svg-icon :path="mdiVectorLine" type="mdi"></svg-icon>
         </template>
       </v-slider>
       <v-divider></v-divider>
-      <v-slider v-model="clipPlaneX" hide-details min="0" max="1">
+      <v-slider v-model="clipPlaneX" hide-details max="1" min="0">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Clip plane X</v-tooltip>
-          <svg-icon type="mdi" :path="mdiCube" :rotate="120"></svg-icon>
+          <svg-icon :path="mdiCube" :rotate="120" type="mdi"></svg-icon>
           X
         </template>
         <template v-slot:append>
           <v-tooltip activator="parent">Swap clip plane X</v-tooltip>
-          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
-                          v-model="clipPlaneSwappedX">
+          <v-checkbox-btn v-model="clipPlaneSwappedX" falseIcon="mdi-checkbox-blank-outline"
+                          trueIcon="mdi-checkbox-marked-outline">
             <template v-slot:label>
-              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+              <svg-icon :path="mdiSwapHorizontal" type="mdi"></svg-icon>
             </template>
           </v-checkbox-btn>
         </template>
       </v-slider>
-      <v-slider v-model="clipPlaneZ" hide-details min="0" max="1">
+      <v-slider v-model="clipPlaneZ" hide-details max="1" min="0">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Clip plane Y</v-tooltip>
-          <svg-icon type="mdi" :path="mdiCube" :rotate="-120"></svg-icon>
+          <svg-icon :path="mdiCube" :rotate="-120" type="mdi"></svg-icon>
           Y
         </template>
         <template v-slot:append>
           <v-tooltip activator="parent">Swap clip plane Y</v-tooltip>
-          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
-                          v-model="clipPlaneSwappedZ">
+          <v-checkbox-btn v-model="clipPlaneSwappedZ" falseIcon="mdi-checkbox-blank-outline"
+                          trueIcon="mdi-checkbox-marked-outline">
             <template v-slot:label>
-              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+              <svg-icon :path="mdiSwapHorizontal" type="mdi"></svg-icon>
             </template>
           </v-checkbox-btn>
         </template>
       </v-slider>
-      <v-slider v-model="clipPlaneY" hide-details min="0" max="1">
+      <v-slider v-model="clipPlaneY" hide-details max="1" min="0">
         <template v-slot:prepend>
           <v-tooltip activator="parent">Clip plane Z</v-tooltip>
-          <svg-icon type="mdi" :path="mdiCube"></svg-icon>
+          <svg-icon :path="mdiCube" type="mdi"></svg-icon>
           Z
         </template>
         <template v-slot:append>
           <v-tooltip activator="parent">Swap clip plane Z</v-tooltip>
-          <v-checkbox-btn trueIcon="mdi-checkbox-marked-outline" falseIcon="mdi-checkbox-blank-outline"
-                          v-model="clipPlaneSwappedY">
+          <v-checkbox-btn v-model="clipPlaneSwappedY" falseIcon="mdi-checkbox-blank-outline"
+                          trueIcon="mdi-checkbox-marked-outline">
             <template v-slot:label>
-              <svg-icon type="mdi" :path="mdiSwapHorizontal"></svg-icon>
+              <svg-icon :path="mdiSwapHorizontal" type="mdi"></svg-icon>
             </template>
           </v-checkbox-btn>
         </template>

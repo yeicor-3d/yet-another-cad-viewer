@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
   VBtn,
   VCard,
@@ -16,7 +16,6 @@ import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
 import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
-import type {MObject3D} from "./Selection.vue";
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {defineAsyncComponent, ref, type Ref} from "vue";
@@ -57,14 +56,14 @@ function syncOrthoCamera(force: boolean) {
     let h = perspectiveWidthAtCenter / scene.aspect;
     (scene as any).camera = new OrthographicCamera(-w, w, h, -h, perspectiveCam.near, perspectiveCam.far);
     scene.camera.position.copy(perspectiveCam.position);
-    scene.camera.lookAt(lookAtCenter);
+    scene.camera.rotation.copy(perspectiveCam.rotation);
     if (force) scene.queueRender() // Force rerender of model-viewer
     requestAnimationFrame(() => syncOrthoCamera(false));
   }
 }
 
 let toggleProjectionText = ref('PERSP'); // Default to perspective camera
-function toggleProjection() {
+async function toggleProjection() {
   let scene = props.viewer?.scene;
   if (!scene) return;
   let prevCam = scene.camera;
@@ -79,16 +78,16 @@ function toggleProjection() {
     scene.queueRender() // Force rerender of model-viewer
   }
   toggleProjectionText.value = wasPerspectiveCamera ? 'ORTHO' : 'PERSP';
-  // The camera change may take a few frames to take effect, dispatch the event after a delay
-  requestIdleCallback(() => props.viewer?.elem?.dispatchEvent(
-      new CustomEvent('camera-change', {detail: {source: 'none'}})), {timeout: 100})
+  // The camera change may take a frame to take effect, dispatch the event after a delay
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  props.viewer?.elem?.dispatchEvent(new CustomEvent('camera-change', {detail: {source: 'none'}}));
 }
 
 async function centerCamera() {
   let viewerEl: ModelViewerElement | null | undefined = props.viewer?.elem;
   if (!viewerEl) return;
-  await viewerEl.updateFraming();
-  viewerEl.zoom(3);
+  props.viewer?.scene?.setTarget(0, 0, 0); // Center the target
+  viewerEl.zoom(-1000000); // Max zoom out
 }
 
 
@@ -127,35 +126,35 @@ window.addEventListener('keydown', (event) => {
 </script>
 
 <template>
-  <orientation-gizmo :scene="props.viewer.scene as any" :elem="props.viewer.elem" v-if="props.viewer?.scene"/>
+  <orientation-gizmo v-if="props.viewer?.scene" :viewer="props.viewer"/>
   <v-divider/>
   <h5>Camera</h5>
   <v-btn icon @click="toggleProjection"><span class="icon-detail">{{ toggleProjectionText }}</span>
     <v-tooltip activator="parent">Toggle (P)rojection<br/>(currently
       {{ toggleProjectionText === 'PERSP' ? 'perspective' : 'orthographic' }})
     </v-tooltip>
-    <svg-icon type="mdi" :path="mdiProjector"></svg-icon>
+    <svg-icon :path="mdiProjector" type="mdi"></svg-icon>
   </v-btn>
   <v-btn icon @click="centerCamera">
     <v-tooltip activator="parent">Re(c)enter Camera</v-tooltip>
-    <svg-icon type="mdi" :path="mdiCrosshairsGps"/>
+    <svg-icon :path="mdiCrosshairsGps" type="mdi"/>
   </v-btn>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
-  <selection-component ref="selectionComp" :viewer="props.viewer as any" v-model="selection"
+  <selection-component ref="selectionComp" v-model="selection" :viewer="props.viewer as any"
                        @findModel="(name) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
   <v-btn icon @click="downloadSceneGlb">
     <v-tooltip activator="parent">(D)ownload Scene</v-tooltip>
-    <svg-icon type="mdi" :path="mdiDownload"/>
+    <svg-icon :path="mdiDownload" type="mdi"/>
   </v-btn>
   <v-dialog id="licenses-dialog" fullscreen>
     <template v-slot:activator="{ props }">
       <v-btn icon v-bind="props">
         <v-tooltip activator="parent">Show Licenses</v-tooltip>
-        <svg-icon type="mdi" :path="mdiLicense"/>
+        <svg-icon :path="mdiLicense" type="mdi"/>
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
@@ -165,7 +164,7 @@ window.addEventListener('keydown', (event) => {
           <v-spacer>
           </v-spacer>
           <v-btn icon @click="isActive.value = false">
-            <svg-icon type="mdi" :path="mdiClose"/>
+            <svg-icon :path="mdiClose" type="mdi"/>
           </v-btn>
         </v-toolbar>
         <v-card-text>
@@ -176,7 +175,7 @@ window.addEventListener('keydown', (event) => {
   </v-dialog>
   <v-btn icon @click="openGithub">
     <v-tooltip activator="parent">Open (G)itHub</v-tooltip>
-    <svg-icon type="mdi" :path="mdiGithub"/>
+    <svg-icon :path="mdiGithub" type="mdi"/>
   </v-btn>
   <div ref="statsHolder"></div>
 </template>

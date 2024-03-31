@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {ref} from "vue";
 import {VBtn, VNavigationDrawer, VToolbar, VToolbarItems} from "vuetify/lib/components/index.mjs";
 import {mdiChevronLeft, mdiChevronRight, mdiClose} from '@mdi/js'
@@ -16,22 +16,22 @@ const openIcon = props.side === 'left' ? mdiChevronRight : mdiChevronLeft;
 </script>
 
 <template>
-  <v-btn icon @click="opened = !opened" class="open-button" :class="side">
-    <svg-icon type="mdi" :path="openIcon"/>
+  <v-btn :class="side" class="open-button" icon @click="opened = !opened">
+    <svg-icon :path="openIcon" type="mdi"/>
   </v-btn>
-  <v-navigation-drawer v-model="opened" permanent :location="side" :width="props.width">
+  <v-navigation-drawer v-model="opened" :location="side" :width="props.width" permanent>
     <v-toolbar density="compact">
       <v-toolbar-items v-if="side == 'right'">
         <slot name="toolbar-items"></slot>
         <v-btn icon @click="opened = !opened">
-          <svg-icon type="mdi" :path="mdiClose"/>
+          <svg-icon :path="mdiClose" type="mdi"/>
         </v-btn>
       </v-toolbar-items>
       <slot name="toolbar"></slot>
       <v-toolbar-items v-if="side == 'left'">
         <slot name="toolbar-items"></slot>
         <v-btn icon @click="opened = !opened">
-          <svg-icon type="mdi" :path="mdiClose"/>
+          <svg-icon :path="mdiClose" type="mdi"/>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>

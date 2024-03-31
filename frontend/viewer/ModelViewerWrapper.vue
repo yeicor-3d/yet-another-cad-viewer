@@ -1,8 +1,9 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {settings} from "../misc/settings";
 import {inject, onMounted, type Ref, ref, watch} from "vue";
-import {VList, VListItem} from "vuetify/lib/components/index.mjs";
 import {$renderer, $scene} from "@google/model-viewer/lib/model-viewer-base";
+import {$controls} from '@google/model-viewer/lib/features/controls.js';
+import {type SmoothControls} from '@google/model-viewer/lib/three-components/SmoothControls';
 import {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import {Hotspot} from "@google/model-viewer/lib/three-components/Hotspot";
@@ -19,30 +20,62 @@ BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
 //@ts-ignore
 Mesh.prototype.raycast = acceleratedRaycast;
 
-const emit = defineEmits<{ load: [] }>()
-
 const props = defineProps<{ src: string }>();
 
 const elem = ref<ModelViewerElement | null>(null);
 const scene = ref<ModelScene | null>(null);
 const renderer = ref<Renderer | null>(null);
+const controls = ref<SmoothControls | null>(null);
 
+
+let lastCameraTargetPosition: Vector3 | undefined = undefined;
+let lastCameraZoom: number | undefined = undefined;
+let lastCameraUrl = props.src.toString();
 onMounted(() => {
   if (!elem.value) return;
-  elem.value.addEventListener('load', async () => {
+  elem.value.addEventListener('before-render', () => {
     if (!elem.value) return;
-    // Delete the initial load banner
-    let banner = elem.value.querySelector('.initial-load-banner');
-    if (banner) banner.remove();
-    // Set the scene and renderer
+    // Extract internals of model-viewer in order to hack unsupported features
     scene.value = elem.value[$scene] as ModelScene;
     renderer.value = elem.value[$renderer] as Renderer;
-    // Emit the load event
-    emit('load')
+    controls.value = (elem.value as any)[$controls] as SmoothControls;
+    // Recover the camera position if it was set before
+    if (lastCameraTargetPosition) {
+      // console.log("RESTORING camera position?", lastCameraTargetPosition);
+      scene.value.setTarget(-lastCameraTargetPosition.x, -lastCameraTargetPosition.y, -lastCameraTargetPosition.z);
+      scene.value.jumpToGoal(); // Avoid move animation
+    }
+    (async () => {
+      let tries = 0
+      while (tries++ < 25) {
+        if (!lastCameraZoom || !elem.value?.getCameraOrbit()?.radius) break;
+        let change = lastCameraZoom - elem.value.getCameraOrbit().radius;
+        //console.log("Zooming to", lastCameraZoom, "from", elem.value.getCameraOrbit().radius, "change", change);
+        if (Math.abs(change) < 0.001) break;
+        elem.value.zoom(-Math.sign(change) * (Math.pow(Math.abs(change) + 1, 0.9) - 1)); // Arbitrary, experimental
+        elem.value.jumpCameraToGoal();
+        await elem.value.updateComplete;
+      }
+      //console.log("Ready to save!")
+      lastCameraUrl = props.src.toString();
+    })();
   });
   elem.value.addEventListener('camera-change', onCameraChange);
   elem.value.addEventListener('progress', (ev) => onProgress((ev as any).detail.totalProgress));
 });
+
+function onCameraChange() {
+  // Remember the camera position to keep it in case of scene changes
+  if (scene.value && props.src.toString() == lastCameraUrl) {  // Don't overwrite with initial unwanted positions
+    lastCameraTargetPosition = scene.value.target.position.clone();
+    lastCameraZoom = elem.value?.getCameraOrbit()?.radius;
+    //console.log("Saving camera?", lastCameraTargetPosition, lastCameraZoom);
+  }
+  // Also need to update the SVG overlay
+  for (let lineId in lines.value) {
+    onCameraChangeLine(lineId as any);
+  }
+}
 
 // Handles loading the events for <model-viewer>'s slotted progress bar
 const progressBar = ref<HTMLElement | null>(null);
@@ -65,6 +98,17 @@ const onProgress = (totalProgress: number) => {
     }, 300); // 0.3s fade out
   }, 1000);
 };
+
+const poster = ref<string>("")
+const setPosterText = (newText: string) => {
+  poster.value = "data:image/svg+xml;charset=utf-8;base64," + btoa(
+      '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg" fill="gray">' +
+      '<text x="50%" y="0%" dominant-baseline="middle" text-anchor="middle" font-size="48px">' +
+      newText +
+      '</text>' +
+      '</svg>')
+}
+setPosterText("Loading...")
 
 class Line3DData {
   startHotspot: HTMLElement = document.body
@@ -118,13 +162,6 @@ function removeLine3D(id: number): boolean {
   return true;
 }
 
-function onCameraChange() {
-  // Need to update the SVG overlay
-  for (let lineId in lines.value) {
-    onCameraChangeLine(lineId as any);
-  }
-}
-
 let svg = ref<SVGElement | null>(null);
 
 function onCameraChangeLine(lineId: number) {
@@ -160,54 +197,47 @@ function entries(lines: { [id: number]: Line3DData }): [string, Line3DData][] {
   return Object.entries(lines);
 }
 
-defineExpose({elem, onElemReady, scene, renderer, addLine3D, removeLine3D, onProgress});
+defineExpose({elem, onElemReady, scene, renderer, controls, addLine3D, removeLine3D, onProgress, setPosterText});
 
 let {disableTap} = inject<{ disableTap: Ref<boolean> }>('disableTap')!!;
-watch(disableTap, (value) => {
-  // Rerender not auto triggered? This works anyway...
-  if (value) elem.value?.setAttribute('disable-tap', '');
-  else elem.value?.removeAttribute('disable-tap');
+watch(disableTap, (newDisableTap) => {
+  if (elem.value) elem.value.disableTap = newDisableTap;
 });
 </script>
 
 <template>
   <!-- The main 3D model viewer -->
-  <model-viewer ref="elem" style="width: 100%; height: 100%" :src="props.src" alt="The 3D model(s)" camera-controls
-                camera-orbit="30deg 75deg auto" max-camera-orbit="Infinity 180deg auto"
-                min-camera-orbit="-Infinity 0deg 5%" :disable-tap="disableTap" :exposure="settings.exposure"
-                :shadow-intensity="settings.shadowIntensity" interaction-prompt="none" :autoplay="settings.autoplay"
-                :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :skybox-image="settings.background"
-                :environment-image="settings.background">
+  <model-viewer ref="elem" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :autoplay="settings.autoplay"
+                :environment-image="settings.background" :exposure="settings.exposure"
+                :orbit-sensitivity="settings.orbitSensitivity" :pan-sensitivity="settings.panSensitivity"
+                :poster="poster" :shadow-intensity="settings.shadowIntensity" :skybox-image="settings.background"
+                :src="props.src" :zoom-sensitivity="settings.zoomSensitivity" alt="The 3D model(s)" camera-controls
+                camera-orbit="30deg 75deg auto" interaction-prompt="none" max-camera-orbit="Infinity 180deg auto"
+                min-camera-orbit="-Infinity 0deg 5%" style="width: 100%; height: 100%">
     <slot></slot>
-    <!-- Display some information during initial load -->
-    <div class="annotation initial-load-banner">
-      Trying to load models from...
-      <v-list v-for="src in settings.preload" :key="src">
-        <v-list-item>{{ src }}</v-list-item>
-      </v-list>
-      <!-- Too much idle CPU usage: <loading></loading> -->
-    </div>
-
-    <!-- Customize the progress bar -->
-    <div class="progress-bar" slot="progress-bar" ref="progressBar">
-      <div class="update-bar" ref="updateBar"/>
+    <!-- Add a progress bar to the top of the model viewer -->
+    <div ref="progressBar" slot="progress-bar" class="progress-bar">
+      <div ref="updateBar" class="update-bar"/>
     </div>
   </model-viewer>
 
   <!-- The SVG overlay for fake 3D lines attached to the model -->
   <div class="overlay-svg-wrapper">
-    <svg ref="svg" class="overlay-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <svg ref="svg" class="overlay-svg" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
       <g v-for="[lineId, line] in entries(lines)" :key="lineId">
-        <line :x1="line.start2D[0]" :y1="line.start2D[1]" :x2="line.end2D[0]"
+        <line :x1="line.start2D[0]" :x2="line.end2D[0]" :y1="line.start2D[1]"
               :y2="line.end2D[1]" v-bind="line.lineAttrs"/>
         <g v-if="line.centerText !== undefined">
-          <rect :x="(line.start2D[0] + line.end2D[0]) / 2 - line.centerTextSize[0]/2 - 4"
-                :y="(line.start2D[1] + line.end2D[1]) / 2 - line.centerTextSize[1]/2 - 2"
-                :width="line.centerTextSize[0] + 8" :height="line.centerTextSize[1] + 4"
-                fill="gray" fill-opacity="0.75" rx="4" ry="4" stroke="black" v-if="line.centerText"/>
-          <text :x="(line.start2D[0] + line.end2D[0]) / 2" :y="(line.start2D[1] + line.end2D[1]) / 2"
-                text-anchor="middle" dominant-baseline="middle" font-size="16" fill="black"
-                :class="'line' + lineId + '_text'" v-if="line.centerText">
+          <rect v-if="line.centerText"
+                :height="line.centerTextSize[1] + 4"
+                :width="line.centerTextSize[0] + 8"
+                :x="(line.start2D[0] + line.end2D[0]) / 2 - line.centerTextSize[0]/2 - 4"
+                :y="(line.start2D[1] + line.end2D[1]) / 2 - line.centerTextSize[1]/2 - 2" fill="gray"
+                fill-opacity="0.75" rx="4" ry="4" stroke="black"/>
+          <text v-if="line.centerText" :class="'line' + lineId + '_text'"
+                :x="(line.start2D[0] + line.end2D[0]) / 2" :y="(line.start2D[1] + line.end2D[1]) / 2"
+                dominant-baseline="middle" fill="black"
+                font-size="16" text-anchor="middle">
             {{ line.centerText }}
           </text>
         </g>
@@ -240,17 +270,6 @@ watch(disableTap, (value) => {
   width: 100%;
   height: 100dvh;
   pointer-events: none;
-}
-
-.initial-load-banner {
-  width: 300px;
-  margin: auto;
-  margin-top: 3em;
-  overflow: hidden;
-}
-
-.initial-load-banner .v-list-item {
-  overflow: hidden;
 }
 
 .progress-bar {

@@ -1,6 +1,6 @@
 <!--suppress SillyAssignmentJS -->
-<script setup lang="ts">
-import {defineAsyncComponent, provide, type Ref, ref, shallowRef, triggerRef} from "vue";
+<script lang="ts" setup>
+import {defineAsyncComponent, provide, type Ref, ref, shallowRef, triggerRef, watch} from "vue";
 import Sidebar from "./misc/Sidebar.vue";
 import Loading from "./misc/Loading.vue";
 import Tools from "./tools/Tools.vue";
@@ -83,6 +83,12 @@ networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUp
 for (let model of settings.preload) {
   networkMgr.load(model);
 }
+watch(viewer, (newViewer) => {
+  if (newViewer) {
+    newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
+        ' models from:</tspan>' + settings.preload.map((url) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+  }
+});
 
 async function loadModelManual() {
   const modelUrl = prompt("For an improved experience in viewing CAD/GLTF models with automatic updates, it's recommended to use the official yacv_server Python package. This ensures seamless serving of models and automatic updates.\n\nOtherwise, enter the URL of the model to load:");
@@ -99,20 +105,20 @@ async function loadModelManual() {
     </v-main>
 
     <!-- The left collapsible sidebar has the list of models -->
-    <sidebar :opened-init="openSidebarsByDefault" side="left" :width="300">
+    <sidebar :opened-init="openSidebarsByDefault" :width="300" side="left">
       <template #toolbar>
         <v-toolbar-title>Models</v-toolbar-title>
       </template>
       <template #toolbar-items>
         <v-btn icon="" @click="loadModelManual">
-          <svg-icon type="mdi" :path="mdiPlus"/>
+          <svg-icon :path="mdiPlus" type="mdi"/>
         </v-btn>
       </template>
       <models ref="models" :viewer="viewer" @remove="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
-    <sidebar :opened-init="openSidebarsByDefault" side="right" :width="48 * 3 /* buttons */ + 1 /* border? */">
+    <sidebar :opened-init="openSidebarsByDefault" :width="48 * 3 /* buttons */ + 1 /* border? */" side="right">
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>

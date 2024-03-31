@@ -18,8 +18,11 @@ export const settings = {
     monitorEveryMs: 100,
     monitorOpenTimeoutMs: 1000,
     // ModelViewer settings
-    autoplay: true,
+    autoplay: true, // Global animation toggle
     arModes: 'webxr scene-viewer quick-look',
+    zoomSensitivity: 0.25,
+    orbitSensitivity: 1,
+    panSensitivity: 1,
     exposure: 1,
     shadowIntensity: 0,
     background: '',

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {defineModel, inject, ref, type ShallowRef, watch} from "vue";
 import {VBtn, VSelect, VTooltip} from "vuetify/lib/components/index.mjs";
 import SvgIcon from '@jamescoyle/vue-icon';
@@ -258,7 +258,7 @@ let onViewerReady = (viewer: typeof ModelViewerWrapperT) => {
     hasListeners = true;
     elem.addEventListener('mousedown', mouseDownListener); // Avoid clicking when dragging
     elem.addEventListener('mouseup', mouseUpListener);
-    elem.addEventListener('load', () => {
+    elem.addEventListener('before-render', () => {
       // After a reload of the scene, we need to recover object references and highlight them again
       for (let sel of selected.value) {
         let scene = props.viewer?.scene;
@@ -462,32 +462,32 @@ window.addEventListener('keydown', (event) => {
 </script>
 
 <template>
-  <v-btn icon @click="toggleSelection" :color="selectionEnabled ? 'surface-light' : ''">
+  <v-btn :color="selectionEnabled ? 'surface-light' : ''" icon @click="toggleSelection">
     <v-tooltip activator="parent">{{ selectionEnabled ? 'Disable (s)election mode' : 'Enable (s)election mode' }}
     </v-tooltip>
-    <svg-icon type="mdi" :path="mdiCursorDefaultClick"/>
+    <svg-icon :path="mdiCursorDefaultClick" type="mdi"/>
   </v-btn>
-  <v-tooltip :text="'Select only '  + selectFilter.toString().toLocaleLowerCase()" :open-on-click="false">
+  <v-tooltip :open-on-click="false" :text="'Select only '  + selectFilter.toString().toLocaleLowerCase()">
     <template v-slot:activator="{ props }">
-      <v-select v-bind="props" class="select-only" variant="underlined"
-                :items="['Any (S)', '(F)aces', '(E)dges', '(V)ertices']"
-                v-model="selectFilter"/>
+      <v-select v-model="selectFilter" :items="['Any (S)', '(F)aces', '(E)dges', '(V)ertices']" class="select-only"
+                v-bind="props"
+                variant="underlined"/>
     </template>
   </v-tooltip>
-  <v-btn icon @click="toggleHighlightNextSelection" :color="highlightNextSelection[0] ? 'surface-light' : ''">
+  <v-btn :color="highlightNextSelection[0] ? 'surface-light' : ''" icon @click="toggleHighlightNextSelection">
     <v-tooltip activator="parent">(H)ighlight the next clicked element in the models list</v-tooltip>
-    <svg-icon type="mdi" :path="mdiFeatureSearch"/>
+    <svg-icon :path="mdiFeatureSearch" type="mdi"/>
   </v-btn>
-  <v-btn icon @click="toggleShowBoundingBox" :color="showBoundingBox ? 'surface-light' : ''">
+  <v-btn :color="showBoundingBox ? 'surface-light' : ''" icon @click="toggleShowBoundingBox">
     <v-tooltip activator="parent">{{ showBoundingBox ? 'Hide selection (b)ounds' : 'Show selection (b)ounds' }}
     </v-tooltip>
-    <svg-icon type="mdi" :path="mdiCubeOutline"/>
+    <svg-icon :path="mdiCubeOutline" type="mdi"/>
   </v-btn>
-  <v-btn icon @click="toggleShowDistances" :color="showDistances ? 'surface-light' : ''">
+  <v-btn :color="showDistances ? 'surface-light' : ''" icon @click="toggleShowDistances">
     <v-tooltip activator="parent">
       {{ showDistances ? 'Hide selection (d)istances' : 'Show (d)istances (when a pair of features is selected)' }}
     </v-tooltip>
-    <svg-icon type="mdi" :path="mdiRuler"/>
+    <svg-icon :path="mdiRuler" type="mdi"/>
   </v-btn>
 </template>
 

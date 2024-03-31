@@ -1,18 +1,16 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {onMounted, onUpdated, ref} from "vue";
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
-import type {ModelViewerElement} from '@google/model-viewer';
 
 // Optimized minimal dependencies from three
 import {Vector3} from "three/src/math/Vector3.js";
 import {Matrix4} from "three/src/math/Matrix4.js";
+import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 
 (globalThis as any).THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
-const OrientationGizmo = OrientationGizmoRaw.default;
-
-const props = defineProps<{ elem: ModelViewerElement | null, scene: ModelScene }>();
+const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> }>();
 
 function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElement {
   // noinspection SpellCheckingInspection
@@ -33,21 +31,26 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
   }
   // Append and listen for events
   gizmo.onAxisSelected = (axis: { direction: { x: any; y: any; z: any; }; }) => {
-    let lookFrom = scene.getCamera().position.clone();
-    let lookAt = scene.getTarget().clone().add(scene.target.position);
-    let magnitude = lookFrom.clone().sub(lookAt).length()
-    let direction = new Vector3(axis.direction.x, axis.direction.y, axis.direction.z);
-    let newLookFrom = lookAt.clone().add(direction.clone().multiplyScalar(magnitude));
-    //console.log("New camera position", newLookFrom)
-    scene.getCamera().position.copy(newLookFrom);
-    scene.getCamera().lookAt(lookAt);
-    if ((scene as any).__perspectiveCamera) { // HACK: Make the hacky ortho also work
-      (scene as any).__perspectiveCamera.position.copy(newLookFrom);
-      (scene as any).__perspectiveCamera.lookAt(lookAt);
+    if (!props.viewer.elem || !props.viewer.controls) return;
+    // Animate the controls to the new wanted angle
+    const controls = props.viewer.controls;
+    const {theta: curTheta/*, phi: curPhi*/} = (controls as any).goalSpherical;
+    let wantedTheta = NaN;
+    let wantedPhi = NaN;
+    let attempt = 0
+    while ((attempt == 0 || curTheta == wantedTheta) && attempt < 2) {
+      if (attempt > 0) { // Flip the camera if the user clicks on the same axis
+        axis.direction.x = -axis.direction.x;
+        axis.direction.y = -axis.direction.y;
+        axis.direction.z = -axis.direction.z;
+      }
+      wantedTheta = Math.atan2(axis.direction.x, axis.direction.z);
+      wantedPhi = Math.asin(-axis.direction.y) + Math.PI / 2;
+      attempt++;
     }
+    controls.setOrbit(wantedTheta, wantedPhi);
+    props.viewer.elem?.dispatchEvent(new CustomEvent('camera-change', {detail: {source: 'none'}}))
     scene.queueRender();
-    requestIdleCallback(() => props.elem?.dispatchEvent(
-        new CustomEvent('camera-change', {detail: {source: 'none'}})), {timeout: 100})
   }
   return gizmo;
 }
@@ -65,9 +68,9 @@ function updateGizmo() {
 }
 
 let reinstall = () => {
-  if(!container.value) return;
+  if (!container.value) return;
   if (gizmo) container.value.removeChild(gizmo);
-  gizmo = createGizmo(container.value, props.scene as ModelScene) as typeof gizmo;
+  gizmo = createGizmo(container.value, props.viewer.scene!! as any) as typeof gizmo;
   container.value.appendChild(gizmo);
   requestIdleCallback(updateGizmo, {timeout: 250}); // Low priority updates
 }

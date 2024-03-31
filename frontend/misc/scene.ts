@@ -37,19 +37,6 @@ export class SceneMgr {
         return document;
     }
 
-    private static async reloadHelpers(sceneUrl: Ref<string>, document: Document, reloadScene: boolean): Promise<Document> {
-        let bb = SceneMgr.getBoundingBox(document);
-        if (!bb) return document;
-
-        // Create the helper axes and grid box
-        let helpersDoc = new Document();
-        let transform = (new Matrix4()).makeTranslation(bb.getCenter(new Vector3()));
-        newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
-        newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
-        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-        return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
-    }
-
     static getBoundingBox(document: Document): Box3 | null {
         if (document.getRoot().listNodes().length === 0) return null;
         // Get bounding box of the model and use it to set the size of the helpers
@@ -89,6 +76,19 @@ export class SceneMgr {
         }
 
         return document;
+    }
+
+    private static async reloadHelpers(sceneUrl: Ref<string>, document: Document, reloadScene: boolean): Promise<Document> {
+        let bb = SceneMgr.getBoundingBox(document);
+        if (!bb) return document;
+
+        // Create the helper axes and grid box
+        let helpersDoc = new Document();
+        let transform = (new Matrix4()).makeTranslation(bb.getCenter(new Vector3()));
+        newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
+        newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
+        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
+        return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
     }
 
     /** Serializes the current document into a GLB and updates the viewerSrc */
