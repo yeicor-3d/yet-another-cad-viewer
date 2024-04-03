@@ -444,11 +444,12 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
 }
 
 .model-name {
-  width: 130px;
-  min-height: 1.15em; /* HACK: Avoid eating the bottom of the text when using 1 line */
-  max-height: 2em;
+  width: 179px;
+  font-size: 110%;
+  overflow-x: clip;
+  overflow-y: visible; /* HACK: bottom of text is lost otherwise (due to buggy -webkit-box bounds?) */
+  word-wrap: break-word;
   text-overflow: ellipsis;
-  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* https://caniuse.com/?search=line-clamp */
   -webkit-box-orient: vertical;
