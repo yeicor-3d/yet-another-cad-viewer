@@ -1607,10 +1607,10 @@ gauge@^5.0.0:
     strip-ansi "^6.0.1"
     wide-align "^1.1.5"
 
-generate-license-file@^3.3.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-3.3.0.tgz#1dbd90d942fff0fd1ddfce53869eaabd1373f9ce"
-  integrity sha512-2XowCMl62tvNgSBro04XVtfva7WeMj4t34sDa6hd4hxrRGB0S8dHCVECZeDUmi37W054eOUOLqbMgJPh7NG3Qw==
+generate-license-file@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-3.4.0.tgz#9c0663c1a1ab3c4a86c47cc59a694f09884b0e1b"
+  integrity sha512-VqrocosZn9INhkA/MZk+ktc/tRrDj3rSGHdEPau2CZErLDze8BWApBT9HcnYDo4QnDNDEf7Q/ySZbymh9WfaOQ==
   dependencies:
     "@commander-js/extra-typings" "^12.0.0"
     "@npmcli/arborist" "^7.0.0"
