@@ -3,13 +3,12 @@
 ## Installation
 
 1. Download the contents of this folder.
-2. Assuming you have a recent version of Python installed, install the required packages:
+2. Assuming you have a recent version of Python 3 installed, install the required packages:
 
 ```bash
 python -m venv venv
+. venv/bin/activate  # Execute this line every time you change the terminal
 pip install -r requirements.txt
-# Do this every time you change the terminal:
-. venv/bin/activate
 ```
 
 ## Usage
