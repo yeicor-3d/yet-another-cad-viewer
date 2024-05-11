@@ -395,13 +395,6 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.20.2.tgz#9c907b21e30a52db959ba4f80bb01a0cc403d5cc"
   integrity sha512-N49X4lJX27+l9jbLKSqZ6bKNjzQvHaT8IIFUy+YIqmXQdjYCToGWwOItDrfby14c78aDd5NHQl29xingXfCdLQ==
 
-"@gltf-transform/core@^3.10.1":
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-3.10.1.tgz#d99c060b499482ed2c3304466405bf4c10939831"
-  integrity sha512-50OYemknGNxjBmiOM6iJp04JAu0bl9jvXJfN/gFt9QdJO02cPDcoXlTfSPJG6TVWDcfl0xPlsx1vybcbPVGFcQ==
-  dependencies:
-    property-graph "^1.3.1"
-
 "@gltf-transform/core@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.0.tgz#4977ab4c7b714713f68d78cec80c088941e9c234"
@@ -2490,11 +2483,6 @@ promise-worker-transferable@^1.0.4:
   dependencies:
     is-promise "^2.1.0"
     lie "^3.0.2"
-
-property-graph@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/property-graph/-/property-graph-1.3.1.tgz#25fb2c8040ba9b15f04cda90a443f3f844505293"
-  integrity sha512-gei3N/bHWJdCItJ4blnlGWd9iauEZI+JZYj/A0D177XSI01+QhiJGAVscYBhe3Yywow3A2QJzVtsO2P+UgrRRQ==
 
 property-graph@^2.0.0:
   version "2.0.0"
