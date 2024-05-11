@@ -409,14 +409,6 @@
   dependencies:
     property-graph "^2.0.0"
 
-"@gltf-transform/extensions@^3.10.1":
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-3.10.1.tgz#71664389cae46fb12eb97dc71eb96d86a0d7801f"
-  integrity sha512-xUS9K5fMvW2dkYN4VzxHg2aBPG54M2WqgIjQ7RoSyybMoD7DsPUyMyVgRja+aiTVt/Bxza2ve7zJBD3+tN+aTA==
-  dependencies:
-    "@gltf-transform/core" "^3.10.1"
-    ktx-parse "^0.6.0"
-
 "@gltf-transform/extensions@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.0.tgz#36f1b64dd7ec11b86b16d8f4fd0fd0ca2c5bbfdf"
@@ -425,17 +417,17 @@
     "@gltf-transform/core" "^4.0.0"
     ktx-parse "^0.7.0"
 
-"@gltf-transform/functions@^3.10.1":
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-3.10.1.tgz#c40817740241c0ee770f4d1210ccc766e46d8ab2"
-  integrity sha512-Zs6+1qvTD9w40R5qv70E4wJXXacNQ46ZxjKKW6dmfGIyjT8bsSJmV3Tdj+WJ8R6lWXXZ8e2p3ZvAUfPDEG73bQ==
+"@gltf-transform/functions@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.0.0.tgz#57d4c5f7dc8707cc6f686185025b15513664d67d"
+  integrity sha512-z47qqTf/h2y9Q4jQywVeuQDNJ2sQja0Riaf09db0yUusAjpLYQPyJekjtQLcnCi86Px96s2cHEWCK0mSIf0cUQ==
   dependencies:
-    "@gltf-transform/core" "^3.10.1"
-    "@gltf-transform/extensions" "^3.10.1"
-    ktx-parse "^0.6.0"
+    "@gltf-transform/core" "^4.0.0"
+    "@gltf-transform/extensions" "^4.0.0"
+    ktx-parse "^0.7.0"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
-    ndarray-pixels "^3.0.4"
+    ndarray-pixels "^4.0.0"
 
 "@google/model-viewer@^3.5.0":
   version "3.5.0"
@@ -1917,11 +1909,6 @@ just-diff@^6.0.0:
   resolved "https://registry.yarnpkg.com/just-diff/-/just-diff-6.0.2.tgz#03b65908543ac0521caf6d8eb85035f7d27ea285"
   integrity sha512-S59eriX5u3/QhMNq3v/gm8Kd0w8OS6Tz2FS1NG4blv+z0MuQcBRJyFWjdovM0Rad4/P4aUPFtnkNjMjyMlMSYA==
 
-ktx-parse@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-0.6.0.tgz#69e12a511cf345546da27b5b046182f5f31f68f9"
-  integrity sha512-hYOJUI86N9+YPm0M3t8hVzW9t5FnFFibRalZCrqHs/qM2eNziqQzBtAaF0ErgkXm8F+5uE8CjPUYr32vWlXLkQ==
-
 ktx-parse@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-0.7.0.tgz#65788a43a1a1c19c795ff26299e9318c16b436b2"
@@ -2164,10 +2151,10 @@ ndarray-ops@^1.2.2:
   dependencies:
     cwise-compiler "^1.0.0"
 
-ndarray-pixels@^3.0.4:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/ndarray-pixels/-/ndarray-pixels-3.1.0.tgz#0e8ab0f0c04adab2f50f62f4a70442ba0c103d1b"
-  integrity sha512-icw7L/kbxlHVoBgFWc0fCl1sYcatYSoZrAudD6KiQ1WXy84hRXIfqel5CLkh/SeLhb02Q2NW1ud9lE5G84V0zQ==
+ndarray-pixels@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/ndarray-pixels/-/ndarray-pixels-4.0.0.tgz#994cf904cfaffd5c3e90028b37ef3878c5894613"
+  integrity sha512-rFNR2IMEaWWI4dCVKg63LNWizE9odBdWf49ZHl/hgMa8hh/g+u/vf6vqD0KSt+0Fw83C2G+kWLpI3YuJHqRwSg==
   dependencies:
     "@types/ndarray" "^1.0.11"
     ndarray "^1.0.19"
