@@ -56,7 +56,8 @@ export async function mergePartial(url: string, name: string, document: Document
     await newDoc.transform(setNames(name));
 
     // Merge the new document into the current one
-    return mergeDocuments(document, newDoc);
+    mergeDocuments(document, newDoc);
+    return document;
 }
 
 export async function mergeFinalize(document: Document): Promise<Document> {
