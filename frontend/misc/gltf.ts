@@ -1,5 +1,5 @@
 import {Buffer, Document, Scene, type Transform, WebIO} from "@gltf-transform/core";
-import {unpartition} from "@gltf-transform/functions";
+import {unpartition, mergeDocuments} from "@gltf-transform/functions";
 
 let io = new WebIO();
 export let extrasNameKey = "__yacv_name";
@@ -56,7 +56,7 @@ export async function mergePartial(url: string, name: string, document: Document
     await newDoc.transform(setNames(name));
 
     // Merge the new document into the current one
-    return document.merge(newDoc);
+    return mergeDocuments(document, newDoc);
 }
 
 export async function mergeFinalize(document: Document): Promise<Document> {
