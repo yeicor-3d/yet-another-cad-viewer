@@ -15,7 +15,7 @@
     "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
   },
   "dependencies": {
-    "@gltf-transform/core": "^4.0.0",
+    "@gltf-transform/core": "^4.0.1",
     "@gltf-transform/extensions": "^4.0.0",
     "@gltf-transform/functions": "^4.0.0",
     "@google/model-viewer": "^3.5.0",
