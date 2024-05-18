@@ -395,19 +395,19 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.20.2.tgz#9c907b21e30a52db959ba4f80bb01a0cc403d5cc"
   integrity sha512-N49X4lJX27+l9jbLKSqZ6bKNjzQvHaT8IIFUy+YIqmXQdjYCToGWwOItDrfby14c78aDd5NHQl29xingXfCdLQ==
 
-"@gltf-transform/core@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.0.tgz#4977ab4c7b714713f68d78cec80c088941e9c234"
-  integrity sha512-EVu2832Lb7sqsAfllEHNUUC89AYXXLGjEoWPzpO7WWE7hpuOLh1Aps8z/jZbVFatu2MxWu5/lFZwODkmZ2uevQ==
+"@gltf-transform/core@^4.0.0", "@gltf-transform/core@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.1.tgz#8c9aaa3b858b28a91c112268ff906929c17dd2c2"
+  integrity sha512-M/H8yfkx3UUE+2LWR2ANqES/Cp5s/ytKCcZGzSNT19C8xwqrb7/jCUjYlVN03joU5Rva9MVpnFfDVZI5UA5qoQ==
   dependencies:
     property-graph "^2.0.0"
 
-"@gltf-transform/extensions@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.0.tgz#36f1b64dd7ec11b86b16d8f4fd0fd0ca2c5bbfdf"
-  integrity sha512-RL6n1UmMITvuHurDdQuvR7a3i3CcXeS54C4+HHeuhIQo17iqADMJBtf9/DurXCB0DX/cZePb9tXHyUHolxc4Ig==
+"@gltf-transform/extensions@^4.0.0", "@gltf-transform/extensions@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.1.tgz#26ca1219ee0ae16a0297742d228beb593d076d01"
+  integrity sha512-sz8+rMvGp5NGJyYNPXyCnvM+iy4zxbAgnmd5y2ChBJyQuB4uNDpn1eUfdjiIpRiIGAiBvZgbXE/Fkg5RbpRiYQ==
   dependencies:
-    "@gltf-transform/core" "^4.0.0"
+    "@gltf-transform/core" "^4.0.1"
     ktx-parse "^0.7.0"
 
 "@gltf-transform/functions@^4.0.0":
