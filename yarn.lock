@@ -450,10 +450,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
-"@gltf-transform/core@^4.0.0", "@gltf-transform/core@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.1.tgz#8c9aaa3b858b28a91c112268ff906929c17dd2c2"
-  integrity sha512-M/H8yfkx3UUE+2LWR2ANqES/Cp5s/ytKCcZGzSNT19C8xwqrb7/jCUjYlVN03joU5Rva9MVpnFfDVZI5UA5qoQ==
+"@gltf-transform/core@^4.0.1", "@gltf-transform/core@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.2.tgz#f310bd4bc1b9aa3ee3edbf5f0a5e1458aae48751"
+  integrity sha512-SDjCuf0mK+go9jtIItgc/FmdAwcSAb2SAIlrUCd5UfOfVd10wp4hj7uCh+kS7Et9ZWod/SauAgtkcs+BG/T+FA==
   dependencies:
     property-graph "^2.0.0"
 
