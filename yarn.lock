@@ -457,12 +457,12 @@
   dependencies:
     property-graph "^2.0.0"
 
-"@gltf-transform/extensions@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.1.tgz#26ca1219ee0ae16a0297742d228beb593d076d01"
-  integrity sha512-sz8+rMvGp5NGJyYNPXyCnvM+iy4zxbAgnmd5y2ChBJyQuB4uNDpn1eUfdjiIpRiIGAiBvZgbXE/Fkg5RbpRiYQ==
+"@gltf-transform/extensions@^4.0.1", "@gltf-transform/extensions@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.2.tgz#7aca4f567181c5a937516ac451b9ce0f8c10b4fa"
+  integrity sha512-Fl8UhrdG/Xyk1xHXFtHvFxmbxw5kZlHmJ0PxEfHVkO9X4HWErklU/LZPVq254lrzE1cvrF3Nd/i/JWf5lnJf8A==
   dependencies:
-    "@gltf-transform/core" "^4.0.1"
+    "@gltf-transform/core" "^4.0.2"
     ktx-parse "^0.7.0"
 
 "@gltf-transform/functions@^4.0.1":
