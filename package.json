@@ -25,7 +25,7 @@
     "three": "^0.163.0",
     "three-mesh-bvh": "^0.7.5",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
-    "vue": "^3.4.29",
+    "vue": "^3.4.31",
     "vuetify": "^3.6.10"
   },
   "devDependencies": {
