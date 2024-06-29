@@ -450,14 +450,14 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
-"@gltf-transform/core@^4.0.1", "@gltf-transform/core@^4.0.2":
+"@gltf-transform/core@^4.0.2":
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.2.tgz#f310bd4bc1b9aa3ee3edbf5f0a5e1458aae48751"
   integrity sha512-SDjCuf0mK+go9jtIItgc/FmdAwcSAb2SAIlrUCd5UfOfVd10wp4hj7uCh+kS7Et9ZWod/SauAgtkcs+BG/T+FA==
   dependencies:
     property-graph "^2.0.0"
 
-"@gltf-transform/extensions@^4.0.1", "@gltf-transform/extensions@^4.0.2":
+"@gltf-transform/extensions@^4.0.2":
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.2.tgz#7aca4f567181c5a937516ac451b9ce0f8c10b4fa"
   integrity sha512-Fl8UhrdG/Xyk1xHXFtHvFxmbxw5kZlHmJ0PxEfHVkO9X4HWErklU/LZPVq254lrzE1cvrF3Nd/i/JWf5lnJf8A==
@@ -465,13 +465,13 @@
     "@gltf-transform/core" "^4.0.2"
     ktx-parse "^0.7.0"
 
-"@gltf-transform/functions@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.0.1.tgz#6093654537bbcdc8a31150b9c22f59e9867fb405"
-  integrity sha512-IBxbJkDUAyV8rOahTmZGnv22qu87EteAWfMd79+6Qz1NZWqC+LLfUHhTUmNajlfRDW+cfn3fGd6h2t17HwvDOw==
+"@gltf-transform/functions@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.0.2.tgz#347074a433edc8fca03d18aa3d8e79e811500113"
+  integrity sha512-D7//xb+Aag//625AGZC/yQdARQzy1fkdQJiULHVwDRqLCZR0Pe41DpNLaeoeJzItyb18TXGBmh1M76Mb7TnBBw==
   dependencies:
-    "@gltf-transform/core" "^4.0.1"
-    "@gltf-transform/extensions" "^4.0.1"
+    "@gltf-transform/core" "^4.0.2"
+    "@gltf-transform/extensions" "^4.0.2"
     ktx-parse "^0.7.0"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
