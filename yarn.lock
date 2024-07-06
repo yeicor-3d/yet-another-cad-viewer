@@ -2859,10 +2859,10 @@ terser@^5.31.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-three-mesh-bvh@^0.7.5:
-  version "0.7.5"
-  resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.7.5.tgz#6062716531ecb3a9fbdc02248e654f6ebda024d8"
-  integrity sha512-WDd77RklE52pZSKZx8sDXzrd2JCF/gL/hugFvsIBylpMRlJxxwesKn2rW7TcQZ809NocDVkQx1UJo9pJtVAPYg==
+three-mesh-bvh@^0.7.6:
+  version "0.7.6"
+  resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.7.6.tgz#6764b39475bdba9450ad3a4065492678ee537272"
+  integrity sha512-rCjsnxEqR9r1/C/lCqzGLS67NDty/S/eT6rAJfDvsanrIctTWdNoR4ZOGWewCB13h1QkVo2BpmC0wakj1+0m8A==
 
 "three-orientation-gizmo@https://github.com/jrj2211/three-orientation-gizmo":
   version "1.1.0"
