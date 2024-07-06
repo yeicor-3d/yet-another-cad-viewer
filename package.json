@@ -26,7 +26,7 @@
     "three-mesh-bvh": "^0.7.5",
     "three-orientation-gizmo": "https://github.com/jrj2211/three-orientation-gizmo",
     "vue": "^3.4.31",
-    "vuetify": "^3.6.10"
+    "vuetify": "^3.6.11"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
