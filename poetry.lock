@@ -34,21 +34,20 @@ test = ["astroid (>=1,<2)", "astroid (>=2,<4)", "pytest"]
 
 [[package]]
 name = "build123d"
-version = "0.5.0"
+version = "0.6.0"
 description = "A python CAD programming library"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "build123d-0.5.0-py3-none-any.whl", hash = "sha256:d0a4e82cdb0e53ef21fca8d2c84124351d7c7070077b5efa173d789002c8194c"},
+    {file = "build123d-0.6.0-py3-none-any.whl", hash = "sha256:1ca2371fd03137d4683e06970b95922e53ac7087a8fc494262fe8a8ecceb1e13"},
 ]
 
 [package.dependencies]
 anytree = ">=2.8.0,<3"
 cadquery-ocp = ">=7.7.0"
-ezdxf = ">=1.0.0,<2"
+ezdxf = ">=1.1.0,<2"
 ipython = ">=8.0.0,<9"
 numpy = ">=1.24.1,<2"
-numpy-stl = ">=3.0.0,<4"
 ocpsvg = "*"
 py-lib3mf = ">=2.3.1"
 svgpathtools = ">=1.5.1,<2"
@@ -427,21 +426,6 @@ files = [
 ]
 
 [[package]]
-name = "numpy-stl"
-version = "3.1.1"
-description = "Library to make reading, writing and modifying both binary and ascii STL files easy."
-optional = false
-python-versions = ">3.6.0"
-files = [
-    {file = "numpy-stl-3.1.1.tar.gz", hash = "sha256:f78eea62c80938bf53ea914fa5b6c92f448f0eab5609e0e5a737dde039404334"},
-    {file = "numpy_stl-3.1.1-py3-none-any.whl", hash = "sha256:b0b7f4455c29d26d3dc0eed894f5b17c64e4019b056d0060be48f93680f6e6d3"},
-]
-
-[package.dependencies]
-numpy = "*"
-python-utils = ">=3.4.5"
-
-[[package]]
 name = "ocpsvg"
 version = "0.2.0"
 description = ""
@@ -688,25 +672,6 @@ files = [
 
 [package.extras]
 diagrams = ["jinja2", "railroad-diagrams"]
-
-[[package]]
-name = "python-utils"
-version = "3.8.2"
-description = "Python Utils is a module with some convenient utilities not included with the standard Python install"
-optional = false
-python-versions = ">3.8.0"
-files = [
-    {file = "python-utils-3.8.2.tar.gz", hash = "sha256:c5d161e4ca58ce3f8c540f035e018850b261a41e7cb98f6ccf8e1deb7174a1f1"},
-    {file = "python_utils-3.8.2-py2.py3-none-any.whl", hash = "sha256:ad0ccdbd6f856d015cace07f74828b9840b5c4072d9e868a7f6a14fd195555a8"},
-]
-
-[package.dependencies]
-typing-extensions = ">3.10.0.2"
-
-[package.extras]
-docs = ["mock", "python-utils", "sphinx"]
-loguru = ["loguru"]
-tests = ["flake8", "loguru", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mypy", "sphinx", "types-setuptools"]
 
 [[package]]
 name = "scipy"
@@ -963,4 +928,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "612c2f4fcc3ff9e37bc9e604bf092452138843ec4dc529dadc210887f0e728fd"
+content-hash = "8f0dbc59aa35b6c32be2cfd9850aba7c8849a008b315132d144096fe15258076"
