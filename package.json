@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
-    "@types/node": "^22.2.0",
+    "@types/node": "^22.4.0",
     "@types/three": "^0.163.0",
     "@vitejs/plugin-vue": "^5.1.2",
     "@vitejs/plugin-vue-jsx": "^4.0.0",
