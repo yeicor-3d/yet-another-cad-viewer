@@ -1713,14 +1713,15 @@ gauge@^5.0.0:
     strip-ansi "^6.0.1"
     wide-align "^1.1.5"
 
-generate-license-file@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-3.5.0.tgz#3d702ab930f4dd88004d7fe59694faf9f2903575"
-  integrity sha512-EhSL5hOsWjmmj01UF0KCicZ9A9NmVWStVN3WTKh/CmXqhx3xJ3q7DYaZa3qXvDjgyGBEZpJsDoTfCmAZZjJabA==
+generate-license-file@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-3.5.1.tgz#9e34ca9dbfcf2cef38ef07dd93bc92b530298d91"
+  integrity sha512-XgZPDopGzFim1Dmp2DdERreSD2rXmLz1X2g1Zx1KnmCNCh4M5BmQT96cSl28nn/HppAzQRZcZgvus6U5Og/vqg==
   dependencies:
     "@commander-js/extra-typings" "^12.0.0"
     "@npmcli/arborist" "^7.0.0"
     cli-spinners "^2.6.0"
+    commander "^12.0.0"
     cosmiconfig "^9.0.0"
     enquirer "^2.3.6"
     glob "^10.3.0"
