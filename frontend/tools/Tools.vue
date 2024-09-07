@@ -142,7 +142,7 @@ window.addEventListener('keydown', (event) => {
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
   <selection-component ref="selectionComp" v-model="selection" :viewer="props.viewer as any"
-                       @findModel="(name) => emit('findModel', name)"/>
+                       @findModel="(name: string) => emit('findModel', name)"/>
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
