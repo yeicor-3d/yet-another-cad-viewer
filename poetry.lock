@@ -34,12 +34,13 @@ test = ["astroid (>=1,<2)", "astroid (>=2,<4)", "pytest"]
 
 [[package]]
 name = "build123d"
-version = "0.6.0"
+version = "0.7.0"
 description = "A python CAD programming library"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "build123d-0.6.0-py3-none-any.whl", hash = "sha256:1ca2371fd03137d4683e06970b95922e53ac7087a8fc494262fe8a8ecceb1e13"},
+    {file = "build123d-0.7.0-py3-none-any.whl", hash = "sha256:0771b6f8adf326a4e21a5224cac730045217021c2040e9884fc5dd5028bec3c8"},
+    {file = "build123d-0.7.0.tar.gz", hash = "sha256:530fe4807b0c6fcb682f872973d961c9ad9dbc4ebaf33e3cc1088d3117de54e7"},
 ]
 
 [package.dependencies]
@@ -928,4 +929,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "8f0dbc59aa35b6c32be2cfd9850aba7c8849a008b315132d144096fe15258076"
+content-hash = "c7ab4daa707db1d54f8af490ab8f85a5d80052049aead04b08c867739829418d"
