@@ -17,9 +17,13 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
   let gizmo = new OrientationGizmoRaw.default(scene.camera, {
     size: expectedParent.clientWidth,
     bubbleSizePrimary: expectedParent.clientWidth / 12,
-    bubbleSizeSeconday: expectedParent.clientWidth / 14,
-    fontSize: (expectedParent.clientWidth / 10) + "px"
+    bubbleSizeSeconday: expectedParent.clientWidth / 12,
+    fontSize: (expectedParent.clientWidth / 10) + "px",
   });
+  // Make sure all bubbles are labeled
+  for (let bubble of gizmo.bubbles) {
+    bubble.label = bubble.axis.toUpperCase();
+  }
   // HACK: Swap axes to fake the CAD orientation
   for (let swap of [["y", "-z"], ["z", "-y"], ["z", "-z"]]) {
     let indexA = gizmo.bubbles.findIndex((bubble: any) => bubble.axis == swap[0])
