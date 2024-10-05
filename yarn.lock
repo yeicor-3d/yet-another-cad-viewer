@@ -523,10 +523,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
-"@gltf-transform/core@^4.0.4", "@gltf-transform/core@^4.0.8":
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.8.tgz#cf5699cb05e62a33bb68dbf9e1438186f992cac5"
-  integrity sha512-8oSLSw+t+wxPvKC2qm0n3EOoR6Ql2DMuagimjWjGz8sC4MtCqbo6kS6dCeissYrkgP2fj/k8dzRWiWQZRatGMg==
+"@gltf-transform/core@^4.0.10", "@gltf-transform/core@^4.0.8":
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.10.tgz#94121cd6a05d15051fc19d4730f13ad324505245"
+  integrity sha512-d1nOk2iO4YtBHI8k2+oEIPxxLs8AmgPYxITc2DFYXGlb550RBicG3TrAOqzbHM6U5w0eYE+bgitsePt6ygWNxA==
   dependencies:
     property-graph "^2.0.0"
 
