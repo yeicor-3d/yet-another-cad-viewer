@@ -523,14 +523,14 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
-"@gltf-transform/core@^4.0.10", "@gltf-transform/core@^4.0.4", "@gltf-transform/core@^4.0.8":
+"@gltf-transform/core@^4.0.10", "@gltf-transform/core@^4.0.4":
   version "4.0.10"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.10.tgz#94121cd6a05d15051fc19d4730f13ad324505245"
   integrity sha512-d1nOk2iO4YtBHI8k2+oEIPxxLs8AmgPYxITc2DFYXGlb550RBicG3TrAOqzbHM6U5w0eYE+bgitsePt6ygWNxA==
   dependencies:
     property-graph "^2.0.0"
 
-"@gltf-transform/extensions@^4.0.10", "@gltf-transform/extensions@^4.0.8":
+"@gltf-transform/extensions@^4.0.10":
   version "4.0.10"
   resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.0.10.tgz#c8b8dff029a1c7afb5b63ac588b201a8a3cebf49"
   integrity sha512-Il0K5DH5UBAdHBFr8SEQ2H5x5e2BaHgSl74NyxTdsGYOKr9eAuJCMsmdvdf+5VrNIOOZJwr192ZtZa9ylbgPvg==
@@ -538,14 +538,14 @@
     "@gltf-transform/core" "^4.0.10"
     ktx-parse "^0.7.1"
 
-"@gltf-transform/functions@^4.0.8":
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.0.8.tgz#2b5d653e327d6c27c4011774561d4828b14f3956"
-  integrity sha512-v6yVtqh82iBoIz4PiEX9SWu9GEsrCyMclhzBMh6A6X2ezb823QBg1jOWdP+tB7KgetWZna4hALppwpsMQwS1ZQ==
+"@gltf-transform/functions@^4.0.10":
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.0.10.tgz#a47101b4b99c3f81840c11de9fbc8f460a0d6d43"
+  integrity sha512-1+k7Yvzwf2IgHQkITMW+u/Bkelc5/ZI8m1W7njaLtKTZsW8H5p671qdjbhN98sgy/+Wi0vzLFBJvy0wW1YfwKA==
   dependencies:
-    "@gltf-transform/core" "^4.0.8"
-    "@gltf-transform/extensions" "^4.0.8"
-    ktx-parse "^0.7.0"
+    "@gltf-transform/core" "^4.0.10"
+    "@gltf-transform/extensions" "^4.0.10"
+    ktx-parse "^0.7.1"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
     ndarray-pixels "^4.1.0"
@@ -2092,7 +2092,7 @@ just-diff@^6.0.0:
   resolved "https://registry.yarnpkg.com/just-diff/-/just-diff-6.0.2.tgz#03b65908543ac0521caf6d8eb85035f7d27ea285"
   integrity sha512-S59eriX5u3/QhMNq3v/gm8Kd0w8OS6Tz2FS1NG4blv+z0MuQcBRJyFWjdovM0Rad4/P4aUPFtnkNjMjyMlMSYA==
 
-ktx-parse@^0.7.0, ktx-parse@^0.7.1:
+ktx-parse@^0.7.1:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-0.7.1.tgz#d41514256d7d63acb8ef6ae62dc66f16efc1c39c"
   integrity sha512-FeA3g56ksdFNwjXJJsc1CCc7co+AJYDp6ipIp878zZ2bU8kWROatLYf39TQEd4/XRSUvBXovQ8gaVKWPXsCLEQ==
