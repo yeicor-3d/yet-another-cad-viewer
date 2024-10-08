@@ -92,6 +92,10 @@ class YACV:
     frontend_lock: RWLock
     """Lock to ensure that the frontend has finished working before we shut down"""
 
+    base_texture: Optional[Tuple[bytes, str]]
+    """Base texture to use for model rendering, in (data, mimetype) format
+    If set to None, will use default checkerboard texture"""
+
     def __init__(self):
         self.server_thread = None
         self.server = None
@@ -283,7 +287,8 @@ class YACV:
                                       faces=event.kwargs.get('faces', True),
                                       edges=event.kwargs.get('edges', True),
                                       vertices=event.kwargs.get('vertices', True),
-                                      obj_color=event.color)
+                                      obj_color=event.color,
+                                      base_texture=self.base_texture)
                     glb_list_of_bytes = gltf.save_to_bytes()
                     glb_bytes = b''.join(glb_list_of_bytes)
                     publish_to.publish(glb_bytes)
