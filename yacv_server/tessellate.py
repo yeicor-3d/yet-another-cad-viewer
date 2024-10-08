@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
@@ -8,7 +8,7 @@ from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Shape, Vertex, Face, Location
 from pygltflib import GLTF2
 
-from yacv_server.cad import CADCoreLike
+from yacv_server.cad import CADCoreLike, ColorTuple
 from yacv_server.gltf import GLTFMgr
 from yacv_server.mylogger import logger
 
@@ -20,6 +20,7 @@ def tessellate(
         faces: bool = True,
         edges: bool = True,
         vertices: bool = True,
+        obj_color: Optional[ColorTuple] = None,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
     mgr = GLTFMgr()
@@ -35,7 +36,7 @@ def tessellate(
         vertex_to_faces: Dict[str, List[TopoDS_Face]] = {}
         if faces:
             for face in shape.faces():
-                _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance)
+                _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, color)
                 if edges:
                     for edge in face.edges():
                         edge_to_faces[edge.wrapped] = edge_to_faces.get(edge.wrapped, []) + [face.wrapped]
@@ -57,7 +58,8 @@ def _tessellate_face(
         mgr: GLTFMgr,
         ocp_face: TopoDS_Face,
         tolerance: float = 1e-3,
-        angular_tolerance: float = 0.1
+        angular_tolerance: float = 0.1,
+        color: Optional[ColorTuple] = None,
 ):
     face = Shape(ocp_face)
     # face.mesh(tolerance, angular_tolerance)
@@ -75,7 +77,10 @@ def _tessellate_face(
 
     vertices = tri_mesh[0]
     indices = tri_mesh[1]
-    mgr.add_face(vertices, indices, uv)
+    if color is None:
+        mgr.add_face(vertices, indices, uv)
+    else:
+        mgr.add_face(vertices, indices, uv, color)
 
 
 def _push_point(v: Tuple[float, float, float], faces: List[TopoDS_Face]) -> Tuple[float, float, float]:
