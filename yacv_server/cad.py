@@ -10,12 +10,23 @@ from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Shape
-from build123d import Compound, Shape
+from build123d import Compound, Shape, Color
 
 from yacv_server.gltf import GLTFMgr
 
 CADCoreLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and Locations for now
 CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
+ColorTuple = Tuple[float, float, float, float]
+
+def get_color(obj: CADLike) -> Optional[ColorTuple]:
+    """Get color from a CAD Object"""
+
+    if 'color' in dir(obj):
+        if isinstance(obj.color, tuple):
+            return obj.color
+        if isinstance(obj.color, Color):
+            return obj.color.to_tuple()
+    return None
 
 
 def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
