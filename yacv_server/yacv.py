@@ -24,7 +24,7 @@ from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.rwlock import RWLock
 from yacv_server.tessellate import tessellate
-from yacv_server.cad import _hashcode
+from yacv_server.cad import _hashcode, ColorTuple, get_color
 
 
 @dataclass_json
@@ -49,11 +49,13 @@ class UpdatesApiFullData(UpdatesApiData):
     """The show_object options, if any (not serialized)"""
 
     def __init__(self, obj: YACVSupported, name: str, _hash: str, is_remove: Optional[bool] = False,
+                 color: Optional[ColorTuple] = None,
                  kwargs: Optional[Dict[str, any]] = None):
         self.name = name
         self.hash = _hash
         self.is_remove = is_remove
         self.obj = obj
+        self.color = color
         self.kwargs = kwargs
 
     def to_json(self) -> str:
@@ -185,10 +187,11 @@ class YACV:
 
         # Publish the show event
         for obj, name in zip(objs, names):
+            color = get_color(obj)
             if not isinstance(obj, bytes):
                 obj = _preprocess_cad(obj, **kwargs)
             _hash = _hashcode(obj, **kwargs)
-            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=kwargs or {})
+            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, color=color, kwargs=kwargs or {})
             self.show_events.publish(event)
 
         logger.info('show %s took %.3f seconds', names, time.time() - start)
@@ -277,7 +280,8 @@ class YACV:
                                       angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
                                       faces=event.kwargs.get('faces', True),
                                       edges=event.kwargs.get('edges', True),
-                                      vertices=event.kwargs.get('vertices', True))
+                                      vertices=event.kwargs.get('vertices', True),
+                                      obj_color=event.color)
                     glb_list_of_bytes = gltf.save_to_bytes()
                     glb_bytes = b''.join(glb_list_of_bytes)
                     publish_to.publish(glb_bytes)
