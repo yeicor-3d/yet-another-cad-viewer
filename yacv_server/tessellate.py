@@ -21,9 +21,13 @@ def tessellate(
         edges: bool = True,
         vertices: bool = True,
         obj_color: Optional[ColorTuple] = None,
+        base_texture: Optional[Tuple[bytes, str]] = None,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
-    mgr = GLTFMgr()
+    if base_texture is None:
+        mgr = GLTFMgr()
+    else:
+        mgr = GLTFMgr(base_texture)
 
     if isinstance(cad_like, TopLoc_Location):
         mgr.add_location(Location(cad_like))
