@@ -36,7 +36,7 @@ def tessellate(
         vertex_to_faces: Dict[str, List[TopoDS_Face]] = {}
         if faces:
             for face in shape.faces():
-                _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, color)
+                _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, obj_color)
                 if edges:
                     for edge in face.edges():
                         edge_to_faces[edge.wrapped] = edge_to_faces.get(edge.wrapped, []) + [face.wrapped]
