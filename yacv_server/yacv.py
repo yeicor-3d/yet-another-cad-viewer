@@ -312,6 +312,33 @@ class YACV:
                     f.write(self.export(name)[0])
 
 
+def _resolve_base_texture() -> Optional[(bytes, str)]:
+    env_str = os.environ.get("YACV_BASE_TEXTURE")
+    if env_str is None:
+        return None
+    if env_str.startswith("file:"):
+        path = env_str[len("file:"):]
+        with open(path, 'rb') as f:
+            data = f.read()
+        buf = BytesIO(data)
+        img = Image.open(buf)
+        mtype = img.get_format_mimetype()
+        return (data, mtype)
+    if env_str.startswith("base64-png:"):
+        data = env_str[len("base64-png:"):]
+        data = base64.decodebytes(data.encode())
+        return (data, 'image/png')
+    if env_str.startswith("preset:"):
+        preset = env_str[len("preset:"):]
+        color = Color(preset)
+        img = Image.new("RGBA", (16, 16))
+        color_tuple = tuple(int(i*256) for i in color.to_tuple())
+        img.paste(color_tuple, (0, 0, 16, 16))
+        buf = BytesIO()
+        img.save(buf, 'PNG')
+        return (buf.getvalue(), 'image/png')
+    return None
+
 # noinspection PyUnusedLocal
 def _preprocess_cad(obj: CADLike, **kwargs) -> CADCoreLike:
     # Get the shape of a CAD-like object
