@@ -312,7 +312,7 @@ class YACV:
                     f.write(self.export(name)[0])
 
 
-def _resolve_base_texture() -> Optional[(bytes, str)]:
+def _resolve_base_texture() -> Optional[Tuple[bytes, str]]:
     env_str = os.environ.get("YACV_BASE_TEXTURE")
     if env_str is None:
         return None
