@@ -8,7 +8,6 @@ import threading
 import time
 from dataclasses import dataclass
 from http.server import ThreadingHTTPServer
-from importlib.metadata import version
 from threading import Thread
 from typing import Optional, Dict, Union, Callable, List, Tuple
 
@@ -18,13 +17,14 @@ from OCP.TopoDS import TopoDS_Shape
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
+from yacv_server.cad import _hashcode, ColorTuple, get_color
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
+from yacv_server.gltf import get_version
 from yacv_server.myhttp import HTTPHandler
 from yacv_server.mylogger import logger
 from yacv_server.pubsub import BufferedPubSub
 from yacv_server.rwlock import RWLock
 from yacv_server.tessellate import tessellate
-from yacv_server.cad import _hashcode, ColorTuple, get_color
 
 
 @dataclass_json
@@ -44,7 +44,9 @@ YACVSupported = Union[bytes, CADCoreLike]
 
 class UpdatesApiFullData(UpdatesApiData):
     obj: YACVSupported
-    """The OCCT object, if any (not serialized)"""
+    """The OCCT object (not serialized)"""
+    color: Optional[ColorTuple]
+    """The color of the object, if any (not serialized)"""
     kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
 
@@ -100,7 +102,7 @@ class YACV:
         self.at_least_one_client = threading.Event()
         self.shutting_down = threading.Event()
         self.frontend_lock = RWLock()
-        logger.info('Using yacv-server v%s', version('yacv-server'))
+        logger.info('Using yacv-server v%s', get_version())
 
     def start(self):
         """Starts the web server in the background"""
@@ -190,7 +192,7 @@ class YACV:
             color = get_color(obj)
             if not isinstance(obj, bytes):
                 obj = _preprocess_cad(obj, **kwargs)
-            _hash = _hashcode(obj, **kwargs)
+            _hash = _hashcode(obj, color, **kwargs)
             event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, color=color, kwargs=kwargs or {})
             self.show_events.publish(event)
 

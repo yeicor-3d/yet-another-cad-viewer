@@ -18,12 +18,18 @@ CADCoreLike = Union[TopoDS_Shape, TopLoc_Location]  # Faces, Edges, Vertices and
 CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
 ColorTuple = Tuple[float, float, float, float]
 
+
 def get_color(obj: CADLike) -> Optional[ColorTuple]:
     """Get color from a CAD Object"""
-
     if 'color' in dir(obj):
         if isinstance(obj.color, tuple):
-            return obj.color
+            c = None
+            if len(obj.color) == 3:
+                c = obj.color + (1,)
+            elif len(obj.color) == 4:
+                c = obj.color
+            # noinspection PyTypeChecker
+            return [min(max(float(x), 0), 1) for x in c]
         if isinstance(obj.color, Color):
             return obj.color.to_tuple()
     return None
@@ -175,7 +181,7 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
     return b''.join(mgr.build().save_to_bytes()), name
 
 
-def _hashcode(obj: Union[bytes, CADCoreLike], **extras) -> str:
+def _hashcode(obj: Union[bytes, CADCoreLike], color: Optional[ColorTuple], **extras) -> str:
     """Utility to compute the STABLE hash code of a shape"""
     # NOTE: obj.HashCode(MAX_HASH_CODE) is not stable across different runs of the same program
     # This is best-effort and not guaranteed to be unique
@@ -183,6 +189,8 @@ def _hashcode(obj: Union[bytes, CADCoreLike], **extras) -> str:
     for k, v in extras.items():
         hasher.update(str(k).encode())
         hasher.update(str(v).encode())
+    if color:
+        hasher.update(str(color).encode())
     if isinstance(obj, bytes):
         hasher.update(obj)
     elif isinstance(obj, TopLoc_Location):

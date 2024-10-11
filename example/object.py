@@ -3,6 +3,7 @@ import logging
 import os
 
 from build123d import *  # Also works with cadquery objects!
+from build123d import Compound
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -15,9 +16,14 @@ with BuildPart() as example:
     Box(10, 10, 5)
     Cylinder(4, 5, mode=Mode.SUBTRACT)
 
-# Show it in the frontend with hot-reloading
-show(example)
+# Custom colors (optional)
+example.color = (0.1, 0.3, 0.1, 1)  # RGBA
+to_highlight = example.edges().group_by(Axis.Z)[-1]
+example_hl = Compound(to_highlight).translate((0, 0, 1e-3))  # To avoid z-fighting
+example_hl.color = (1, 1, .0, 1)
 
+# Show it in the frontend with hot-reloading
+show(example, example_hl)
 
 # %%
 

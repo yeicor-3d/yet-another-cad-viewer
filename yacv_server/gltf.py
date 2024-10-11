@@ -8,6 +8,12 @@ _checkerboard_image_bytes = base64.decodebytes(
     b'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAF0lEQVQI12N49OjR////Gf'
     b'/////48WMATwULS8tcyj8AAAAASUVORK5CYII=')
 
+def get_version() -> str:
+    try:
+        return importlib.metadata.version("yacv_server")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
+
 
 class GLTFMgr:
     """A utility class to build our GLTF2 objects easily and incrementally"""
@@ -32,7 +38,7 @@ class GLTFMgr:
 
     def __init__(self, image: Optional[Tuple[bytes, str]] = (_checkerboard_image_bytes, 'image/png')):
         self.gltf = GLTF2(
-            asset=Asset(generator=f"yacv_server@{importlib.metadata.version('yacv_server')}"),
+            asset=Asset(generator=f"yacv_server@{get_version()}"),
             scene=0,
             scenes=[Scene(nodes=[0])],
             nodes=[Node(mesh=0)],  # TODO: Server-side detection of shallow copies --> nodes
@@ -71,9 +77,9 @@ class GLTFMgr:
         return [p for p in self.gltf.meshes[0].primitives if p.mode == POINTS][0]
 
     def add_face(self, vertices_raw: List[Vector], indices_raw: List[Tuple[int, int, int]],
-                 tex_coord_raw: List[Tuple[float, float]],
-                 color: Tuple[float, float, float, float] = (1.0, 0.75, 0.0, 1.0)):
+                 tex_coord_raw: List[Tuple[float, float]], color: Optional[Tuple[float, float, float, float]] = None):
         """Add a face to the GLTF mesh"""
+        if color is None: color = (1.0, 0.75, 0.0, 1.0)
         # assert len(vertices_raw) == len(tex_coord_raw), f"Vertices and texture coordinates have different lengths"
         # assert min([i for t in indices_raw for i in t]) == 0, f"Face indices start at {min(indices_raw)}"
         # assert max([e for t in indices_raw for e in t]) < len(vertices_raw), f"Indices have non-existing vertices"
@@ -85,8 +91,9 @@ class GLTFMgr:
         self._faces_primitive.extras["face_triangles_end"].append(len(self.face_indices))
 
     def add_edge(self, vertices_raw: List[Tuple[Tuple[float, float, float], Tuple[float, float, float]]],
-                 color: Tuple[float, float, float, float] = (0.1, 0.1, 1.0, 1.0)):
+                 color: Optional[Tuple[float, float, float, float]] = None):
         """Add an edge to the GLTF mesh"""
+        if color is None: color = (0.1, 0.1, 1.0, 1.0)
         vertices_flat = [v for t in vertices_raw for v in t]  # Line from 0 to 1, 2 to 3, 4 to 5, etc.
         base_index = len(self.edge_positions) // 3
         self.edge_indices.extend([base_index + i for i in range(len(vertices_flat))])
@@ -94,9 +101,9 @@ class GLTFMgr:
         self.edge_colors.extend([col for _ in range(len(vertices_flat)) for col in color])
         self._edges_primitive.extras["edge_points_end"].append(len(self.edge_indices))
 
-    def add_vertex(self, vertex: Tuple[float, float, float],
-                   color: Tuple[float, float, float, float] = (0.1, 0.1, 0.1, 1.0)):
+    def add_vertex(self, vertex: Tuple[float, float, float], color: Optional[Tuple[float, float, float, float]] = None):
         """Add a vertex to the GLTF mesh"""
+        if color is None: color = (0.1, 0.1, 0.1, 1.0)
         base_index = len(self.vertex_positions) // 3
         self.vertex_indices.append(base_index)
         self.vertex_positions.extend(vertex)
