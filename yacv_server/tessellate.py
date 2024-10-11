@@ -35,7 +35,8 @@ def tessellate(
         edge_to_faces: Dict[str, List[TopoDS_Face]] = {}
         vertex_to_faces: Dict[str, List[TopoDS_Face]] = {}
         if faces:
-            for face in shape.faces():
+            shape_faces = shape.faces()
+            for face in shape_faces:
                 _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, obj_color)
                 if edges:
                     for edge in face.edges():
@@ -43,13 +44,16 @@ def tessellate(
                 if vertices:
                     for vertex in face.vertices():
                         vertex_to_faces[vertex.wrapped] = vertex_to_faces.get(vertex.wrapped, []) + [face.wrapped]
+            if len(shape_faces) > 0: obj_color = None  # Don't color edges/vertices if faces are colored
         if edges:
-            for edge in shape.edges():
+            shape_edges = shape.edges()
+            for edge in shape_edges:
                 _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), angular_tolerance,
-                                 angular_tolerance)
+                                 angular_tolerance, obj_color)
+            if len(shape_edges) > 0: obj_color = None  # Don't color vertices if edges are colored
         if vertices:
             for vertex in shape.vertices():
-                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []))
+                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []), obj_color)
 
     return mgr.build()
 
@@ -77,10 +81,7 @@ def _tessellate_face(
 
     vertices = tri_mesh[0]
     indices = tri_mesh[1]
-    if color is None:
-        mgr.add_face(vertices, indices, uv)
-    else:
-        mgr.add_face(vertices, indices, uv, color)
+    mgr.add_face(vertices, indices, uv, color)
 
 
 def _push_point(v: Tuple[float, float, float], faces: List[TopoDS_Face]) -> Tuple[float, float, float]:
@@ -105,6 +106,7 @@ def _tessellate_edge(
         faces: List[TopoDS_Face],
         angular_deflection: float = 0.1,
         curvature_deflection: float = 0.1,
+        color: Optional[ColorTuple] = None,
 ):
     # Use a curve discretizer to get the vertices
     curve = BRepAdaptor_Curve(ocp_edge)
@@ -122,11 +124,12 @@ def _tessellate_edge(
 
     # Convert strip of vertices to a list of pairs of vertices
     vertices = [(vertices[i], vertices[i + 1]) for i in range(len(vertices) - 1)]
-    mgr.add_edge(vertices)
+    mgr.add_edge(vertices, color)
 
 
-def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex, faces: List[TopoDS_Face]):
+def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex, faces: List[TopoDS_Face],
+                          color: Optional[ColorTuple] = None):
     c = Vertex(ocp_vertex).center()
-    mgr.add_vertex(_push_point((c.X, c.Y, c.Z), faces))
+    mgr.add_vertex(_push_point((c.X, c.Y, c.Z), faces), color)
 
 
