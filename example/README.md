@@ -36,5 +36,5 @@ Once you have the `object.glb` file, you can host it on any static file server a
 
 For the example model, the build process is set up in [build.yml](../.github/workflows/build.yml), the upload process
 is set up in [deploy.yml](../.github/workflows/deploy.yml), and the final link is:
-https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=example.glb
+https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=example.glb&preload=example_hl.glb
 
