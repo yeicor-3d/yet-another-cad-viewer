@@ -211,11 +211,12 @@ Apache License
 
 -----------
 
-The following npm package may be included in this product:
+The following npm packages may be included in this product:
 
  - source-map-js@1.2.0
+ - source-map-js@1.2.1
 
-This package contains the following license and notice below:
+These packages each contain the following license and notice below:
 
 Copyright (c) 2009-2011, Mozilla Foundation and contributors
 All rights reserved.
@@ -1381,13 +1382,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The following npm package may be included in this product:
 
- - picocolors@1.0.1
+ - picocolors@1.1.0
 
 This package contains the following license and notice below:
 
 ISC License
 
-Copyright (c) 2021 Alexey Raspopov, Kostiantyn Denysov, Anton Verinov
+Copyright (c) 2021-2024 Oleksii Raspopov, Kostiantyn Denysov, Anton Verinov
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -1457,7 +1458,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - three-mesh-bvh@0.7.8
+ - three-mesh-bvh@0.8.0
 
 This package contains the following license and notice below:
 
@@ -1781,7 +1782,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@3.7.1
+ - vuetify@3.7.2
 
 This package contains the following license and notice below:
 
@@ -1811,16 +1812,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.5
- - @vue/compiler-dom@3.5.5
- - @vue/compiler-sfc@3.5.5
- - @vue/compiler-ssr@3.5.5
- - @vue/reactivity@3.5.5
- - @vue/runtime-core@3.5.5
- - @vue/runtime-dom@3.5.5
- - @vue/server-renderer@3.5.5
- - @vue/shared@3.5.5
- - vue@3.5.5
+ - @vue/compiler-core@3.5.7
+ - @vue/compiler-dom@3.5.7
+ - @vue/compiler-sfc@3.5.7
+ - @vue/compiler-ssr@3.5.7
+ - @vue/reactivity@3.5.7
+ - @vue/runtime-core@3.5.7
+ - @vue/runtime-dom@3.5.7
+ - @vue/server-renderer@3.5.7
+ - @vue/shared@3.5.7
+ - vue@3.5.7
 
 These packages each contain the following license and notice below:
 
@@ -1974,7 +1975,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - postcss@8.4.45
+ - postcss@8.4.47
 
 This package contains the following license and notice below:
 

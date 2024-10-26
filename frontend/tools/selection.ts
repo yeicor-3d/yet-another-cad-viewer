@@ -78,7 +78,7 @@ export function hitToSelectionInfo(hit: Intersection<MObject3D>): SelectionInfo 
 
 function hitFaceTriangleIndices(hit: Intersection<MObject3D>): [number, number] | null {
     let faceTrianglesEnd = hit?.object?.geometry?.userData?.face_triangles_end;
-    if (hit.faceIndex === undefined) return null;
+    if (!hit.faceIndex) return null;
     if (!faceTrianglesEnd) { // Fallback to selecting the whole imported mesh
         //console.log("No face_triangles_end found, selecting the whole mesh");
         return [0, (hit.object.geometry.index ?? hit.object.geometry.attributes.position).count];
