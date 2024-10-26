@@ -26,3 +26,9 @@ demo [here](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=logo.glb
 [without animation](https://yeicor-3d.github.io/yet-another-cad-viewer/?autoplay=false&preload=logo.glb&preload=logo_hl.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)).
 
 ![Demo](assets/screenshot.png)
+
+## Related projects
+
+- [cq-studio](https://github.com/ccazabon/cq-studio): provides an alternative workflow that detects file changes instead
+  of relying on an interactive environment like Jupyter for hot-reloading.
+  Uses the same backend and frontend behind the scenes.
