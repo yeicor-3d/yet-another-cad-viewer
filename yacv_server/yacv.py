@@ -106,6 +106,7 @@ class YACV:
         self.at_least_one_client = threading.Event()
         self.shutting_down = threading.Event()
         self.frontend_lock = RWLock()
+        self.base_texture = _resolve_base_texture()
         logger.info('Using yacv-server v%s', get_version())
 
     def start(self):
