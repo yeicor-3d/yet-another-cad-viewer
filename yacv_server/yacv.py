@@ -14,7 +14,7 @@ from typing import Optional, Dict, Union, Callable, List, Tuple
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
 # noinspection PyProtectedMember
-from build123d import Shape, Axis, Location, Vector
+from build123d import Shape, Axis, Location, Vector, Color
 from dataclasses_json import dataclass_json
 
 from yacv_server.cad import _hashcode, ColorTuple, get_color
