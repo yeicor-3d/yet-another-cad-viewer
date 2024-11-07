@@ -16,6 +16,8 @@ from OCP.TopoDS import TopoDS_Shape
 # noinspection PyProtectedMember
 from build123d import Shape, Axis, Location, Vector, Color
 from dataclasses_json import dataclass_json
+from PIL import Image
+from io import BytesIO
 
 from yacv_server.cad import _hashcode, ColorTuple, get_color
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
