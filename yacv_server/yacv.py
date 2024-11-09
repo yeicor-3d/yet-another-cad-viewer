@@ -1,4 +1,5 @@
 import atexit
+import base64
 import copy
 import inspect
 import os
@@ -47,19 +48,15 @@ YACVSupported = Union[bytes, CADCoreLike]
 class UpdatesApiFullData(UpdatesApiData):
     obj: YACVSupported
     """The OCCT object (not serialized)"""
-    color: Optional[ColorTuple]
-    """The color of the object, if any (not serialized)"""
     kwargs: Optional[Dict[str, any]]
     """The show_object options, if any (not serialized)"""
 
     def __init__(self, obj: YACVSupported, name: str, _hash: str, is_remove: Optional[bool] = False,
-                 color: Optional[ColorTuple] = None,
                  kwargs: Optional[Dict[str, any]] = None):
         self.name = name
         self.hash = _hash
         self.is_remove = is_remove
         self.obj = obj
-        self.color = color
         self.kwargs = kwargs
 
     def to_json(self) -> str:
@@ -94,9 +91,13 @@ class YACV:
     frontend_lock: RWLock
     """Lock to ensure that the frontend has finished working before we shut down"""
 
-    base_texture: Optional[Tuple[bytes, str]]
-    """Base texture to use for model rendering, in (data, mimetype) format
-    If set to None, will use default checkerboard texture"""
+    texture: Optional[Tuple[bytes, str]]
+    """Default texture to use for model faces, in (data, mimetype) format.
+    If left as None, a default checkerboard texture will be used.
+    
+    It can be set with the YACV_BASE_TEXTURE=<uri> and overriden by `show(..., texture="<uri>")`.
+    The <uri> can be file:<path> or data:<mime>;base64,<data> where <mime> is the mime type and 
+    <data> is the base64 encoded image."""
 
     def __init__(self):
         self.server_thread = None
@@ -108,7 +109,7 @@ class YACV:
         self.at_least_one_client = threading.Event()
         self.shutting_down = threading.Event()
         self.frontend_lock = RWLock()
-        self.base_texture = _resolve_base_texture()
+        self.texture = _read_texture_uri(os.getenv("YACV_BASE_TEXTURE"))
         logger.info('Using yacv-server v%s', get_version())
 
     def start(self):
@@ -176,12 +177,32 @@ class YACV:
         self.server.serve_forever()
 
     def show(self, *objs: List[YACVSupported], names: Optional[Union[str, List[str]]] = None, **kwargs):
+        """
+        Shows the given CAD objects in the frontend. The objects will be tessellated and converted to GLTF. Optionally,
+        the following keyword arguments can be used:
+
+        - auto_clear: Whether to clear the previous objects before showing the new ones (default: True)
+        - texture: The texture to use for the faces of the object (see `YACV.texture` for more info)
+        - color: The default color to use for the objects (can be overridden by the `color` attribute of each object)
+        - tolerance: The tolerance for tessellating the object (default: 0.1)
+        - angular_tolerance: The angular tolerance for tessellating the object (default: 0.1)
+        - faces: Whether to tessellate and show the faces of the object (default: True)
+        - edges: Whether to tessellate and show the edges of the object (default: True)
+        - vertices: Whether to tessellate and show the vertices of the object (default: True)
+
+        :param objs: The CAD objects to show. Can be CAD-like objects (solids, locations, etc.) or bytes (GLTF) objects.
+        :param names: The names of the objects. If None, the variable names will be used (if possible). The number of
+            names must match the number of objects. An object of the same name will be replaced in the frontend.
+        :param kwargs: Additional options for the show_object event.
+        """
         # Prepare the arguments
         start = time.time()
         names = names or [_find_var_name(obj) for obj in objs]
         if isinstance(names, str):
             names = [names]
         assert len(names) == len(objs), 'Number of names must match the number of objects'
+        if 'color' in kwargs:
+            kwargs['color'] = get_color(kwargs['color'])
 
         # Handle auto clearing of previous objects
         if kwargs.get('auto_clear', True):
@@ -196,17 +217,20 @@ class YACV:
 
         # Publish the show event
         for obj, name in zip(objs, names):
-            color = get_color(obj)
+            obj_color = get_color(obj)
+            if obj_color is not None:
+                kwargs = kwargs.copy()
+                kwargs['color'] = obj_color
             if not isinstance(obj, bytes):
                 obj = _preprocess_cad(obj, **kwargs)
-            _hash = _hashcode(obj, color, **kwargs)
-            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, color=color, kwargs=kwargs or {})
+            _hash = _hashcode(obj, **kwargs)
+            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=kwargs or {})
             self.show_events.publish(event)
 
         logger.info('show %s took %.3f seconds', names, time.time() - start)
 
     def show_cad_all(self, **kwargs):
-        """Publishes all CAD objects in the current scope to the server"""
+        """Publishes all CAD objects in the current scope to the server. See `show` for more details."""
         all_cad = list(grab_all_cad())  # List for reproducible iteration order
         self.show(*[cad for _, cad in all_cad], names=[name for name, _ in all_cad], **kwargs)
 
@@ -285,13 +309,17 @@ class YACV:
                 if isinstance(event.obj, bytes):  # Already a GLTF
                     publish_to.publish(event.obj)
                 else:  # CAD object to tessellate and convert to GLTF
+                    texture_override_uri = event.kwargs.get('texture', None)
+                    texture_override = None
+                    if isinstance(texture_override_uri, str):
+                        texture_override = _read_texture_uri(texture_override_uri)
                     gltf = tessellate(event.obj, tolerance=event.kwargs.get('tolerance', 0.1),
                                       angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
                                       faces=event.kwargs.get('faces', True),
                                       edges=event.kwargs.get('edges', True),
                                       vertices=event.kwargs.get('vertices', True),
-                                      obj_color=event.color,
-                                      base_texture=self.base_texture)
+                                      obj_color=event.kwargs.get('color', None),
+                                      texture=texture_override or self.texture)
                     glb_list_of_bytes = gltf.save_to_bytes()
                     glb_bytes = b''.join(glb_list_of_bytes)
                     publish_to.publish(glb_bytes)
@@ -315,31 +343,23 @@ class YACV:
                     f.write(self.export(name)[0])
 
 
-def _resolve_base_texture() -> Optional[Tuple[bytes, str]]:
-    env_str = os.environ.get("YACV_BASE_TEXTURE")
-    if env_str is None:
+def _read_texture_uri(uri: str) -> Optional[Tuple[bytes, str]]:
+    if uri is None:
         return None
-    if env_str.startswith("file:"):
-        path = env_str[len("file:"):]
+    if uri.startswith("file:"):
+        path = uri[len("file:"):]
         with open(path, 'rb') as f:
             data = f.read()
         buf = BytesIO(data)
         img = Image.open(buf)
         mtype = img.get_format_mimetype()
-        return (data, mtype)
-    if env_str.startswith("base64-png:"):
-        data = env_str[len("base64-png:"):]
-        data = base64.decodebytes(data.encode())
-        return (data, 'image/png')
-    if env_str.startswith("preset:"):
-        preset = env_str[len("preset:"):]
-        color = Color(preset)
-        img = Image.new("RGBA", (16, 16))
-        color_tuple = tuple(int(i*256) for i in color.to_tuple())
-        img.paste(color_tuple, (0, 0, 16, 16))
-        buf = BytesIO()
-        img.save(buf, 'PNG')
-        return (buf.getvalue(), 'image/png')
+        return data, mtype
+    if uri.startswith("data:"): # https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax (limited)
+        mtype_and_data = uri[len("data:"):]
+        mtype = mtype_and_data.split(";", 1)[0]
+        data_str = mtype_and_data.split(",", 1)[1]
+        data = base64.b64decode(data_str)
+        return data, mtype
     return None
 
 # noinspection PyUnusedLocal
