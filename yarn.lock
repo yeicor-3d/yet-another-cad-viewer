@@ -523,12 +523,12 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
-"@gltf-transform/core@^4.0.10", "@gltf-transform/core@^4.0.4":
-  version "4.0.10"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.0.10.tgz#94121cd6a05d15051fc19d4730f13ad324505245"
-  integrity sha512-d1nOk2iO4YtBHI8k2+oEIPxxLs8AmgPYxITc2DFYXGlb550RBicG3TrAOqzbHM6U5w0eYE+bgitsePt6ygWNxA==
+"@gltf-transform/core@^4.0.10", "@gltf-transform/core@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.1.0.tgz#ae0d389d3c9434e594cce74f0fc7bf0a33ea1d7b"
+  integrity sha512-2eWQY+dObdyqm+KuNriLpttbYq5etM8nRmpxIYwZo/5Hmm6l5CuMj0AczTRq7DfhUsLQFZlPT22CjQRCvkc+aA==
   dependencies:
-    property-graph "^2.0.0"
+    property-graph "^3.0.0"
 
 "@gltf-transform/extensions@^4.0.10":
   version "4.0.10"
@@ -2742,10 +2742,10 @@ promise-worker-transferable@^1.0.4:
     is-promise "^2.1.0"
     lie "^3.0.2"
 
-property-graph@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/property-graph/-/property-graph-2.0.0.tgz#aaf79cdd5fd05171c1d34c41367acdaac3cbac61"
-  integrity sha512-peDswWfLn7Lx+iPIxefhEUbLC7cs1KbfyKqOl5C5TF5F6urnyAORxzQ7JY21yjRzH7CpLa6+d1G+BemBr/lKyw==
+property-graph@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/property-graph/-/property-graph-3.0.0.tgz#c3187a0389a7ec56b8c9207fe3867b2ba3d1e6df"
+  integrity sha512-TnzxUsttmGtw+OiU0LDw+0FlMbJ8vV8pOjyDI7+Kdni4Tj0hW5BFh7TatQu7Y68hcvvFmiFOHilKShsA4R82fA==
 
 read-cmd-shim@^5.0.0:
   version "5.0.0"
