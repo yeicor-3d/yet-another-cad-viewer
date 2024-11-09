@@ -24,7 +24,6 @@ def tessellate(
         texture: Optional[Tuple[bytes, str]] = None,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
-    print("tessellate, obj_color: ", obj_color)
     if texture is None:
         mgr = GLTFMgr()
     else:
