@@ -18,7 +18,6 @@ def build_logo(text: bool = True) -> Dict[str, Union[Part, Location, str]]:
             with BuildSketch(text_at_plane.location):
                 Text('Yet Another\nCAD Viewer', 6, font_path='/usr/share/fonts/TTF/Hack-Regular.ttf')
             extrude(amount=1)
-    logo_obj.color = (0.7, 0.4, 0.1, 1) # Custom color for faces
 
     # Highlight text edges with a custom color
     to_highlight = logo_obj.edges().group_by(Axis.X)[-1]
