@@ -17,7 +17,7 @@
   "dependencies": {
     "@gltf-transform/core": "^4.1.0",
     "@gltf-transform/extensions": "^4.1.0",
-    "@gltf-transform/functions": "^4.0.10",
+    "@gltf-transform/functions": "^4.1.0",
     "@google/model-viewer": "^4.0.0",
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/js": "^7.4.47",
