@@ -43,7 +43,7 @@ export class NetworkManager extends EventTarget {
      * Updates will be emitted as "update" events, including the download URL and the model name.
      */
     async load(url: string) {
-        if (url.startsWith("dev+")) {
+        if (url.startsWith("dev+") || url.startsWith("dev ")) {
             let baseUrl = new URL(url.slice(4));
             baseUrl.searchParams.set("api_updates", "true");
             await this.monitorDevServer(baseUrl);

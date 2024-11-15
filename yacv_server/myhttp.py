@@ -1,7 +1,7 @@
 import io
 import os
 import urllib.parse
-from http import HTTPStatus
+from http import HTTPStatus, HTTPMethod
 from http.server import SimpleHTTPRequestHandler
 
 from yacv_server.mylogger import logger
@@ -71,6 +71,19 @@ class HTTPHandler(SimpleHTTPRequestHandler):
     def _api_updates(self):
         """Handles a publish-only websocket connection that send show_object events along with their hashes and URLs"""
 
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        if not self.requestline.startswith(HTTPMethod.HEAD):
+            # Chunked transfer encoding!
+            self.send_header("Transfer-Encoding", "chunked")
+        else:
+            self.send_header("Content-Length", "0")
+        self.end_headers()
+
+        if self.requestline.startswith(HTTPMethod.HEAD):
+            return
+
         # Keep a shared read lock to know if any frontend is still working before shutting down
         with self.yacv.frontend_lock.r_locked():
 
@@ -80,13 +93,6 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                 return
             self.yacv.at_least_one_client.set()
             logger.debug('Updates client connected')
-
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "text/event-stream")
-            self.send_header("Cache-Control", "no-cache")
-            # Chunked transfer encoding!
-            self.send_header("Transfer-Encoding", "chunked")
-            self.end_headers()
 
             def write_chunk(_chunk_data: str):
                 self.wfile.write(hex(len(_chunk_data))[2:].encode('utf-8'))
@@ -107,7 +113,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                         # noinspection PyUnresolvedReferences
                         to_send = data.to_json()
                         write_chunk(f'data: {to_send}\n\n')
-            except BrokenPipeError:  # Client disconnected normally
+            except (BrokenPipeError, ConnectionResetError):  # Client disconnected normally
                 pass
             finally:
                 subscription.close()

@@ -10,7 +10,7 @@ export const settings = {
         // @ts-ignore
         // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
         // Websocket URLs automatically listen for new models from the python backend
-        "dev+http://127.0.0.1:32323/"
+        '<auto>', // Get the default preload URL if not overridden
     ],
     loadHelpers: true,
     edgeWidth: 0, /* The default line size for edges, set to 0 to use basic gl.LINEs */
@@ -65,3 +65,21 @@ const url = new URL(window.location.href);
 url.searchParams.forEach((value, key) => {
     if (key in settings) (settings as any)[key] = parseSetting(key, value);
 })
+
+// Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
+for (let i = 0; i < settings.preload.length; i++) {
+    let url = settings.preload[i];
+    if (url === '<auto>') {
+        const possibleBackend = new URL("./?api_updates=true", window.location.href)
+        await fetch(possibleBackend, {method: "HEAD"}).then((response) => {
+            if (response.ok && response.headers.get("Content-Type") === "text/event-stream") {
+                // Frontend served by the backend: default to this URL for updates
+                url = "dev+" + possibleBackend.href;
+            }
+        }).catch((error) => console.error("Failed to check for backend:", error));
+        if (url === '<auto>') { // Fallback to the default preload URL of localhost
+            url = "dev+http://localhost:32323";
+        }
+    }
+    settings.preload[i] = url;
+}
