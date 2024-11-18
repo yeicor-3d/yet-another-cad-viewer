@@ -29,6 +29,7 @@ demo [here](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=logo.glb
 
 ## Related projects
 
-- [cq-studio](https://github.com/ccazabon/cq-studio): provides an alternative workflow that detects file changes instead
+- [cq-studio](https://github.com/ccazabon/cq-studio) provides an alternative workflow that detects file changes instead
   of relying on an interactive environment like Jupyter for hot-reloading.
   Uses the same backend and frontend behind the scenes.
+- [build123d-docker](https://github.com/derhuerst/build123d-docker/pkgs/container/build123d) provides docker images for Yet Another CAD Viewer and other projects, with automatic updates.
