@@ -14,7 +14,7 @@ include = [
 python = ">=3.9,<3.13"
 
 # CAD
-build123d = ">=0.5,<0.8"
+build123d = ">=0.8,<0.9"
 
 # Misc
 pygltflib = "^1.16.2"
