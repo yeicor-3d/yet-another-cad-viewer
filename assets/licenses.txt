@@ -1382,7 +1382,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The following npm package may be included in this product:
 
- - picocolors@1.1.0
+ - picocolors@1.1.1
 
 This package contains the following license:
 
@@ -1458,7 +1458,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - three-mesh-bvh@0.8.2
+ - three-mesh-bvh@0.8.3
 
 This package contains the following license:
 
@@ -1812,16 +1812,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.12
- - @vue/compiler-dom@3.5.12
- - @vue/compiler-sfc@3.5.12
- - @vue/compiler-ssr@3.5.12
- - @vue/reactivity@3.5.12
- - @vue/runtime-core@3.5.12
- - @vue/runtime-dom@3.5.12
- - @vue/server-renderer@3.5.12
- - @vue/shared@3.5.12
- - vue@3.5.12
+ - @vue/compiler-core@3.5.13
+ - @vue/compiler-dom@3.5.13
+ - @vue/compiler-sfc@3.5.13
+ - @vue/compiler-ssr@3.5.13
+ - @vue/reactivity@3.5.13
+ - @vue/runtime-core@3.5.13
+ - @vue/runtime-dom@3.5.13
+ - @vue/server-renderer@3.5.13
+ - @vue/shared@3.5.13
+ - vue@3.5.13
 
 These packages each contain the following license:
 
@@ -1975,7 +1975,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - postcss@8.4.47
+ - postcss@8.4.49
 
 This package contains the following license:
 
