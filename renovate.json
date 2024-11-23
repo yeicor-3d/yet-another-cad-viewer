@@ -1,7 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":disableDependencyDashboard"],
-  "dependencyDashboard": false,
   "automerge": true,
   "schedule": [
     "before 9am on Saturday"
