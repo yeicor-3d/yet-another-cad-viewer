@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard"
+  ],
+  "automerge": true,
+  "automergeType": "branch",
+  "schedule": [
+    "before 3am on Saturday"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 3am on Saturday"
+    ]
+  }
+}
