@@ -164,60 +164,60 @@ tests = ["asttokens (>=2.1.0)", "coverage", "coverage-enable-subprocess", "ipyth
 
 [[package]]
 name = "ezdxf"
-version = "1.3.4"
+version = "1.3.5"
 description = "A Python package to create/manipulate DXF drawings."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ezdxf-1.3.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:012752057ea25b42331172c895e29c26a9428f19b282753e8271200157df53c8"},
-    {file = "ezdxf-1.3.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8b295096f1694c4cd307648b38cae6bdc9e048d38ef10a2dac88658f21996400"},
-    {file = "ezdxf-1.3.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:5c99b85bab3951a703a098e9ae59cd2c61b8eb8511fb22a6345054547746fcd4"},
-    {file = "ezdxf-1.3.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:11bb032d75a0c86f0e90a68c81ae920e1d071d9d344c05aaf95046c9eb025e25"},
-    {file = "ezdxf-1.3.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c3ffb5aa2b7345d1fae86095621645e4168dfd121133cca3858cf0567f504a0b"},
-    {file = "ezdxf-1.3.4-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:f72a02c9d6d76424abf7c890b05475964399a792ea2948a60a74df989c2c4f06"},
-    {file = "ezdxf-1.3.4-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:80c3aa1754899b42489138f674b8e80aa4fd81335692997cc85666bf2abc9fb1"},
-    {file = "ezdxf-1.3.4-cp310-cp310-win_amd64.whl", hash = "sha256:63ea0b33d263c1705b0c6eca69d03a87110f2b609b677ea69b01d6ff20cf9a02"},
-    {file = "ezdxf-1.3.4-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:092647cc77462a0f506bfc5d770331634628afdd441c889549ab90ed1057efef"},
-    {file = "ezdxf-1.3.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:23712d824b94cecabaeaa303004decf426793dd5b23d0a8909f500844f3189fb"},
-    {file = "ezdxf-1.3.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:b59d35bbf6dd04114a1a80ece734e65e1bd2b83d107d4e18ad331e371a71605e"},
-    {file = "ezdxf-1.3.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5c9b75e4926847094960b2320701f07376f9874910ace14b18019625551cb497"},
-    {file = "ezdxf-1.3.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1dd5f4b84adccbf35dbafec84cd7d939fa36beb19fd6dbbecb1c07fd324e0113"},
-    {file = "ezdxf-1.3.4-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:8a4e757b2d3db4425eaecee0f5944c689b1d9ca11c29b5fa46df56673786f522"},
-    {file = "ezdxf-1.3.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:97205a79e760d191924ed86e9e4c68dd5e48b674a55d90a2404cc149aabf7273"},
-    {file = "ezdxf-1.3.4-cp311-cp311-win_amd64.whl", hash = "sha256:c81db2eab8b942ecb8d331100231e494f8792ee47024c444ae2b0bf4462ab5fc"},
-    {file = "ezdxf-1.3.4-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:61ce5c7fa9cff42e38c4b53c1aca71bf30f018b3fe420f228812c412719008f5"},
-    {file = "ezdxf-1.3.4-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:ffbc5e5db4983b03261e251552c98758efc9e543e220ded844a990ccef30659f"},
-    {file = "ezdxf-1.3.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:f951c28167ec885492186af8a074d7edd308f4372457bb2f61e7011f5acd4fe0"},
-    {file = "ezdxf-1.3.4-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6587705c07cd551b8058bb7e79b55caff0ad542a75bff54f64188b26d9862e35"},
-    {file = "ezdxf-1.3.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c7f646c9bd4914697be84562f3590d2d716a6e8011f0e84961aaabd2ee0f67cd"},
-    {file = "ezdxf-1.3.4-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:6f70f465552f8224100c505629fbab7dd2370d97c4d559fc721221588a0fc9b0"},
-    {file = "ezdxf-1.3.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:3980221137829e8f83f43240ca766b821424d724e31a1a43149a9705221495af"},
-    {file = "ezdxf-1.3.4-cp312-cp312-win_amd64.whl", hash = "sha256:f80a91c69123a9642f1d55c1adf00436ef783fb6fa9d969971611c664a862fce"},
-    {file = "ezdxf-1.3.4-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:0d5e3db0ace0868e40fc7ea02581b2ca346761dee23cbce0b8ebfa76f5ee629c"},
-    {file = "ezdxf-1.3.4-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:dde82e42e315d4bdccbbcb01a36a814a881f1a822662ab2705a91acfa6547a1f"},
-    {file = "ezdxf-1.3.4-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:a1077815085fa7c1c4ccbcf553bbeeccaa998618becf74b672e0e4a896d8db6d"},
-    {file = "ezdxf-1.3.4-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ded5f3fb8153dc8979d94c0f122971871ef9da533c8f32e11237a909c4bf6a32"},
-    {file = "ezdxf-1.3.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a5f632376e936041e6a1415b2fb7346ab9a042e2d291e98be40c0c57869c6c03"},
-    {file = "ezdxf-1.3.4-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:17d7adcb663a1cb5534f1c878ce526749603c438363173e2a0bf4793b2a17cbe"},
-    {file = "ezdxf-1.3.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:62eed6f214744ce49487f504bb96410cc836774df49793145cbd039ed01d1b90"},
-    {file = "ezdxf-1.3.4-cp313-cp313-win_amd64.whl", hash = "sha256:fdc80bdcf228c8c12e8087a936e5da9612f0d094568ddcc37a9d830ecf8fe9fd"},
-    {file = "ezdxf-1.3.4-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:fa076c0899fe1e82851b8ac5b355477cc3aaa9e29b2b4da3fdfa685d4f2b9edb"},
-    {file = "ezdxf-1.3.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:9479d651700cf52d1b4752486e3ccb1307ea1f111012cc3a647fa5b192ee47c0"},
-    {file = "ezdxf-1.3.4-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:9bd56bfa419cfb682da8de115cc71d7c51bfc0de7f678f3ab115fbb4af4f48ef"},
-    {file = "ezdxf-1.3.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a4a53fa19343c6ce4096311dc9780646a6650fbd47511a68e432c947b9598257"},
-    {file = "ezdxf-1.3.4-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3e4ebeb6c1b6147910c3766aca4008294b7f27301e9ba29b40fd9fb485cc45cc"},
-    {file = "ezdxf-1.3.4-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:5919fbb6e1ff8fca75deed6d7eea17aead4ca3a884a240b5896e5e6306ac4bb0"},
-    {file = "ezdxf-1.3.4-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:12c7937a657150f27d021c84289124f8d47bf9e9c0a29fd2f320e7c0e563cde5"},
-    {file = "ezdxf-1.3.4-cp39-cp39-win_amd64.whl", hash = "sha256:483acebd47dc885209656b69d7b561a9c94e6a0fa13e4ef0823e41f2e110f861"},
-    {file = "ezdxf-1.3.4-py3-none-any.whl", hash = "sha256:640ac043f54af1c897d91ffbca162f29e015355b1683cc753cd51f8802893a38"},
-    {file = "ezdxf-1.3.4.zip", hash = "sha256:d4f07a684a3adc79d2cb8168b57c60f5966c3ab641620092f36402201b960e7c"},
+    {file = "ezdxf-1.3.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3389ed1f57ebc2cfe7cea83a3f1c22a7cd77f6e8a49d318d7c3da45ffdab2505"},
+    {file = "ezdxf-1.3.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:bec1c278e456a35852f248865b6d038b5371fa8a6c7e298d8dd489cffcd4394b"},
+    {file = "ezdxf-1.3.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d17565a4a034cbab72a7a5c104c5ceb323f3383c0b07e60cbae91d0f0fb5b166"},
+    {file = "ezdxf-1.3.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:73ec8a8fc6b686d65ea56b1a0e79d76ac1ed93eb51368dd33bc52f9fb852de1d"},
+    {file = "ezdxf-1.3.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fded6c3a34057b4eaff2ea78b1ce3b1b74ec7cca829ffc3fee936abfe431d9b9"},
+    {file = "ezdxf-1.3.5-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:b7bb0d0645928197871dd83f7f6002c1ed04df2d6aa1cd546f0a56d21db99c49"},
+    {file = "ezdxf-1.3.5-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:91288f38313bbe392a1c7a50fdd71ed1715a9d6f6ccc45f98575ed3ffc3aaaf8"},
+    {file = "ezdxf-1.3.5-cp310-cp310-win_amd64.whl", hash = "sha256:a52cdf616166f63b0195dd09452c9d5a00d4104946d016be5f475f61c0dc6778"},
+    {file = "ezdxf-1.3.5-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:600917e94b4eb2f2f7a4070c7e4d887028c3f5431878b05ab83b1c563327188f"},
+    {file = "ezdxf-1.3.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:e95165e08df11492d39a084a1805716a79010f382006cc219b1145f70440c362"},
+    {file = "ezdxf-1.3.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5e615064827381057f7aa9807fe3cc6c106578ee7af58777513dd097b38e41e5"},
+    {file = "ezdxf-1.3.5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:29884caac5acc35f9e04355fb244bf780576ade6299a09f174324550bf43b36e"},
+    {file = "ezdxf-1.3.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5e69bd6c636a71059d7f4e8b21149f1cee90e1ac52a2ab42f60c1c2772168435"},
+    {file = "ezdxf-1.3.5-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:ec2d04e913453851d623f58b0dce8bab291ae4b5fec355dfc15b6746757bd5f8"},
+    {file = "ezdxf-1.3.5-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:f79f656983937ea41a3f83bbb4fbeee8feb44f10ed4e7d2b515436513da9d4f9"},
+    {file = "ezdxf-1.3.5-cp311-cp311-win_amd64.whl", hash = "sha256:1113554bc3f24c31a4220c7415e6d0e6d3ae4206ac478398a4da4cba30ab4dea"},
+    {file = "ezdxf-1.3.5-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:444d466648653a28bd1a2da08a9e9ced547a2b76d6e5ce5158114e5fb3eec2b8"},
+    {file = "ezdxf-1.3.5-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:623ccf1c5a0b4b0f08481298549727cd4597810c121f31c996a13589c25ef938"},
+    {file = "ezdxf-1.3.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ce74cf72678898be380836cf73786fd259322813e27f53f4b34be3d39b4989e4"},
+    {file = "ezdxf-1.3.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b7a298ec70ac8065b72d11cfbc64eed9e2ac3938061f455fc1fb09d9b9701370"},
+    {file = "ezdxf-1.3.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4fc459fc6dea1e05eeb605f097a924de1dd8d750be963c9f0e86a869e5ab3fe3"},
+    {file = "ezdxf-1.3.5-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:88442a6f2778fb2c502f1844f216414e63d23ff9999e36249017701f6a45f479"},
+    {file = "ezdxf-1.3.5-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:a3e73af302c6e75c8dd92af72d88ced11dbc9819bfbec95ff334e203f899865d"},
+    {file = "ezdxf-1.3.5-cp312-cp312-win_amd64.whl", hash = "sha256:296942af908a037ce1b5fa0b49111d8517d66e70fedf4166d293ed082761181e"},
+    {file = "ezdxf-1.3.5-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:55eea09ee11b123736a8f19966987d82abe24eb56653daca6e79f4c6df004493"},
+    {file = "ezdxf-1.3.5-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:8a756e48b11123a0e2751aaf5f7ba3bb23b967f38aac62e598fe6138fee8e111"},
+    {file = "ezdxf-1.3.5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:f6913ea16130472a238970b69e969eb2ba555a22e91aa3beb990640b6efcdaac"},
+    {file = "ezdxf-1.3.5-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:df97527c934ead755b67957608592673ae4fb589b36b547b990804a3be47f48a"},
+    {file = "ezdxf-1.3.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5850a508ba78e65b3729be26e65170011c0d0d7199e718f3a3737b7cd7e44c5d"},
+    {file = "ezdxf-1.3.5-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:f8bc4272d17b2225d5340d255a39d973560f45094a568e6ff3cad86daa45e3f5"},
+    {file = "ezdxf-1.3.5-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:b2571b24b443d7dca61b1401e6e221cb69c8bb1814ede3f13733d1b709296115"},
+    {file = "ezdxf-1.3.5-cp313-cp313-win_amd64.whl", hash = "sha256:45d678ac6efd92036aaea9d6ea695baa4a1ccf2d70a61d06984ed1fc8444c266"},
+    {file = "ezdxf-1.3.5-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:446559e1e1c85dfa55eaf2ec6cd4a255a583f448631b4fe32daaab31d5af12d5"},
+    {file = "ezdxf-1.3.5-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:6945e68efb5d3a1e8510b6869c37eac1e585b95ca51daf93b80bb4f81a8c8dd0"},
+    {file = "ezdxf-1.3.5-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:4c8bd4d1ad4101096b2952dd8254f8d2b95b68ba4bc1784ae6ef9be394c83a5c"},
+    {file = "ezdxf-1.3.5-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0cf6646fc64bc411d1362b3c9466a873caf739a9198ee972b37b12389ea23a39"},
+    {file = "ezdxf-1.3.5-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3504053616116006f53c83eee3faf4334d62dd24177930a755d3ead2bf8cf707"},
+    {file = "ezdxf-1.3.5-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:397fa5532b2535f570ff118342dccb940a8a002d9751dc050d8df9872ae133f6"},
+    {file = "ezdxf-1.3.5-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:4c87766810797d9ccabad6572d7630c2d59a3efc7c6e127d2dcc07da488409df"},
+    {file = "ezdxf-1.3.5-cp39-cp39-win_amd64.whl", hash = "sha256:16b12c698658021126a1cfe0f986fe32600ec7eee52f9717f8d2873d52ce213a"},
+    {file = "ezdxf-1.3.5-py3-none-any.whl", hash = "sha256:3fcbe4937d74c8a978e5aa025989a557a57d068b75831d661c07a8608ad6a85e"},
+    {file = "ezdxf-1.3.5.zip", hash = "sha256:24e7c0ebe947f0ba073bd0a1c7570dae265b99daf5dd0fb5688533132c71b723"},
 ]
 
 [package.dependencies]
 fonttools = "*"
 numpy = "*"
 pyparsing = ">=2.0.1"
-typing-extensions = ">=4.6.0"
+typing_extensions = ">=4.6.0"
 
 [package.extras]
 dev = ["Cython", "Pillow", "PyMuPDF (>=1.20.0)", "PySide6", "matplotlib", "pytest", "setuptools", "wheel"]
@@ -356,13 +356,13 @@ testing = ["Django", "attrs", "colorama", "docopt", "pytest (<9.0.0)"]
 
 [[package]]
 name = "marshmallow"
-version = "3.23.1"
+version = "3.23.2"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "marshmallow-3.23.1-py3-none-any.whl", hash = "sha256:fece2eb2c941180ea1b7fcbd4a83c51bfdd50093fdd3ad2585ee5e1df2508491"},
-    {file = "marshmallow-3.23.1.tar.gz", hash = "sha256:3a8dfda6edd8dcdbf216c0ede1d1e78d230a6dc9c5a088f58c4083b974a0d468"},
+    {file = "marshmallow-3.23.2-py3-none-any.whl", hash = "sha256:bcaf2d6fd74fb1459f8450e85d994997ad3e70036452cbfa4ab685acb19479b3"},
+    {file = "marshmallow-3.23.2.tar.gz", hash = "sha256:c448ac6455ca4d794773f00bae22c2f351d62d739929f761dce5eacb5c468d7f"},
 ]
 
 [package.dependencies]
@@ -454,13 +454,13 @@ files = [
 
 [[package]]
 name = "ocpsvg"
-version = "0.3.2"
+version = "0.3.3"
 description = ""
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ocpsvg-0.3.2-py3-none-any.whl", hash = "sha256:432fa40ce9c736016643490bd604121b1502cafe86079933c1d4926131dc9263"},
-    {file = "ocpsvg-0.3.2.tar.gz", hash = "sha256:2a733fb41c96ad36320e5b98258ea3f6b33ac35fa64a50f6cdb9d8da32c1dee5"},
+    {file = "ocpsvg-0.3.3-py3-none-any.whl", hash = "sha256:93a7d4b0edab119ca950e7e15132fdb69399f53851322a3fb56e03946939384a"},
+    {file = "ocpsvg-0.3.3.tar.gz", hash = "sha256:8c441e72110be0b53dd84a00229752d8ce7658ed2c3d66e79c9aade9fcb4b475"},
 ]
 
 [package.dependencies]
