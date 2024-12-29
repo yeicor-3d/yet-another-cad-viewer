@@ -11,7 +11,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.13,<3.14"
 
 # CAD
 build123d = ">=0.8,<0.9"
