@@ -1,35 +1,66 @@
 // These are the default values for the settings, which are overridden below
-export const settings = {
-    preload: [
-        // @ts-ignore
-        // new URL('../../assets/fox.glb', import.meta.url).href,
-        // @ts-ignore
-        // new URL('../../assets/logo_build/base.glb', import.meta.url).href,
-        // @ts-ignore
-        // new URL('../../assets/logo_build/location.glb', import.meta.url).href,
-        // @ts-ignore
-        // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
-        // Websocket URLs automatically listen for new models from the python backend
-        '<auto>', // Get the default preload URL if not overridden
-    ],
-    loadHelpers: true,
-    edgeWidth: 0, /* The default line size for edges, set to 0 to use basic gl.LINEs */
-    displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
-    monitorEveryMs: 100,
-    monitorOpenTimeoutMs: 1000,
-    // ModelViewer settings
-    autoplay: true, // Global animation toggle
-    arModes: 'webxr scene-viewer quick-look',
-    zoomSensitivity: 0.25,
-    orbitSensitivity: 1,
-    panSensitivity: 1,
-    exposure: 1,
-    shadowIntensity: 0,
-    background: '',
+let settingsCache: any = null;
+
+export async function settings() {
+    if (settingsCache !== null) return settingsCache;
+    let settings = {
+        preload: [
+            // @ts-ignore
+            // new URL('../../assets/fox.glb', import.meta.url).href,
+            // @ts-ignore
+            // new URL('../../assets/logo_build/base.glb', import.meta.url).href,
+            // @ts-ignore
+            // new URL('../../assets/logo_build/location.glb', import.meta.url).href,
+            // @ts-ignore
+            // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
+            // Websocket URLs automatically listen for new models from the python backend
+            '<auto>', // Get the default preload URL if not overridden
+        ],
+        loadHelpers: true,
+        edgeWidth: 0, /* The default line size for edges, set to 0 to use basic gl.LINEs */
+        displayLoadingEveryMs: 1000, /* How often to display partially loaded models */
+        monitorEveryMs: 100,
+        monitorOpenTimeoutMs: 1000,
+        // ModelViewer settings
+        autoplay: true, // Global animation toggle
+        arModes: 'webxr scene-viewer quick-look',
+        zoomSensitivity: 0.25,
+        orbitSensitivity: 1,
+        panSensitivity: 1,
+        exposure: 1,
+        shadowIntensity: 0,
+        background: '',
+    };
+
+    // Auto-override any settings from the URL
+    const url = new URL(window.location.href);
+    url.searchParams.forEach((value, key) => {
+        if (key in settings) (settings as any)[key] = parseSetting(key, value, settings);
+    })
+
+    // Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
+    for (let i = 0; i < settings.preload.length; i++) {
+        let url = settings.preload[i];
+        if (url === '<auto>') {
+            const possibleBackend = new URL("./?api_updates=true", window.location.href)
+            await fetch(possibleBackend, {method: "HEAD"}).then((response) => {
+                if (response.ok && response.headers.get("Content-Type") === "text/event-stream") {
+                    // Frontend served by the backend: default to this URL for updates
+                    url = "dev+" + possibleBackend.href;
+                }
+            }).catch((error) => console.error("Failed to check for backend:", error));
+            if (url === '<auto>') { // Fallback to the default preload URL of localhost
+                url = "dev+http://localhost:32323";
+            }
+        }
+        settings.preload[i] = url;
+    }
+    settingsCache = settings;
+    return settings;
 }
 
 const firstTimeNames: Array<string> = []; // Needed for array values, which clear the array when overridden
-function parseSetting(name: string, value: string): any {
+function parseSetting(name: string, value: string, settings: any): any {
     let arrayElem = name.endsWith(".0")
     if (arrayElem) name = name.slice(0, -2);
     let prevValue = (settings as any)[name];
@@ -42,7 +73,7 @@ function parseSetting(name: string, value: string): any {
             } else {
                 toExtend = prevValue;
             }
-            toExtend.push(parseSetting(name + ".0", value));
+            toExtend.push(parseSetting(name + ".0", value, settings));
             return toExtend;
         } else {
             prevValue = prevValue[0];
@@ -58,28 +89,4 @@ function parseSetting(name: string, value: string): any {
         default:
             throw new Error(`Unknown setting type: ${typeof prevValue} -- ${prevValue}`);
     }
-}
-
-// Auto-override any settings from the URL
-const url = new URL(window.location.href);
-url.searchParams.forEach((value, key) => {
-    if (key in settings) (settings as any)[key] = parseSetting(key, value);
-})
-
-// Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
-for (let i = 0; i < settings.preload.length; i++) {
-    let url = settings.preload[i];
-    if (url === '<auto>') {
-        const possibleBackend = new URL("./?api_updates=true", window.location.href)
-        await fetch(possibleBackend, {method: "HEAD"}).then((response) => {
-            if (response.ok && response.headers.get("Content-Type") === "text/event-stream") {
-                // Frontend served by the backend: default to this URL for updates
-                url = "dev+" + possibleBackend.href;
-            }
-        }).catch((error) => console.error("Failed to check for backend:", error));
-        if (url === '<auto>') { // Fallback to the default preload URL of localhost
-            url = "dev+http://localhost:32323";
-        }
-    }
-    settings.preload[i] = url;
 }

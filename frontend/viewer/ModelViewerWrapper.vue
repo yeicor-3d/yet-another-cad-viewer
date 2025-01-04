@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {settings} from "../misc/settings";
-import {inject, onMounted, type Ref, ref, watch} from "vue";
+import {inject, onUpdated, type Ref, ref, watch} from "vue";
 import {$renderer, $scene} from "@google/model-viewer/lib/model-viewer-base";
 import {$controls} from '@google/model-viewer/lib/features/controls.js';
 import {type SmoothControls} from '@google/model-viewer/lib/three-components/SmoothControls';
@@ -27,14 +27,19 @@ const scene = ref<ModelScene | null>(null);
 const renderer = ref<Renderer | null>(null);
 const controls = ref<SmoothControls | null>(null);
 
+const sett = ref<any | null>(null);
+(async () => sett.value = await settings())();
 
 let lastCameraTargetPosition: Vector3 | undefined = undefined;
 let lastCameraZoom: number | undefined = undefined;
 let lastCameraUrl = props.src.toString();
-onMounted(() => {
-  if (!elem.value) return;
+let initialized = false
+onUpdated(() => {
+  if (!elem.value) return; // Not ready yet
+  if (initialized) return; // Already initialized
+  initialized = true;
   elem.value.addEventListener('before-render', () => {
-    if (!elem.value) return;
+    if (!elem.value) return
     // Extract internals of model-viewer in order to hack unsupported features
     scene.value = elem.value[$scene] as ModelScene;
     renderer.value = elem.value[$renderer] as Renderer;
@@ -207,11 +212,11 @@ watch(disableTap, (newDisableTap) => {
 
 <template>
   <!-- The main 3D model viewer -->
-  <model-viewer ref="elem" :ar="settings.arModes.length > 0" :ar-modes="settings.arModes" :autoplay="settings.autoplay"
-                :environment-image="settings.background" :exposure="settings.exposure"
-                :orbit-sensitivity="settings.orbitSensitivity" :pan-sensitivity="settings.panSensitivity"
-                :poster="poster" :shadow-intensity="settings.shadowIntensity" :skybox-image="settings.background"
-                :src="props.src" :zoom-sensitivity="settings.zoomSensitivity" alt="The 3D model(s)" camera-controls
+  <model-viewer ref="elem" v-if="sett != null" :ar="sett.arModes.length > 0" :ar-modes="sett.arModes"
+                :environment-image="sett.background" :exposure="sett.exposure" :autoplay="sett.autoplay"
+                :orbit-sensitivity="sett.orbitSensitivity" :pan-sensitivity="sett.panSensitivity"
+                :poster="poster" :shadow-intensity="sett.shadowIntensity" :skybox-image="sett.background"
+                :src="props.src" :zoom-sensitivity="sett.zoomSensitivity" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" interaction-prompt="none" max-camera-orbit="Infinity 180deg auto"
                 min-camera-orbit="-Infinity 0deg 5%" style="width: 100%; height: 100%">
     <slot></slot>

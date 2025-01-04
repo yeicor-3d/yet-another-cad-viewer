@@ -55,7 +55,11 @@ const clipPlaneY = ref(1);
 const clipPlaneSwappedY = ref(false);
 const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
-const edgeWidth = ref(settings.edgeWidth);
+const edgeWidth = ref(0);
+(async () => {
+  let s = await settings();
+  edgeWidth.value = s.edgeWidth;
+})();
 
 // Misc properties
 const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});

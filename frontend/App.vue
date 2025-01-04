@@ -52,10 +52,11 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
     let model = event.models[modelIndex];
     tools.value?.removeObjectSelections(model.name);
     try {
+      let loadHelpers = (await settings()).loadHelpers;
       if (!model.isRemove) {
-        doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast && settings.loadHelpers, isLast);
+        doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast && loadHelpers, isLast);
       } else {
-        doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast && settings.loadHelpers, isLast);
+        doc = await SceneMgr.removeModel(sceneUrl, doc, model.name, isLast && loadHelpers, isLast);
       }
     } catch (e) {
       console.error("Error loading model", model, e);
@@ -79,16 +80,18 @@ let networkMgr = new NetworkManager();
 networkMgr.addEventListener('update-early',
     (e) => viewer.value?.onProgress((e as CustomEvent<Array<any>>).detail.length * 0.01));
 networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
-// Start loading all configured models ASAP
-for (let model of settings.preload) {
-  networkMgr.load(model);
-}
-watch(viewer, (newViewer) => {
-  if (newViewer) {
-    newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
-        ' models from:</tspan>' + settings.preload.map((url) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+(async () => { // Start loading all configured models ASAP
+  let sett = await settings();
+  watch(viewer, (newViewer) => {
+    if (newViewer) {
+      newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
+          ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+    }
+  });
+  for (let model of sett.preload) {
+    await networkMgr.load(model);
   }
-});
+})();
 
 async function loadModelManual() {
   const modelUrl = prompt("For an improved experience in viewing CAD/GLTF models with automatic updates, it's recommended to use the official yacv_server Python package. This ensures seamless serving of models and automatic updates.\n\nOtherwise, enter the URL of the model to load:");

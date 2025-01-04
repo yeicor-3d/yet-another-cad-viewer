@@ -61,6 +61,7 @@ export class NetworkManager extends EventTarget {
 
     private async monitorDevServer(url: URL, stop: () => boolean = () => false) {
         while (!stop()) {
+            let monitorEveryMs = (await settings()).monitorEveryMs;
             try {
                 // WARNING: This will spam the console logs with failed requests when the server is down
                 const controller = new AbortController();
@@ -82,12 +83,12 @@ export class NetworkManager extends EventTarget {
                     }
                 } else {
                     // Server is down, wait a little longer before retrying
-                    await new Promise(resolve => setTimeout(resolve, 10 * settings.monitorEveryMs));
+                    await new Promise(resolve => setTimeout(resolve, 10 * monitorEveryMs));
                 }
                 controller.abort();
             } catch (e) { // Ignore errors (retry very soon)
             }
-            await new Promise(resolve => setTimeout(resolve, settings.monitorEveryMs));
+            await new Promise(resolve => setTimeout(resolve, monitorEveryMs));
         }
     }
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {defineModel, inject, ref, type ShallowRef, watch} from "vue";
+import {inject, ref, type ShallowRef, watch} from "vue";
 import {VBtn, VSelect, VTooltip} from "vuetify/lib/components/index.mjs";
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
@@ -333,7 +333,7 @@ function updateBoundingBox() {
     for (let i = 0; i < 2; i++) { // Find the 2nd closest one by running twice dropping the first
       edge = axisEdges[0];
       let edgeDist = Infinity;
-      let cameraPos: Vector3 = props.viewer?.scene.camera.position;
+      let cameraPos: Vector3 = props.viewer?.scene?.camera?.position ?? new Vector3();
       for (let testEdge of axisEdges) {
         let from = new Vector3(...corners[testEdge[0]]);
         let to = new Vector3(...corners[testEdge[1]]);
