@@ -38,7 +38,7 @@ def tessellate(
         # Perform tessellation tasks
         edge_to_faces: Dict[str, List[TopoDS_Face]] = {}
         vertex_to_faces: Dict[str, List[TopoDS_Face]] = {}
-        if faces:
+        if faces and hasattr(shape, 'faces'):
             shape_faces = shape.faces()
             for face in shape_faces:
                 _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, obj_color)
@@ -49,13 +49,13 @@ def tessellate(
                     for vertex in face.vertices():
                         vertex_to_faces[vertex.wrapped] = vertex_to_faces.get(vertex.wrapped, []) + [face.wrapped]
             if len(shape_faces) > 0: obj_color = None  # Don't color edges/vertices if faces are colored
-        if edges:
+        if edges and hasattr(shape, 'edges'):
             shape_edges = shape.edges()
             for edge in shape_edges:
                 _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), angular_tolerance,
                                  angular_tolerance, obj_color)
             if len(shape_edges) > 0: obj_color = None  # Don't color vertices if edges are colored
-        if vertices:
+        if vertices and hasattr(shape, 'vertices'):
             for vertex in shape.vertices():
                 _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []), obj_color)
 
