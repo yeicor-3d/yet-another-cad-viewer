@@ -669,16 +669,15 @@
     semver "^7.3.5"
 
 "@npmcli/git@^6.0.0":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@npmcli/git/-/git-6.0.1.tgz#9ee894a35c2082d0b41883e267ff140aece457d5"
-  integrity sha512-BBWMMxeQzalmKadyimwb2/VVQyJB01PH0HhVSNLHNBDZN/M/h/02P6f8fxedIiFhpMj11SO9Ep5tKTBE7zL2nw==
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@npmcli/git/-/git-6.0.3.tgz#966cbb228514372877de5244db285b199836f3aa"
+  integrity sha512-GUYESQlxZRAdhs3UhbB6pVRNUELQOHXwK9ruDkwmCv2aZ5y0SApQzUJCg02p3A7Ue2J5hxvlk1YI53c00NmRyQ==
   dependencies:
     "@npmcli/promise-spawn" "^8.0.0"
     ini "^5.0.0"
     lru-cache "^10.0.1"
     npm-pick-manifest "^10.0.0"
     proc-log "^5.0.0"
-    promise-inflight "^1.0.1"
     promise-retry "^2.0.1"
     semver "^7.3.5"
     which "^5.0.0"
@@ -1096,10 +1095,10 @@
     de-indent "^1.0.2"
     he "^1.2.0"
 
-"@vue/language-core@2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-2.2.2.tgz#aa0e916bf18434077887e8ba269729b45564f625"
-  integrity sha512-QotO41kurE5PLf3vrNgGTk3QswO2PdUFjBwNiOi7zMmGhwb25PSTh9hD1MCgKC06AVv+8sZQvlL3Do4TTVHSiQ==
+"@vue/language-core@2.2.4":
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-2.2.4.tgz#5cad43a4cd6f388bebc3e8c6f303df489f5e8829"
+  integrity sha512-eGGdw7eWUwdIn9Fy/irJ7uavCGfgemuHQABgJ/hU1UgZFnbTg9VWeXvHQdhY+2SPQZWJqWXvRWIg67t4iWEa+Q==
   dependencies:
     "@volar/language-core" "~2.4.11"
     "@vue/compiler-dom" "^3.5.0"
@@ -1174,9 +1173,9 @@ agent-base@^7.1.0, agent-base@^7.1.2:
   integrity sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==
 
 alien-signals@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/alien-signals/-/alien-signals-1.0.3.tgz#c9bee367ccbd3801cfde8ad3cbedaa2a6ad343b1"
-  integrity sha512-zQOh3wAYK5ujENxvBBR3CFGF/b6afaSzZ/c9yNhJ1ENrGHETvpUuKQsa93Qrclp0+PzTF93MaZ7scVp1uUozhA==
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/alien-signals/-/alien-signals-1.0.4.tgz#c696a5dc9963fc648ae97093411d7e74b0a81ac0"
+  integrity sha512-DJqqQD3XcsaQcQ1s+iE2jDUZmmQpXwHiR6fCAim/w87luaW+vmLY8fMlrdkmRwzaFXhkxf3rqPCR59tKVv1MDw==
 
 ansi-colors@^4.1.1:
   version "4.1.3"
@@ -1302,9 +1301,9 @@ callsites@^3.0.0:
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
 
 caniuse-lite@^1.0.30001688:
-  version "1.0.30001699"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001699.tgz#a102cf330d153bf8c92bfb5be3cd44c0a89c8c12"
-  integrity sha512-b+uH5BakXZ9Do9iK+CkDmctUSEqZl+SP056vc5usa0PL+ev5OHw003rZXcnjNDv3L8P5j6rwT6C0BPKSikW08w==
+  version "1.0.30001700"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001700.tgz#26cd429cf09b4fd4e745daf4916039c794d720f6"
+  integrity sha512-2S6XIXwaE7K7erT8dY+kLQcpa5ms63XlRkMkReXjle+kf6c5g38vyMl+Z5y8dSxOFDhcFe+nxnn261PLxBSQsQ==
 
 chalk@^4.1.0:
   version "4.1.2"
@@ -1465,9 +1464,9 @@ eastasianwidth@^0.2.0:
   integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
 
 electron-to-chromium@^1.5.73:
-  version "1.5.101"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.101.tgz#c26490fb2c1363d804e798e138a2a544fc7f7075"
-  integrity sha512-L0ISiQrP/56Acgu4/i/kfPwWSgrzYZUnQrC0+QPFuhqlLP1Ir7qzPPDVS9BcKIyWTRU8+o6CC8dKw38tSWhYIA==
+  version "1.5.103"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.103.tgz#3d02025bc16e96e5edb3ed3ffa2538a11ae682dc"
+  integrity sha512-P6+XzIkfndgsrjROJWfSvVEgNHtPgbhVyTkwLjUM2HU/h7pZRORgaTlHqfAikqxKmdJMLW8fftrdGWbd/Ds0FA==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -2337,16 +2336,7 @@ postcss-selector-parser@^6.1.2:
     cssesc "^3.0.0"
     util-deprecate "^1.0.2"
 
-postcss@^8.4.48:
-  version "8.5.2"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.2.tgz#e7b99cb9d2ec3e8dd424002e7c16517cb2b846bd"
-  integrity sha512-MjOadfU3Ys9KYoX0AdkBlFEF1Vx37uCCeN4ZHnmwm9FfpbsGWMZeBLMmmpY+6Ocqod7mkdZ0DT31OlbsFrLlkA==
-  dependencies:
-    nanoid "^3.3.8"
-    picocolors "^1.1.1"
-    source-map-js "^1.2.1"
-
-postcss@^8.5.2:
+postcss@^8.4.48, postcss@^8.5.2:
   version "8.5.3"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.3.tgz#1463b6f1c7fb16fe258736cba29a2de35237eafb"
   integrity sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==
@@ -2374,11 +2364,6 @@ promise-call-limit@^3.0.1:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/promise-call-limit/-/promise-call-limit-3.0.2.tgz#524b7f4b97729ff70417d93d24f46f0265efa4f9"
   integrity sha512-mRPQO2T1QQVw11E7+UdCJu7S61eJVWknzml9sC1heAdj1jxl0fWMBypIt9ZOcLFf8FkG995ZD7RnVk7HH72fZw==
-
-promise-inflight@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz#98472870bf228132fcbdd868129bad12c3c029e3"
-  integrity sha512-6zWPyEOFaQBJYcGMHBKTKJ3u6TBsnMFOIZSa6ce1e/ZrrsOlnHRHbabMjLiBYKp+n44X9eUI6VUPaukCXHuG4g==
 
 promise-retry@^2.0.1:
   version "2.0.1"
@@ -2863,12 +2848,12 @@ vscode-uri@^3.0.8:
   integrity sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==
 
 vue-tsc@^2.1.10:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-2.2.2.tgz#7e3c43dbd3ca3a38e0f04a864bd114ba31098b90"
-  integrity sha512-1icPKkxAA5KTAaSwg0wVWdE48EdsH8fgvcbAiqojP4jXKl6LEM3soiW1aG/zrWrFt8Mw1ncG2vG1PvpZpVfehA==
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-2.2.4.tgz#1e87eebbdde3078333304b9e5499b67157040305"
+  integrity sha512-3EVHlxtpMXcb5bCaK7QDFTbEkMusDfVk0HVRrkv5hEb+Clpu9a96lKUXJAeD/akRlkoA4H8MCHgBDN19S6FnzA==
   dependencies:
     "@volar/typescript" "~2.4.11"
-    "@vue/language-core" "2.2.2"
+    "@vue/language-core" "2.2.4"
 
 vue@^3.5.13:
   version "3.5.13"
