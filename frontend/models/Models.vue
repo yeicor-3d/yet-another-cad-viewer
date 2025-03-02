@@ -44,7 +44,7 @@ defineExpose({findModel})
 
 <template>
   <v-expansion-panels v-for="meshes in meshesList(sceneDocument)" :key="meshName(meshes[0])"
-                      v-model="expandedNames" multiple>
+                      v-model="expandedNames as any" multiple>
     <model :meshes="meshes" :viewer="props.viewer" @remove="onRemove(meshes[0])"/>
   </v-expansion-panels>
 </template>
