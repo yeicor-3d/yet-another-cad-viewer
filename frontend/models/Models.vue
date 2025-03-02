@@ -11,7 +11,7 @@ const emit = defineEmits<{ remove: [string] }>()
 
 let {sceneDocument} = inject<{ sceneDocument: Ref<Document> }>('sceneDocument')!!;
 
-let expandedNames = ref<Array<string>>([]);
+const expandedNames = ref<Array<string>>([]);
 
 function meshesList(sceneDocument: Document): Array<Array<Mesh>> {
   // Grouped by shared name
