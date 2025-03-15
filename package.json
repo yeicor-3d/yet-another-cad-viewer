@@ -37,7 +37,7 @@
     "@vue/tsconfig": "^0.7.0",
     "buffer": "^5.5.0||^6.0.0",
     "commander": "^13.0.0",
-    "generate-license-file": "^3.6.0",
+    "generate-license-file": "^4.0.0",
     "npm-run-all2": "^7.0.1",
     "terser": "^5.36.0",
     "typescript": "~5.8.0",
