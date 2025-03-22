@@ -364,9 +364,9 @@
   integrity sha512-Y1EQdcfwMSeQN/ujR5VayLOJ1BHaK+ssyk0AEzPjC+t1lITgsnccPqFjb6V+LsTp/9Iov4ysfjxLaGJ9RPtkVg==
 
 "@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.1.2":
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.1.2.tgz#13b480647e102b7e2cfc636da3e5c1506bcb5c30"
-  integrity sha512-07xMD0Z08+ss2/awOWowpARXCqR6WuswPSmFvR81yGo7aIACIeS5lXesyUkbr7WiPqwszZ1WtpXXds96KHvQXA==
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.1.3.tgz#905b9a04f515d1444ce41a62a4990080edc8cee0"
+  integrity sha512-N+73Vo9DTXV2QmsnetLRY4q3z0Q0oyH0i/ymvzEkgpgNEAq+RP73ZLY0HK+Ia0rTUMgFwQHFNyHDyFiENToBZA==
   dependencies:
     property-graph "^3.0.0"
 
