@@ -1,8 +1,6 @@
 import queue
-import queue
 import threading
-from typing import List, TypeVar, \
-    Generic, Generator
+from typing import List, TypeVar, Generic, Generator
 
 from yacv_server.mylogger import logger
 
@@ -58,7 +56,7 @@ class BufferedPubSub(Generic[T]):
 
     def subscribe(self, include_buffered: bool = True, include_future: bool = True, yield_timeout: float = 0.0) -> \
             Generator[T, None, None]:
-        """Subscribes to events as an generator that yields events and automatically unsubscribes"""
+        """Subscribes to events as a generator that yields events and automatically unsubscribes"""
         q = self._subscribe(include_buffered, include_future)
         try:
             while True:

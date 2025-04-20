@@ -138,3 +138,4 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         self.send_header('E-Tag', f'"{_hash}"')
         self.end_headers()
         self.wfile.write(exported_glb)
+        return None

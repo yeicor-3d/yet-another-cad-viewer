@@ -5,7 +5,7 @@ from OCP.BRepAdaptor import BRepAdaptor_Curve
 from OCP.GCPnts import GCPnts_TangentialDeflection
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
-from build123d import Shape, Vertex, Face, Location
+from build123d import Vertex, Face, Location, Compound
 from pygltflib import GLTF2
 
 from yacv_server.cad import CADCoreLike, ColorTuple
@@ -33,7 +33,7 @@ def tessellate(
         mgr.add_location(Location(cad_like))
 
     elif isinstance(cad_like, TopoDS_Shape):
-        shape = Shape(cad_like)
+        shape = Compound(cad_like)
 
         # Perform tessellation tasks
         edge_to_faces: Dict[str, List[TopoDS_Face]] = {}
@@ -59,6 +59,9 @@ def tessellate(
             for vertex in shape.vertices():
                 _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []), obj_color)
 
+    else:
+        raise TypeError(f"Unsupported type: {type(cad_like)}: {cad_like}")
+
     return mgr.build()
 
 
@@ -69,9 +72,10 @@ def _tessellate_face(
         angular_tolerance: float = 0.1,
         color: Optional[ColorTuple] = None,
 ):
-    face = Shape(ocp_face)
+    face = Compound(ocp_face)
     # face.mesh(tolerance, angular_tolerance)
     tri_mesh = face.tessellate(tolerance, angular_tolerance)
+    # noinspection PyArgumentList
     poly = BRep_Tool.Triangulation_s(face.wrapped, TopLoc_Location())
     if poly is None:
         logger.warn("No triangulation found for face")
@@ -86,6 +90,7 @@ def _tessellate_face(
     vertices = tri_mesh[0]
     indices = tri_mesh[1]
     mgr.add_face(vertices, indices, uv, color)
+    return None
 
 
 def _push_point(v: Tuple[float, float, float], faces: List[TopoDS_Face]) -> Tuple[float, float, float]:

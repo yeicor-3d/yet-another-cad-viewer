@@ -9,18 +9,18 @@ import threading
 import time
 from dataclasses import dataclass
 from http.server import ThreadingHTTPServer
+from io import BytesIO
 from threading import Thread
 from typing import Optional, Dict, Union, Callable, List, Tuple
 
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Shape
-# noinspection PyProtectedMember
-from build123d import Shape, Axis, Location, Vector, Color
-from dataclasses_json import dataclass_json
 from PIL import Image
-from io import BytesIO
+# noinspection PyProtectedMember
+from build123d import Shape, Axis, Location, Vector
+from dataclasses_json import dataclass_json
 
-from yacv_server.cad import _hashcode, ColorTuple, get_color
+from yacv_server.cad import _hashcode, get_color
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.gltf import get_version
 from yacv_server.myhttp import HTTPHandler
@@ -95,7 +95,7 @@ class YACV:
     """Default texture to use for model faces, in (data, mimetype) format.
     If left as None, a default checkerboard texture will be used.
     
-    It can be set with the YACV_BASE_TEXTURE=<uri> and overriden by `show(..., texture="<uri>")`.
+    It can be set with the YACV_BASE_TEXTURE=<uri> and overridden by `show(..., texture="<uri>")`.
     The <uri> can be file:<path> or data:<mime>;base64,<data> where <mime> is the mime type and 
     <data> is the base64 encoded image."""
 
@@ -331,6 +331,7 @@ class YACV:
             try:
                 return next(subscription), event.hash
             finally:
+                # noinspection PyInconsistentReturns
                 subscription.close()
 
     def export_all(self, folder: str,

@@ -169,6 +169,7 @@ class GLTFMgr:
             self.gltf.images = [Image(bufferView=len(buffers_list), mimeType=self.image[1])]
             self.gltf.textures = [Texture(source=0, sampler=0)]
             self.gltf.samplers = [Sampler(magFilter=NEAREST)]
+            # noinspection PyPep8Naming
             self.gltf.materials[0].pbrMetallicRoughness.baseColorTexture = TextureInfo(index=0)
             buffers_list.append((Accessor(), BufferView(), self.image[0]))
 

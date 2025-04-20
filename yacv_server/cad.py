@@ -10,7 +10,7 @@ from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Shape
-from build123d import Compound, Shape, Color
+from build123d import Compound, Color
 
 from yacv_server.gltf import GLTFMgr
 
@@ -78,7 +78,7 @@ def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
                 # Sorting is required to improve hashcode consistency
                 shapes_raw_filtered_sorted = sorted(shapes_raw_filtered, key=lambda x: _hashcode(x))
                 # Build a single compound shape
-                shapes_bd = [Shape(shape) for shape in shapes_raw_filtered_sorted if shape is not None]
+                shapes_bd = [Compound(shape) for shape in shapes_raw_filtered_sorted if shape is not None]
                 return get_shape(Compound(shapes_bd), error)
         except TypeError:
             pass
@@ -121,11 +121,11 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
             hasher = hashlib.md5()
             hasher.update(source)
             name = 'image_' + hasher.hexdigest()
-    format: str
+    _format: str
     if save_mime == 'image/jpeg':
-        format = 'JPEG'
+        _format = 'JPEG'
     elif save_mime == 'image/png':
-        format = 'PNG'
+        _format = 'PNG'
     else:
         raise ValueError(f'Unsupported save MIME type (for GLTF files): {save_mime}')
 
@@ -154,7 +154,7 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
         img = img.resize((new_width, new_height))
 
     # Save the image to a buffer
-    img.save(img_buf, format=format)
+    img.save(img_buf, format=_format)
     img_buf = img_buf.getvalue()
 
     # Convert coordinates system as a last step (gltf is Y-up instead of Z-up)
