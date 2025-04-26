@@ -902,12 +902,13 @@ files = [
 
 [[package]]
 name = "pygltflib"
-version = "1.16.3"
+version = "1.16.4"
 description = "Python library for reading, writing and managing 3D objects in the Khronos Group gltf and gltf2 formats."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pygltflib-1.16.3.tar.gz", hash = "sha256:10f11c774b4bdd60a4824c7bd31186d924235ddb767fca8e8d36755caedb0dcf"},
+    {file = "pygltflib-1.16.4-py3-none-any.whl", hash = "sha256:1cb5886ca12ac512bbea3b5640f1e15575844418b1f1574de42ec19175e00f53"},
+    {file = "pygltflib-1.16.4.tar.gz", hash = "sha256:7816253ef51b07a208864b94332bce8c509aa0f9b827d8771cf271293ecebb11"},
 ]
 
 [package.dependencies]
