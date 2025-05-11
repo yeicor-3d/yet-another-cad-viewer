@@ -6,13 +6,9 @@
   ],
   "automerge": true,
   "automergeType": "branch",
-  "schedule": [
-    "before 3am on Saturday"
-  ],
+  "schedule": [ "* * * * 0,6" ],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": [
-      "before 3am on Saturday"
-    ]
+    "schedule": [ "* * * * 0,6" ]
   }
 }
