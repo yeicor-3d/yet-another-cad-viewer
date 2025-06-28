@@ -32,7 +32,7 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^22.9.3",
     "@types/three": "^0.177.0",
-    "@vitejs/plugin-vue": "^5.2.0",
+    "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^4.1.0",
     "@vue/tsconfig": "^0.7.0",
     "buffer": "^5.5.0||^6.0.0",
