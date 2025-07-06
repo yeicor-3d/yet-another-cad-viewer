@@ -576,9 +576,9 @@
   integrity sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==
 
 "@jridgewell/source-map@^0.3.3":
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/@jridgewell/source-map/-/source-map-0.3.7.tgz#b2389f88c3857b104b69cdd8605241228fc08fa8"
-  integrity sha512-maArE+jvYbj06DXh2iFlXSSDjTWXODlPTQHdDRQdGoYw7KvT4SfYCnPHfCyww8Z3JqFsW0BBjPLj8A2fwAvv7Q==
+  version "0.3.10"
+  resolved "https://registry.yarnpkg.com/@jridgewell/source-map/-/source-map-0.3.10.tgz#a35714446a2e84503ff9bfe66f1d1d4846f2075b"
+  integrity sha512-0pPkgz9dY+bijgistcTTJ5mR+ocqRXLuhXHYdzoMmmoJ2C9S46RCm2GMUbatPEUK9Yjy26IrAy8D/M00lLkv+Q==
   dependencies:
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.25"
@@ -791,9 +791,9 @@
   integrity sha512-3FL3mnMbPu0muGOCaKAhhFEYmqv9eTfPSJRJmANrCwtgK8VuxpsZDGK+m0LYAGoyO8+0j5uRe4PeyPDK1yA/hA==
 
 "@rolldown/pluginutils@^1.0.0-beta.21":
-  version "1.0.0-beta.23"
-  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.23.tgz#f896db6e79da076e1cb3b2eb13d0009824e3cb38"
-  integrity sha512-lLCP4LUecUGBLq8EfkbY2esGYyvZj5ee+WZG12+mVnQH48b46SVbwp+0vJkD+6Pnsc+u9SWarBV9sQ5mVwmb5g==
+  version "1.0.0-beta.24"
+  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.24.tgz#fa0b0fcd9c91c09d6eae9e497513cc553f9b500d"
+  integrity sha512-NMiim/enJlffMP16IanVj1ajFNEg8SaMEYyxyYfJoEyt5EiFT3HUH/T2GRdeStNWp+/kg5U8DiJqnQBgLQ8uCw==
 
 "@rollup/rollup-android-arm-eabi@4.44.2":
   version "4.44.2"
@@ -1472,7 +1472,7 @@ de-indent@^1.0.2:
   resolved "https://registry.yarnpkg.com/de-indent/-/de-indent-1.0.2.tgz#b2038e846dc33baa5796128d0804b455b8c1e21d"
   integrity sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==
 
-debug@4, debug@^4.1.0, debug@^4.3.1, debug@^4.3.4, debug@^4.3.6:
+debug@4, debug@^4.1.0, debug@^4.3.1, debug@^4.3.4, debug@^4.4.1:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.4.1.tgz#e5a8bc6cbc4c6cd3e64308b0693a3d4fa550189b"
   integrity sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==
@@ -1972,7 +1972,7 @@ magic-string@^0.30.17:
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.0"
 
-make-fetch-happen@^14.0.0, make-fetch-happen@^14.0.1, make-fetch-happen@^14.0.2, make-fetch-happen@^14.0.3:
+make-fetch-happen@^14.0.0, make-fetch-happen@^14.0.2, make-fetch-happen@^14.0.3:
   version "14.0.3"
   resolved "https://registry.yarnpkg.com/make-fetch-happen/-/make-fetch-happen-14.0.3.tgz#d74c3ecb0028f08ab604011e0bc6baed483fcdcd"
   integrity sha512-QMjGbFTP0blj97EeidG5hk/QhKQ3T4ICckQGLgz38QF7Vgbk6e6FTARN8KhKxyBbWn8R0HU+bnw8aSoFPD4qtQ==
@@ -2813,13 +2813,13 @@ tslib@^2.3.0, tslib@^2.4.0:
   integrity sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==
 
 tuf-js@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/tuf-js/-/tuf-js-3.0.1.tgz#e3f07ed3d8e87afaa70607bd1ef801d5c1f57177"
-  integrity sha512-+68OP1ZzSF84rTckf3FA95vJ1Zlx/uaXyiiKyPd1pA4rZNkpEvDAKmsu1xUSmbF/chCRYgZ6UZkDwC7PmzmAyA==
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/tuf-js/-/tuf-js-3.1.0.tgz#61b847fe9aa86a7d5bda655a4647e026aa73a1be"
+  integrity sha512-3T3T04WzowbwV2FDiGXBbr81t64g1MUGGJRgT4x5o97N+8ArdhVCAF9IxFrxuSJmM3E5Asn7nKHkao0ibcZXAg==
   dependencies:
     "@tufjs/models" "3.0.1"
-    debug "^4.3.6"
-    make-fetch-happen "^14.0.1"
+    debug "^4.4.1"
+    make-fetch-happen "^14.0.3"
 
 typescript@~5.8.0:
   version "5.8.3"
@@ -2987,6 +2987,6 @@ yallist@^5.0.0:
   integrity sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==
 
 zod@^3.21.4:
-  version "3.25.67"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.67.tgz#62987e4078e2ab0f63b491ef0c4f33df24236da8"
-  integrity sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==
+  version "3.25.74"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.74.tgz#9368a3986fe756bd94b9a5baad9919660ff3f250"
+  integrity sha512-J8poo92VuhKjNknViHRAIuuN6li/EwFbAC8OedzI8uxpEPGiXHGQu9wemIAioIpqgfB4SySaJhdk0mH5Y4ICBg==
