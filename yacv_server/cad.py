@@ -77,8 +77,8 @@ def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
             if len(shapes_raw_filtered) > 0:  # Continue if we found at least one shape
                 # Sorting is required to improve hashcode consistency
                 shapes_raw_filtered_sorted = sorted(shapes_raw_filtered, key=lambda x: _hashcode(x))
-                # Build a single compound shape
-                shapes_bd = [Compound(shape) for shape in shapes_raw_filtered_sorted if shape is not None]
+                # Build a single compound shape (skip locations/axes here, they can't be in a Compound)
+                shapes_bd = [Compound(shape) for shape in shapes_raw_filtered_sorted if shape is not None and not isinstance(shape, TopLoc_Location)]
                 return get_shape(Compound(shapes_bd), error)
         except TypeError:
             pass
