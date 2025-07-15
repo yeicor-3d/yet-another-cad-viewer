@@ -4,9 +4,10 @@ import numpy as np
 from build123d import Location, Plane, Vector
 from pygltflib import *
 
-_checkerboard_image_bytes = base64.decodebytes(
-    b'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAF0lEQVQI12N49OjR////Gf'
-    b'/////48WMATwULS8tcyj8AAAAASUVORK5CYII=')
+# PNG file containing 1x1 while pixel
+_default_tex = (b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=')
+
+_default_color = (1.0, 0.75, 0.0, 1.0)
 
 def get_version() -> str:
     try:
@@ -36,7 +37,7 @@ class GLTFMgr:
     vertex_positions: List[float]  # x, y, z
     vertex_colors: List[float]  # r, g, b, a
 
-    def __init__(self, image: Optional[Tuple[bytes, str]] = (_checkerboard_image_bytes, 'image/png')):
+    def __init__(self, image: Optional[Tuple[bytes, str]] = (_default_tex, 'image/png')):
         self.gltf = GLTF2(
             asset=Asset(generator=f"yacv_server@{get_version()}"),
             scene=0,
@@ -79,7 +80,7 @@ class GLTFMgr:
     def add_face(self, vertices_raw: List[Vector], indices_raw: List[Tuple[int, int, int]],
                  tex_coord_raw: List[Tuple[float, float]], color: Optional[Tuple[float, float, float, float]] = None):
         """Add a face to the GLTF mesh"""
-        if color is None: color = (1.0, 0.75, 0.0, 1.0)
+        if color is None: color = _default_color
         # assert len(vertices_raw) == len(tex_coord_raw), f"Vertices and texture coordinates have different lengths"
         # assert min([i for t in indices_raw for i in t]) == 0, f"Face indices start at {min(indices_raw)}"
         # assert max([e for t in indices_raw for e in t]) < len(vertices_raw), f"Indices have non-existing vertices"

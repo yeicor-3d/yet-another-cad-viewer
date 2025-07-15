@@ -29,7 +29,11 @@ export async function settings() {
         panSensitivity: 1,
         exposure: 1,
         shadowIntensity: 0,
-        background: '',
+	// Nice low-res outdoor/high-contrast HDRI image (CC0 licensed) for lighting
+        background: "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_afternoon_1k.hdr",
+        // Uniform (1x1 pixel) medium gray background for visibility
+        skybox: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNsaFjwHwAFyQKh26fFAAAAAABJRU5ErkJggg==",
+
     };
 
     // Auto-override any settings from the URL

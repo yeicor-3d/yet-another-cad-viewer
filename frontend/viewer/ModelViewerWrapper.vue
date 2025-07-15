@@ -215,7 +215,7 @@ watch(disableTap, (newDisableTap) => {
   <model-viewer ref="elem" v-if="sett != null" :ar="sett.arModes.length > 0" :ar-modes="sett.arModes"
                 :environment-image="sett.background" :exposure="sett.exposure" :autoplay="sett.autoplay"
                 :orbit-sensitivity="sett.orbitSensitivity" :pan-sensitivity="sett.panSensitivity"
-                :poster="poster" :shadow-intensity="sett.shadowIntensity" :skybox-image="sett.background"
+                :poster="poster" :shadow-intensity="sett.shadowIntensity" :skybox-image="sett.skybox"
                 :src="props.src" :zoom-sensitivity="sett.zoomSensitivity" alt="The 3D model(s)" camera-controls
                 camera-orbit="30deg 75deg auto" interaction-prompt="none" max-camera-orbit="Infinity 180deg auto"
                 min-camera-orbit="-Infinity 0deg 5%" style="width: 100%; height: 100%">
