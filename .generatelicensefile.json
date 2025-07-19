@@ -1,6 +1,7 @@
 {
   "append": [
     "assets/fox.glb.license",
+    "assets/qwantani_afternoon_1k.hdr.license",
     "LICENSE"
   ],
   "replace": {

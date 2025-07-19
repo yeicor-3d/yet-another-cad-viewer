@@ -29,11 +29,14 @@ export async function settings() {
         panSensitivity: 1,
         exposure: 1,
         shadowIntensity: 0,
-	// Nice low-res outdoor/high-contrast HDRI image (CC0 licensed) for lighting
-        background: "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_afternoon_1k.hdr",
-        // Uniform (1x1 pixel) medium gray background for visibility
-        skybox: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNsaFjwHwAFyQKh26fFAAAAAABJRU5ErkJggg==",
-
+        // Nice low-res outdoor/high-contrast HDRI image (CC0 licensed) for lighting
+        background: new URL('../../assets/qwantani_afternoon_1k.hdr', import.meta.url).href,
+        // Uniform (1x1 pixel) medium gray background for visibility (following dark/light mode)
+        skybox: (window.matchMedia("(prefers-color-scheme: dark)").matches ?
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEU4ODiyn42XAAAACklEQVQI" +
+            "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==" :
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEW6urpaLVq8AAAACklEQVQI" +
+            "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="),
     };
 
     // Auto-override any settings from the URL
