@@ -48,7 +48,7 @@ export async function setupLighting(modelViewer: ModelViewerElement) {
         startPan();
     }, true);
 
-    self.addEventListener('mousemove', (event) => {
+    document.addEventListener('mousemove', (event) => {
         if (!panning)
             return;
 
@@ -65,7 +65,7 @@ export async function setupLighting(modelViewer: ModelViewerElement) {
         updatePan(thisX);
     }, true);
 
-    self.addEventListener('mouseup', (event) => {
+    document.addEventListener('mouseup', (event) => {
         panning = false;
     }, true);
 

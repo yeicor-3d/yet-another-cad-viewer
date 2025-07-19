@@ -39,7 +39,6 @@ export async function settings() {
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEW6urpaLVq8AAAACklEQVQI" +
             "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="),
     };
-    // settings.skybox = settings.background = ''; // Disable both skybox and background
 
     // Auto-override any settings from the URL
     const url = new URL(window.location.href);
