@@ -30,7 +30,8 @@ export async function settings() {
         exposure: 1,
         shadowIntensity: 0,
         // Nice low-res outdoor/high-contrast HDRI image (CC0 licensed) for lighting
-        background: new URL('../../assets/qwantani_afternoon_1k.hdr', import.meta.url).href,
+        environment: new URL('../../assets/qwantani_afternoon_1k_hdr.jpg', import.meta.url).href,
+        environmentIntensity: 1.0,
         // Uniform (1x1 pixel) medium gray background for visibility (following dark/light mode)
         skybox: (window.matchMedia("(prefers-color-scheme: dark)").matches ?
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEU4ODiyn42XAAAACklEQVQI" +
