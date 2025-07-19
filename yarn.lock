@@ -2923,9 +2923,9 @@ three-mesh-bvh@^0.9.0:
   resolved "https://registry.npmjs.org/three-mesh-bvh/-/three-mesh-bvh-0.9.1.tgz"
   integrity sha512-WNT+m9jGQgtp4YdtwEnl4oFylNVifRf7iphlwWdJ4bJu7oNkY0xHIyntep9OzHuR1hpe/pyAP840gB/EsYDJfg==
 
-"three-orientation-gizmo@https://github.com/jrj2211/three-orientation-gizmo":
+"three-orientation-gizmo@git+https://github.com/jrj2211/three-orientation-gizmo.git":
   version "1.1.0"
-  resolved "git+ssh://git@github.com/jrj2211/three-orientation-gizmo.git#000281f0559c316f72cdd23a1885d63ae6901095"
+  resolved "git+https://github.com/jrj2211/three-orientation-gizmo.git#000281f0559c316f72cdd23a1885d63ae6901095"
   dependencies:
     three "^0.125.0"
 
