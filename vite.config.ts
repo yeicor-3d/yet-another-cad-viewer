@@ -5,8 +5,8 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import {name, version} from './package.json'
 import {execSync} from 'child_process'
-import { viteStaticCopy } from "vite-plugin-static-copy";
-import { dirname, join } from "path";
+import {viteStaticCopy} from "vite-plugin-static-copy";
+import {dirname, join} from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -22,7 +22,7 @@ export default defineConfig({
         vueJsx(),
         viteStaticCopyPyodide(),
     ],
-    optimizeDeps: { exclude: ["pyodide"] },
+    optimizeDeps: {exclude: ["pyodide"]},
     resolve: {
         alias: {
             // @ts-ignore
@@ -39,6 +39,9 @@ export default defineConfig({
                 experimentalMinChunkSize: 512000, // 512KB (avoid too many small chunks)
             }
         }
+    },
+    worker: {
+        format: 'es', // Use ES modules for workers (IIFE is not supported with code-splitting)
     },
     define: {
         __APP_NAME__: JSON.stringify(name),

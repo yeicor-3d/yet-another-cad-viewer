@@ -45,11 +45,11 @@ const PlaygroundDialogContent = defineAsyncComponent({
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ findModel: [string] }>()
 
-const sett = ref(null);
+const sett = ref<any | null>(null);
 const showPlaygroundDialog = ref(false);
 (async () => {
   sett.value = await settings();
-  return showPlaygroundDialog.value = sett.value.code != "";
+  showPlaygroundDialog.value = sett.value.code != "";
 })();
 
 let selection: Ref<Array<SelectionInfo>> = ref([]);
@@ -169,7 +169,7 @@ window.addEventListener('keydown', (event) => {
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
-      <playground-dialog-content v-if="sett != null" :initial-code="sett.code" @close="isActive.value = false"/>
+      <playground-dialog-content v-if="sett != null" :initial-code="sett.value.code" @close="isActive.value = false"/>
     </template>
   </v-dialog>
   <v-btn icon @click="downloadSceneGlb">

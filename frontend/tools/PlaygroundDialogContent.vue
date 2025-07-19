@@ -54,8 +54,6 @@ async function setupPyodide() {
   await (micropip.install("lib3mf"))
   micropip.add_mock_package("py-lib3mf", "2.4.1", modules={"py_lib3mf": '''from lib3mf import *'''})
   await (micropip.install(["build123d"]))`, output);
-    output("Preimporting build123d...\n");
-    await asyncRun(`import build123d`);
     if (props.initialCode != "") {
       await runCode();
       opacity.value = 0.0; // Hide editor after running initial code
