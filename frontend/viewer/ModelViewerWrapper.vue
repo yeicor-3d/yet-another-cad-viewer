@@ -11,6 +11,7 @@ import type {Renderer} from "@google/model-viewer/lib/three-components/Renderer"
 import type {Vector3} from "three";
 import {BufferGeometry, Mesh} from "three";
 import {acceleratedRaycast, computeBoundsTree, disposeBoundsTree} from 'three-mesh-bvh';
+import {setupLighting} from "./lighting.ts";
 
 ModelViewerElement.modelCacheSize = 0; // Also needed to avoid tree shaking
 //@ts-ignore
@@ -67,6 +68,7 @@ onUpdated(() => {
   });
   elem.value.addEventListener('camera-change', onCameraChange);
   elem.value.addEventListener('progress', (ev) => onProgress((ev as any).detail.totalProgress));
+  setupLighting(elem.value);
 });
 
 function onCameraChange() {
@@ -213,11 +215,11 @@ watch(disableTap, (newDisableTap) => {
 <template>
   <!-- The main 3D model viewer -->
   <model-viewer ref="elem" v-if="sett != null" :ar="sett.arModes.length > 0" :ar-modes="sett.arModes"
-                :environment-image="sett.background" :exposure="sett.exposure" :autoplay="sett.autoplay"
+                :environment-image="sett.environment" :exposure="sett.exposure" :autoplay="sett.autoplay"
                 :orbit-sensitivity="sett.orbitSensitivity" :pan-sensitivity="sett.panSensitivity"
                 :poster="poster" :shadow-intensity="sett.shadowIntensity" :skybox-image="sett.skybox"
                 :src="props.src" :zoom-sensitivity="sett.zoomSensitivity" alt="The 3D model(s)" camera-controls
-                camera-orbit="30deg 75deg auto" interaction-prompt="none" max-camera-orbit="Infinity 180deg auto"
+                camera-orbit="45deg 45deg auto" interaction-prompt="none" max-camera-orbit="Infinity 180deg auto"
                 min-camera-orbit="-Infinity 0deg 5%" style="width: 100%; height: 100%">
     <slot></slot>
     <!-- Add a progress bar to the top of the model viewer -->
