@@ -13,13 +13,14 @@ import {
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera.js";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
-import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
+import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector, mdiScriptTextPlay} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {defineAsyncComponent, ref, type Ref} from "vue";
 import type {SelectionInfo} from "./selection";
+import {settings} from "../misc/settings.ts";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -34,9 +35,22 @@ const LicensesDialogContent = defineAsyncComponent({
   delay: 0,
 });
 
+const PlaygroundDialogContent = defineAsyncComponent({
+  loader: () => import("./PlaygroundDialogContent.vue"),
+  loadingComponent: Loading,
+  delay: 0,
+});
+
 
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
 const emit = defineEmits<{ findModel: [string] }>()
+
+const sett = ref(null);
+const showPlaygroundDialog = ref(false);
+(async () => {
+  sett.value = await settings();
+  return showPlaygroundDialog.value = sett.value.code != "";
+})();
 
 let selection: Ref<Array<SelectionInfo>> = ref([]);
 let selectionFaceCount = () => selection.value.filter((s) => s.kind == 'face').length
@@ -146,11 +160,23 @@ window.addEventListener('keydown', (event) => {
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
+  <v-dialog v-model="showPlaygroundDialog" persistent :scrim="false" attach="body">
+    <template v-slot:activator="{ props }">
+      <v-btn icon v-bind="props" style="width: 100%">
+        <v-tooltip activator="parent">Open a python editor and build models directly in the browser!</v-tooltip>
+        <svg-icon :path="mdiScriptTextPlay" type="mdi"/>
+        &nbsp;Sandbox
+      </v-btn>
+    </template>
+    <template v-slot:default="{ isActive }">
+      <playground-dialog-content v-if="sett != null" :initial-code="sett.code" @close="isActive.value = false"/>
+    </template>
+  </v-dialog>
   <v-btn icon @click="downloadSceneGlb">
     <v-tooltip activator="parent">(D)ownload Scene</v-tooltip>
     <svg-icon :path="mdiDownload" type="mdi"/>
   </v-btn>
-  <v-dialog id="licenses-dialog" fullscreen>
+  <v-dialog>
     <template v-slot:activator="{ props }">
       <v-btn icon v-bind="props">
         <v-tooltip activator="parent">Show Licenses</v-tooltip>
@@ -158,11 +184,10 @@ window.addEventListener('keydown', (event) => {
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
-      <v-card>
-        <v-toolbar>
+      <v-card style="height: 90vh">
+        <v-toolbar class="popup">
           <v-toolbar-title>Licenses</v-toolbar-title>
-          <v-spacer>
-          </v-spacer>
+          <v-spacer></v-spacer>
           <v-btn icon @click="isActive.value = false">
             <svg-icon :path="mdiClose" type="mdi"/>
           </v-btn>
@@ -198,5 +223,18 @@ window.addEventListener('keydown', (event) => {
 
 h5 {
   font-size: 14px;
+}
+
+.v-toolbar {
+  position: sticky !important;
+  top: 0;
+}
+
+.v-toolbar.popup {
+  height: 32px;
+}
+
+.v-toolbar.popup > div {
+  height: 32px !important;
 }
 </style>

@@ -38,6 +38,9 @@ export async function settings() {
             "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==" :
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEW6urpaLVq8AAAACklEQVQI" +
             "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="),
+
+        // Playground settings
+        code: "", // Automatically loaded and executed code for the playground
     };
 
     // Auto-override any settings from the URL
