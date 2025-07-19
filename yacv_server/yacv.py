@@ -20,7 +20,7 @@ from PIL import Image
 from build123d import Shape, Axis, Location, Vector
 from dataclasses_json import dataclass_json
 
-from yacv_server.cad import _hashcode, get_color
+from yacv_server.cad import _hashcode, get_color, ColorTuple
 from yacv_server.cad import get_shape, grab_all_cad, CADCoreLike, CADLike
 from yacv_server.gltf import get_version
 from yacv_server.myhttp import HTTPHandler
@@ -93,11 +93,38 @@ class YACV:
 
     texture: Optional[Tuple[bytes, str]]
     """Default texture to use for model faces, in (data, mimetype) format.
-    If left as None, a default checkerboard texture will be used.
+    If left as None, no texture will be used.
     
-    It can be set with the YACV_BASE_TEXTURE=<uri> and overridden by `show(..., texture="<uri>")`.
+    It can be set with the YACV_TEXTURE=<uri> and overridden by the custom `yacv_texture` attribute of an object.
     The <uri> can be file:<path> or data:<mime>;base64,<data> where <mime> is the mime type and 
     <data> is the base64 encoded image."""
+
+    color_faces: Optional[ColorTuple]
+    """Overrides the default color to use for model faces. Applies even if a texture is used. 
+    
+    You can use `show(..., color_faces=...)` or the standard way of setting colors for build123d/cadquery objects to 
+    override this color.
+    
+    It can be set with the YACV_COLOR_FACES=<color> environment variable, where <color> is a color
+    in the hexadecimal format #RRGGBB or #RRGGBBAA."""
+
+    color_edges: Optional[ColorTuple]
+    """Overrides the default color to use for model edges. 
+    
+    You can use `show(..., color_edges=...) or the standard way of setting colors for build123d/cadquery objects to
+    override this color.
+        
+    It can be set with the YACV_COLOR_EDGES=<color> environment variable, where <color> is a color
+    in the hexadecimal format #RRGGBB or #RRGGBBAA."""
+
+    color_vertices: Optional[ColorTuple]
+    """Overrides the default color to use for model vertices.
+    
+    You can use `show(..., color_vertices=...)` or the standard way of setting colors for build123d/cadquery objects to
+    override this color.
+    
+    It can be set with the YACV_COLOR_VERTICES=<color> environment variable, where <color> is a color
+    in the hexadecimal format #RRGGBB or #RRGGBBAA."""
 
     def __init__(self):
         self.server_thread = None
@@ -109,7 +136,10 @@ class YACV:
         self.at_least_one_client = threading.Event()
         self.shutting_down = threading.Event()
         self.frontend_lock = RWLock()
-        self.texture = _read_texture_uri(os.getenv("YACV_BASE_TEXTURE"))
+        self.texture = _read_texture_uri(os.getenv("YACV_TEXTURE"))
+        self.color_faces = _read_color(os.getenv("YACV_COLOR_FACES", "#ffbf00"))  # Default yellow
+        self.color_edges = _read_color(os.getenv("YACV_COLOR_EDGES", "#1a1aff"))  # Default blue
+        self.color_vertices = _read_color(os.getenv("YACV_COLOR_VERTICES", "#1a1a1a"))  # Default dark gray
         logger.info('Using yacv-server v%s', get_version())
 
     def start(self):
@@ -201,8 +231,9 @@ class YACV:
         if isinstance(names, str):
             names = [names]
         assert len(names) == len(objs), 'Number of names must match the number of objects'
-        if 'color' in kwargs:
-            kwargs['color'] = get_color(kwargs['color'])
+        for color_name in ('color_faces', 'color_edges', 'color_vertices'):
+            if color_name in kwargs:
+                kwargs[color_name] = get_color(kwargs[color_name]) or _read_color(kwargs[color_name])
 
         # Handle auto clearing of previous objects
         if kwargs.get('auto_clear', True):
@@ -218,13 +249,15 @@ class YACV:
         # Publish the show event
         for obj, name in zip(objs, names):
             obj_color = get_color(obj)
+            # Some properties may be lost in preprocessing, so save them in kwargs
+            _kwargs = kwargs.copy()
             if obj_color is not None:
-                kwargs = kwargs.copy()
-                kwargs['color'] = obj_color
+                _kwargs['color_obj'] = obj_color # Only applies to highest-dimensional objects
+            _kwargs['texture'] = _read_texture_uri(getattr(obj, 'yacv_texture', None) or kwargs.get('texture', None))
             if not isinstance(obj, bytes):
-                obj = _preprocess_cad(obj, **kwargs)
-            _hash = _hashcode(obj, **kwargs)
-            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=kwargs or {})
+                obj = _preprocess_cad(obj, **_kwargs)
+            _hash = _hashcode(obj, **_kwargs)
+            event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=_kwargs or {})
             self.show_events.publish(event)
 
         logger.info('show %s took %.3f seconds', names, time.time() - start)
@@ -309,17 +342,17 @@ class YACV:
                 if isinstance(event.obj, bytes):  # Already a GLTF
                     publish_to.publish(event.obj)
                 else:  # CAD object to tessellate and convert to GLTF
-                    texture_override_uri = event.kwargs.get('texture', None)
-                    texture_override = None
-                    if isinstance(texture_override_uri, str):
-                        texture_override = _read_texture_uri(texture_override_uri)
-                    gltf = tessellate(event.obj, tolerance=event.kwargs.get('tolerance', 0.1),
-                                      angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
-                                      faces=event.kwargs.get('faces', True),
-                                      edges=event.kwargs.get('edges', True),
-                                      vertices=event.kwargs.get('vertices', True),
-                                      obj_color=event.kwargs.get('color', None),
-                                      texture=texture_override or self.texture)
+                    gltf = tessellate(
+                        event.obj,
+                        color_faces=event.kwargs.get('color_faces', self.color_faces),
+                        color_edges=event.kwargs.get('color_edges', self.color_edges),
+                        color_vertices=event.kwargs.get('color_vertices', self.color_vertices),
+                        color_obj=event.kwargs.get('color_obj', None),
+                        tolerance=event.kwargs.get('tolerance', 0.1),
+                        angular_tolerance=event.kwargs.get('angular_tolerance', 0.1),
+                        faces=event.kwargs.get('faces', True), edges=event.kwargs.get('edges', True),
+                        vertices=event.kwargs.get('vertices', True),
+                        texture=event.kwargs.get('texture', self.texture))
                     glb_list_of_bytes = gltf.save_to_bytes()
                     glb_bytes = b''.join(glb_list_of_bytes)
                     publish_to.publish(glb_bytes)
@@ -355,13 +388,27 @@ def _read_texture_uri(uri: str) -> Optional[Tuple[bytes, str]]:
         img = Image.open(buf)
         mtype = img.get_format_mimetype()
         return data, mtype
-    if uri.startswith("data:"): # https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax (limited)
+    if uri.startswith("data:"):  # https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax (limited)
         mtype_and_data = uri[len("data:"):]
         mtype = mtype_and_data.split(";", 1)[0]
         data_str = mtype_and_data.split(",", 1)[1]
         data = base64.b64decode(data_str)
         return data, mtype
     return None
+
+
+def _read_color(color: str) -> Optional[ColorTuple]:
+    """Reads a color from a string in the format #RRGGBB or #RRGGBBAA"""
+    if color is None:
+        return None
+    if not color.startswith('#') or len(color) not in (7, 9):
+        raise ValueError(f'Invalid color format: {color}')
+    r = float(int(color[1:3], 16)) / 255.0
+    g = float(int(color[3:5], 16)) / 255.0
+    b = float(int(color[5:7], 16)) / 255.0
+    a = float(int(color[7:9], 16)) / 255.0 if len(color) == 9 else 1.0
+    return r, g, b, a
+
 
 # noinspection PyUnusedLocal
 def _preprocess_cad(obj: CADLike, **kwargs) -> CADCoreLike:
@@ -383,6 +430,7 @@ def _preprocess_cad(obj: CADLike, **kwargs) -> CADCoreLike:
 
 
 _obj_name_counts = {}
+
 
 def _find_var_name(obj: any, avoid_levels: int = 2) -> str:
     """A hacky way to get a stable name for an object that may change over time"""
