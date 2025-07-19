@@ -331,7 +331,7 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
 
 <template>
   <v-expansion-panel :value="modelName">
-    <v-expansion-panel-title collapse-icon="hide-this-icon" expand-icon="hide-this-icon">
+    <v-expansion-panel-title>
       <v-btn-toggle v-model="enabledFeatures" color="surface-light" multiple @click.stop>
         <v-btn icon>
           <v-tooltip activator="parent">Toggle Faces ({{ faceCount }})</v-tooltip>
@@ -430,10 +430,6 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
 }
 
 /* More compact accordions */
-.v-expansion-panel {
-  margin-top: 0 !important;
-}
-
 .v-expansion-panel-title {
   padding: 0;
 }
@@ -444,11 +440,11 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
 }
 
 .v-btn {
-  --v-btn-height: 16px;
+  --v-btn-height: 12px;
 }
 
 .model-name {
-  width: 179px;
+  width: 172px;
   font-size: 110%;
   overflow-x: clip;
   overflow-y: visible; /* HACK: bottom of text is lost otherwise (due to buggy -webkit-box bounds?) */
@@ -463,10 +459,6 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
 <style>
 .v-expansion-panel-text__wrapper {
   padding: 0 !important;
-}
-
-.hide-this-icon {
-  display: none !important;
 }
 
 .mdi-checkbox-blank-outline { /* HACK: mdi is not fully imported, only required icons... */
