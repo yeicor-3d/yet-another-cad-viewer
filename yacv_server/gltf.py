@@ -4,9 +4,6 @@ import numpy as np
 from build123d import Location, Plane, Vector
 from pygltflib import *
 
-_checkerboard_image_bytes = base64.decodebytes(
-    b'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAF0lEQVQI12N49OjR////Gf'
-    b'/////48WMATwULS8tcyj8AAAAASUVORK5CYII=')
 
 def get_version() -> str:
     try:
@@ -24,6 +21,7 @@ class GLTFMgr:
     # - Face data
     face_indices: List[int]  # 3 indices per triangle
     face_positions: List[float]  # x, y, z
+    face_normals: List[float]  # x, y, z
     face_tex_coords: List[float]  # u, v
     face_colors: List[float]  # r, g, b, a
     image: Optional[Tuple[bytes, str]]  # image/png
@@ -36,7 +34,7 @@ class GLTFMgr:
     vertex_positions: List[float]  # x, y, z
     vertex_colors: List[float]  # r, g, b, a
 
-    def __init__(self, image: Optional[Tuple[bytes, str]] = (_checkerboard_image_bytes, 'image/png')):
+    def __init__(self, image: Optional[Tuple[bytes, str]] = None):
         self.gltf = GLTF2(
             asset=Asset(generator=f"yacv_server@{get_version()}"),
             scene=0,
@@ -54,6 +52,7 @@ class GLTFMgr:
         )
         self.face_indices = []
         self.face_positions = []
+        self.face_normals = []
         self.face_tex_coords = []
         self.face_colors = []
         self.image = image
@@ -76,24 +75,23 @@ class GLTFMgr:
     def _vertices_primitive(self) -> Primitive:
         return [p for p in self.gltf.meshes[0].primitives if p.mode == POINTS][0]
 
-    def add_face(self, vertices_raw: List[Vector], indices_raw: List[Tuple[int, int, int]],
-                 tex_coord_raw: List[Tuple[float, float]], color: Optional[Tuple[float, float, float, float]] = None):
+    def add_face(self, vertices_raw: List[Vector], normals: List[Vector], indices_raw: List[Tuple[int, int, int]],
+                 tex_coord_raw: List[Tuple[float, float]], color: Tuple[float, float, float, float]):
         """Add a face to the GLTF mesh"""
-        if color is None: color = (1.0, 0.75, 0.0, 1.0)
         # assert len(vertices_raw) == len(tex_coord_raw), f"Vertices and texture coordinates have different lengths"
         # assert min([i for t in indices_raw for i in t]) == 0, f"Face indices start at {min(indices_raw)}"
         # assert max([e for t in indices_raw for e in t]) < len(vertices_raw), f"Indices have non-existing vertices"
         base_index = len(self.face_positions) // 3  # All the new indices reference the new vertices
         self.face_indices.extend([base_index + i for t in indices_raw for i in t])
         self.face_positions.extend([v for t in vertices_raw for v in t])
+        self.face_normals.extend([n for t in normals for n in t])
         self.face_tex_coords.extend([c for t in tex_coord_raw for c in t])
         self.face_colors.extend([col for _ in range(len(vertices_raw)) for col in color])
         self._faces_primitive.extras["face_triangles_end"].append(len(self.face_indices))
 
     def add_edge(self, vertices_raw: List[Tuple[Tuple[float, float, float], Tuple[float, float, float]]],
-                 color: Optional[Tuple[float, float, float, float]] = None):
+                 color: Tuple[float, float, float, float]):
         """Add an edge to the GLTF mesh"""
-        if color is None: color = (0.1, 0.1, 1.0, 1.0)
         vertices_flat = [v for t in vertices_raw for v in t]  # Line from 0 to 1, 2 to 3, 4 to 5, etc.
         base_index = len(self.edge_positions) // 3
         self.edge_indices.extend([base_index + i for i in range(len(vertices_flat))])
@@ -101,9 +99,8 @@ class GLTFMgr:
         self.edge_colors.extend([col for _ in range(len(vertices_flat)) for col in color])
         self._edges_primitive.extras["edge_points_end"].append(len(self.edge_indices))
 
-    def add_vertex(self, vertex: Tuple[float, float, float], color: Optional[Tuple[float, float, float, float]] = None):
+    def add_vertex(self, vertex: Tuple[float, float, float], color: Tuple[float, float, float, float]):
         """Add a vertex to the GLTF mesh"""
-        if color is None: color = (0.1, 0.1, 0.1, 1.0)
         base_index = len(self.vertex_positions) // 3
         self.vertex_indices.append(base_index)
         self.vertex_positions.extend(vertex)
@@ -117,10 +114,11 @@ class GLTFMgr:
             return v.X, v.Y, v.Z
 
         # Add 1 origin vertex and 3 edges with custom colors to identify the X, Y and Z axis
-        self.add_vertex(vert(pl.origin))
-        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.x_dir))], color=(0.97, 0.24, 0.24, 1))
-        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.y_dir))], color=(0.42, 0.8, 0.15, 1))
-        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.z_dir))], color=(0.09, 0.55, 0.94, 1))
+        # The colors are hardcoded. You can add vertices and edges manually to change them.
+        self.add_vertex(vert(pl.origin), color=(0.1, 0.1, 0.1, 1.0))
+        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.x_dir))], color=(0.97, 0.24, 0.24, 1.0))
+        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.y_dir))], color=(0.42, 0.8, 0.15, 1.0))
+        self.add_edge([(vert(pl.origin), vert(pl.origin + pl.z_dir))], color=(0.09, 0.55, 0.94, 1.0))
 
     def build(self) -> GLTF2:
         """Merge the intermediate data into the GLTF object and return it"""
@@ -131,6 +129,8 @@ class GLTFMgr:
             buffers_list.append(_gen_buffer_metadata(self.face_indices, 1))
             self._faces_primitive.attributes.POSITION = len(buffers_list)
             buffers_list.append(_gen_buffer_metadata(self.face_positions, 3))
+            self._faces_primitive.attributes.NORMAL = len(buffers_list)
+            buffers_list.append(_gen_buffer_metadata(self.face_normals, 3))
             self._faces_primitive.attributes.TEXCOORD_0 = len(buffers_list)
             buffers_list.append(_gen_buffer_metadata(self.face_tex_coords, 2))
             self._faces_primitive.attributes.COLOR_0 = len(buffers_list)

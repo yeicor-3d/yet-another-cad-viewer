@@ -3,9 +3,11 @@ from typing import List, Dict, Tuple, Optional
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
 from OCP.GCPnts import GCPnts_TangentialDeflection
+from OCP.OCP.BRepLib import BRepLib_ToolTriangulatedShape
+from OCP.OCP.TopAbs import TopAbs_Orientation
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
-from build123d import Vertex, Face, Location, Compound
+from build123d import Vertex, Face, Location, Compound, Vector
 from pygltflib import GLTF2
 
 from yacv_server.cad import CADCoreLike, ColorTuple
@@ -14,14 +16,9 @@ from yacv_server.mylogger import logger
 
 
 def tessellate(
-        cad_like: CADCoreLike,
-        tolerance: float = 0.1,
-        angular_tolerance: float = 0.1,
-        faces: bool = True,
-        edges: bool = True,
-        vertices: bool = True,
-        obj_color: Optional[ColorTuple] = None,
-        texture: Optional[Tuple[bytes, str]] = None,
+        cad_like: CADCoreLike, color_faces: ColorTuple, color_edges: ColorTuple, color_vertices: ColorTuple,
+        color_obj: Optional[ColorTuple] = None, tolerance: float = 0.1, angular_tolerance: float = 0.1,
+        faces: bool = True, edges: bool = True, vertices: bool = True, texture: Optional[Tuple[bytes, str]] = None,
 ) -> GLTF2:
     """Tessellate a whole shape into a list of triangle vertices and a list of triangle indices."""
     if texture is None:
@@ -41,23 +38,24 @@ def tessellate(
         if faces and hasattr(shape, 'faces'):
             shape_faces = shape.faces()
             for face in shape_faces:
-                _tessellate_face(mgr, face.wrapped, tolerance, angular_tolerance, obj_color)
+                _tessellate_face(mgr, face.wrapped, color_obj or color_faces, tolerance, angular_tolerance)
                 if edges:
                     for edge in face.edges():
                         edge_to_faces[edge.wrapped] = edge_to_faces.get(edge.wrapped, []) + [face.wrapped]
                 if vertices:
                     for vertex in face.vertices():
                         vertex_to_faces[vertex.wrapped] = vertex_to_faces.get(vertex.wrapped, []) + [face.wrapped]
-            if len(shape_faces) > 0: obj_color = None  # Don't color edges/vertices if faces are colored
+            if len(shape_faces) > 0: color_obj = None  # Don't color edges/vertices if faces are colored
         if edges and hasattr(shape, 'edges'):
             shape_edges = shape.edges()
             for edge in shape_edges:
-                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), angular_tolerance,
-                                 angular_tolerance, obj_color)
-            if len(shape_edges) > 0: obj_color = None  # Don't color vertices if edges are colored
+                _tessellate_edge(mgr, edge.wrapped, edge_to_faces.get(edge.wrapped, []), color_obj or color_edges,
+                                 angular_tolerance, angular_tolerance)
+            if len(shape_edges) > 0: color_obj = None  # Don't color vertices if edges are colored
         if vertices and hasattr(shape, 'vertices'):
             for vertex in shape.vertices():
-                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []), obj_color)
+                _tessellate_vertex(mgr, vertex.wrapped, vertex_to_faces.get(vertex.wrapped, []),
+                                   color_obj or color_vertices)
 
     else:
         raise TypeError(f"Unsupported type: {type(cad_like)}: {cad_like}")
@@ -68,9 +66,9 @@ def tessellate(
 def _tessellate_face(
         mgr: GLTFMgr,
         ocp_face: TopoDS_Face,
+        color: ColorTuple,
         tolerance: float = 1e-3,
         angular_tolerance: float = 0.1,
-        color: Optional[ColorTuple] = None,
 ):
     face = Compound(ocp_face)
     # face.mesh(tolerance, angular_tolerance)
@@ -81,6 +79,14 @@ def _tessellate_face(
         logger.warn("No triangulation found for face")
         return GLTF2()
 
+    # Get the normal for each vertex (for smooth instead of flat shading!)
+    BRepLib_ToolTriangulatedShape.ComputeNormals_s(face.wrapped, poly)
+    reversed_face = face.wrapped.Orientation() == TopAbs_Orientation.TopAbs_REVERSED
+    normals = [
+        -Vector(v) if reversed_face else Vector(v)
+        for v in (poly.Normal(i) for i in range(1, poly.NbNodes() + 1))
+    ]
+
     # Get UV of each face from the parameters
     uv = [
         (v.X(), v.Y())
@@ -89,7 +95,7 @@ def _tessellate_face(
 
     vertices = tri_mesh[0]
     indices = tri_mesh[1]
-    mgr.add_face(vertices, indices, uv, color)
+    mgr.add_face(vertices, normals, indices, uv, color)
     return None
 
 
@@ -113,9 +119,9 @@ def _tessellate_edge(
         mgr: GLTFMgr,
         ocp_edge: TopoDS_Edge,
         faces: List[TopoDS_Face],
+        color: ColorTuple,
         angular_deflection: float = 0.1,
         curvature_deflection: float = 0.1,
-        color: Optional[ColorTuple] = None,
 ):
     # Use a curve discretizer to get the vertices
     curve = BRepAdaptor_Curve(ocp_edge)
@@ -136,9 +142,6 @@ def _tessellate_edge(
     mgr.add_edge(vertices, color)
 
 
-def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex, faces: List[TopoDS_Face],
-                          color: Optional[ColorTuple] = None):
+def _tessellate_vertex(mgr: GLTFMgr, ocp_vertex: TopoDS_Vertex, faces: List[TopoDS_Face], color: ColorTuple):
     c = Vertex(ocp_vertex).center()
     mgr.add_vertex(_push_point((c.X, c.Y, c.Z), faces), color)
-
-

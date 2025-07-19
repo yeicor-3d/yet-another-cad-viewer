@@ -78,7 +78,8 @@ def get_shape(obj: CADLike, error: bool = True) -> Optional[CADCoreLike]:
                 # Sorting is required to improve hashcode consistency
                 shapes_raw_filtered_sorted = sorted(shapes_raw_filtered, key=lambda x: _hashcode(x))
                 # Build a single compound shape (skip locations/axes here, they can't be in a Compound)
-                shapes_bd = [Compound(shape) for shape in shapes_raw_filtered_sorted if shape is not None and not isinstance(shape, TopLoc_Location)]
+                shapes_bd = [Compound(shape) for shape in shapes_raw_filtered_sorted if
+                             shape is not None and not isinstance(shape, TopLoc_Location)]
                 return get_shape(Compound(shapes_bd), error)
         except TypeError:
             pass
@@ -168,7 +169,7 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
         vert(plane.origin + plane.x_dir * width / 2 + plane.y_dir * height / 2),
         vert(plane.origin + plane.x_dir * width / 2 - plane.y_dir * height / 2),
         vert(plane.origin - plane.x_dir * width / 2 - plane.y_dir * height / 2),
-    ], [
+    ], [vert(plane.z_dir)] * 4, [
         (0, 2, 1),
         (0, 3, 2),
     ], [
