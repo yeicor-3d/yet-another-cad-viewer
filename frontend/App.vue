@@ -13,6 +13,7 @@ import {Document} from "@gltf-transform/core";
 import type ModelViewerWrapperT from "./viewer/ModelViewerWrapper.vue";
 import {mdiPlus} from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon';
+import {toBuffer} from "./misc/gltf.ts";
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
 const ModelViewerWrapper = defineAsyncComponent({
@@ -82,14 +83,24 @@ networkMgr.addEventListener('update-early',
 networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
 (async () => { // Start loading all configured models ASAP
   let sett = await settings();
-  watch(viewer, (newViewer) => {
-    if (newViewer) {
-      newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
-          ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+  if (sett.preload.length > 0) {
+    watch(viewer, (newViewer) => {
+      if (newViewer) {
+        newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
+            ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+      }
+    });
+    for (let model of sett.preload) {
+      await networkMgr.load(model);
     }
-  });
-  for (let model of sett.preload) {
-    await networkMgr.load(model);
+  } else { // Skip to interface without models (useful for playground mode)
+    console.debug("Showing empty gltf document to load the interface without models.");
+    // FIXME: Empty document breaks the playground-loaded models (using preload seems to fix this, maybe __helpers issue?)
+    let emptyDoc = new Document();
+    emptyDoc.createScene();
+    let buffer = await toBuffer(emptyDoc);
+    let blob = new Blob([buffer], {type: 'model/gltf-binary'});
+    sceneUrl.value = URL.createObjectURL(blob);
   }
 })();
 
@@ -117,7 +128,7 @@ async function loadModelManual() {
           <svg-icon :path="mdiPlus" type="mdi"/>
         </v-btn>
       </template>
-      <models ref="models" :viewer="viewer" @remove="onModelRemoveRequest"/>
+      <models ref="models" :viewer="viewer" @remove-model="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
@@ -125,7 +136,7 @@ async function loadModelManual() {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools ref="tools" :viewer="viewer" @findModel="(name) => models?.findModel(name)"/>
+      <tools ref="tools" :viewer="viewer" @find-model="models?.findModel" @update-model="onModelUpdateRequest"/>
     </sidebar>
 
   </v-layout>
@@ -135,6 +146,6 @@ async function loadModelManual() {
 <style>
 html, body {
   height: 100%;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 </style>

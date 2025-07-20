@@ -5,6 +5,9 @@ let io = new WebIO();
 export let extrasNameKey = "__yacv_name";
 export let extrasNameValueHelpers = "__helpers";
 
+// @ts-expect-error
+let isSmallBuild = typeof __YACV_SMALL_BUILD__ !== 'undefined' && __YACV_SMALL_BUILD__;
+
 /**
  * Loads a GLB model from a URL and adds it to the document or replaces it if the names match.
  *
@@ -27,7 +30,7 @@ export async function mergePartial(url: string, name: string, document: Document
         try { // Try to load fast if no extensions are used
             newDoc = await io.readBinary(new Uint8Array(buffer));
         } catch (e) { // Fallback to wait for download and register big extensions
-            if (e instanceof Error && e.message.toLowerCase().includes("khr_draco_mesh_compression")) {
+            if (!isSmallBuild && e instanceof Error && e.message.toLowerCase().includes("khr_draco_mesh_compression")) {
                 if (alreadyTried["draco"]) throw e; else alreadyTried["draco"] = true;
                 // WARNING: Draco decompression on web is really slow for non-trivial models! (it should work?)
                 let {KHRDracoMeshCompression} = await import("@gltf-transform/extensions")
@@ -38,7 +41,7 @@ export async function mergePartial(url: string, name: string, document: Document
                         'draco3d.decoder': await dracoDecoderWeb.default({}),
                         'draco3d.encoder': await dracoEncoderWeb.default({})
                     });
-            } else if (e instanceof Error && e.message.toLowerCase().includes("ext_texture_webp")) {
+            } else if (!isSmallBuild && e instanceof Error && e.message.toLowerCase().includes("ext_texture_webp")) {
                 if (alreadyTried["webp"]) throw e; else alreadyTried["webp"] = true;
                 let {EXTTextureWebP} = await import("@gltf-transform/extensions")
                 io.registerExtensions([EXTTextureWebP]);

@@ -40,9 +40,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: "poetry"
-      - run: "SKIP_BUILD_FRONTEND=true poetry lock"
-      - run: "SKIP_BUILD_FRONTEND=true poetry install"
-      - run: "SKIP_BUILD_FRONTEND=true poetry build"
+      - run: "poetry lock"
+      - run: "poetry install"
+      - run: "poetry build" # Skips building frontend (not using task)
 
   build-logo:
     name: "Build logo"
@@ -56,8 +56,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: "poetry"
-      - run: "SKIP_BUILD_FRONTEND=true poetry lock"
-      - run: "SKIP_BUILD_FRONTEND=true poetry install"
+      - run: "poetry lock"
+      - run: "poetry install"
       - run: "poetry run python yacv_server/logo.py"
       - uses: "actions/upload-artifact@v4"
         with:
@@ -77,8 +77,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: "poetry"
-      - run: "SKIP_BUILD_FRONTEND=true poetry lock"
-      - run: "SKIP_BUILD_FRONTEND=true poetry install"
+      - run: "poetry lock"
+      - run: "poetry install"
       - run: "YACV_DISABLE_SERVER=true poetry run python example/object.py"
       - uses: "actions/upload-artifact@v4"
         with:

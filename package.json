@@ -23,7 +23,9 @@
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/js": "^7.4.47",
     "@mdi/svg": "^7.4.47",
+    "js-base64": "^3.7.7",
     "monaco-editor": "^0.52.2",
+    "pako": "^2.1.0",
     "pyodide": "^0.28.0",
     "three": "^0.178.0",
     "three-mesh-bvh": "^0.9.0",
@@ -34,6 +36,7 @@
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^22.9.3",
+    "@types/pako": "^2.0.3",
     "@types/three": "^0.178.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^5.0.0",
@@ -45,7 +48,7 @@
     "terser": "^5.36.0",
     "typescript": "~5.8.0",
     "vite": "^7.0.0",
-    "vue-tsc": "^3.0.0",
-    "vite-plugin-static-copy": "^3.1.1"
+    "vite-plugin-static-copy": "^3.1.1",
+    "vue-tsc": "^3.0.0"
   }
 }

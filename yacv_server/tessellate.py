@@ -3,8 +3,8 @@ from typing import List, Dict, Tuple, Optional
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
 from OCP.GCPnts import GCPnts_TangentialDeflection
-from OCP.OCP.BRepLib import BRepLib_ToolTriangulatedShape
-from OCP.OCP.TopAbs import TopAbs_Orientation
+from OCP.BRepLib import BRepLib_ToolTriangulatedShape
+from OCP.TopAbs import TopAbs_Orientation
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS_Face, TopoDS_Edge, TopoDS_Shape, TopoDS_Vertex
 from build123d import Vertex, Face, Location, Compound, Vector

@@ -21,6 +21,8 @@ import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {defineAsyncComponent, ref, type Ref} from "vue";
 import type {SelectionInfo} from "./selection";
 import {settings} from "../misc/settings.ts";
+import type {NetworkUpdateEvent} from "../misc/network.ts";
+import IfNotSmallBuild from "../misc/IfNotSmallBuild.vue";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -43,7 +45,7 @@ const PlaygroundDialogContent = defineAsyncComponent({
 
 
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
-const emit = defineEmits<{ findModel: [string] }>()
+const emit = defineEmits<{ findModel: [string], updateModel: [NetworkUpdateEvent] }>()
 
 const sett = ref<any | null>(null);
 const showPlaygroundDialog = ref(false);
@@ -162,14 +164,17 @@ window.addEventListener('keydown', (event) => {
   <h5>Extras</h5>
   <v-dialog v-model="showPlaygroundDialog" persistent :scrim="false" attach="body">
     <template v-slot:activator="{ props }">
-      <v-btn icon v-bind="props" style="width: 100%">
+      <v-btn v-bind="props" style="width: 100%">
         <v-tooltip activator="parent">Open a python editor and build models directly in the browser!</v-tooltip>
         <svg-icon :path="mdiScriptTextPlay" type="mdi"/>
         &nbsp;Sandbox
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
-      <playground-dialog-content v-if="sett != null" :initial-code="sett.value.code" @close="isActive.value = false"/>
+      <if-not-small-build>
+        <playground-dialog-content v-if="sett != null" :initial-code="sett.code" @close="isActive.value = false"
+                                   @update-model="(event: NetworkUpdateEvent) => emit('updateModel', event)"/>
+      </if-not-small-build>
     </template>
   </v-dialog>
   <v-btn icon @click="downloadSceneGlb">

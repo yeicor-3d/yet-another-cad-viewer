@@ -7,7 +7,7 @@ import Model from "./Model.vue";
 import {inject, ref, type Ref} from "vue";
 
 const props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
-const emit = defineEmits<{ remove: [string] }>()
+const emit = defineEmits<{ removeModel: [string] }>()
 
 let {sceneDocument} = inject<{ sceneDocument: Ref<Document> }>('sceneDocument')!!;
 
@@ -32,7 +32,7 @@ function meshName(mesh: Mesh) {
 }
 
 function onRemove(mesh: Mesh) {
-  emit('remove', meshName(mesh))
+  emit('removeModel', meshName(mesh))
 }
 
 function findModel(name: string) {

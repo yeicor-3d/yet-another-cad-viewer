@@ -1,4 +1,7 @@
 // These are the default values for the settings, which are overridden below
+import {ungzip} from "pako";
+import {b66Decode} from "../tools/b66.ts";
+
 let settingsCache: any = null;
 
 export async function settings() {
@@ -49,10 +52,23 @@ export async function settings() {
         if (key in settings) (settings as any)[key] = parseSetting(key, value, settings);
     })
 
+    // Auto-decompress the code
+    if (settings.code.length > 0) {
+        try {
+            settings.code = ungzip(b66Decode(settings.code), {to: 'string'});
+        } catch (error) {
+            console.warn("Failed to decompress code (assuming raw code):", error);
+        }
+    }
+
     // Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
     for (let i = 0; i < settings.preload.length; i++) {
         let url = settings.preload[i];
         if (url === '<auto>') {
+            if (settings.code != "") { // <auto> means no preload URL if code is set
+                settings.preload = settings.preload.slice(0, i).concat(settings.preload.slice(i + 1));
+                continue; // Skip this preload URL
+            }
             const possibleBackend = new URL("./?api_updates=true", window.location.href)
             await fetch(possibleBackend, {method: "HEAD"}).then((response) => {
                 if (response.ok && response.headers.get("Content-Type") === "text/event-stream") {

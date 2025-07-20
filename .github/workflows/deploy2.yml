@@ -35,11 +35,7 @@ jobs:
       - uses: "actions/download-artifact@v4"
         with: # Downloads all artifacts from the build job
           path: "./public"
-      - run: |  # Merge the subdirectories of public into a single directory
-          for dir in public/*; do
-            mv "$dir/"* public/
-            rmdir "$dir"
-          done
+          merge-multiple: true
       - uses: "actions/configure-pages@v5"
       - uses: "actions/upload-pages-artifact@v3"
         with:
@@ -71,5 +67,6 @@ jobs:
           cache: "poetry"
       - run: "poetry install"
       - run: "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}"
-      - run: "poetry publish --build"
+      - run: "poetry run task build" # This task also builds the frontend (with reduced features for less size)
+      - run: "poetry publish"
 
