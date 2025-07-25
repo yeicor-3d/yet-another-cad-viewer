@@ -1,5 +1,5 @@
 import {type Ref} from 'vue';
-import {Document} from '@gltf-transform/core';
+import {Buffer, Document, Scene} from '@gltf-transform/core';
 import {extrasNameKey, extrasNameValueHelpers, mergeFinalize, mergePartial, removeModel, toBuffer} from "./gltf";
 import {newAxes, newGridBox} from "./helpers";
 import {Vector3} from "three/src/math/Vector3.js"
@@ -80,7 +80,19 @@ export class SceneMgr {
 
     private static async reloadHelpers(sceneUrl: Ref<string>, document: Document, reloadScene: boolean): Promise<Document> {
         let bb = SceneMgr.getBoundingBox(document);
-        if (!bb) return document;
+        if (!bb) return document; // Empty document, no helpers to show
+
+        // If only the helpers remain, go back to the empty scene
+        let noOtherModels = true;
+        for (let elem of document.getGraph().listEdges().map(e => e.getChild())) {
+            if (elem.getExtras() && !(elem instanceof Scene) && !(elem instanceof Buffer) &&
+                elem.getExtras()[extrasNameKey] !== extrasNameValueHelpers) {
+                // There are other elements in the document, so we can show the helpers
+                noOtherModels = false;
+                break;
+            }
+        }
+        if (noOtherModels) return await removeModel(extrasNameValueHelpers, document);
 
         // Create the helper axes and grid box
         let helpersDoc = new Document();

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {mdiLockQuestion} from "@mdi/js";
 import {VBtn, VTooltip} from "vuetify/lib/components/index.mjs";
+// @ts-expect-error
 import SvgIcon from "@jamescoyle/vue-icon";
 
 // @ts-expect-error

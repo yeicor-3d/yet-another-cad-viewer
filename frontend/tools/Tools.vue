@@ -13,7 +13,17 @@ import {
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera.js";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
-import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector, mdiScriptTextPlay} from '@mdi/js'
+import {
+  mdiClose,
+  mdiCrosshairsGps,
+  mdiDownload,
+  mdiGithub,
+  mdiLicense,
+  mdiLightbulb,
+  mdiProjector,
+  mdiScriptTextPlay
+} from '@mdi/js'
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import Loading from "../misc/Loading.vue";
@@ -51,7 +61,7 @@ const sett = ref<any | null>(null);
 const showPlaygroundDialog = ref(false);
 (async () => {
   sett.value = await settings();
-  showPlaygroundDialog.value = sett.value.code != "";
+  showPlaygroundDialog.value = sett.value.pg_code != "";
 })();
 
 let selection: Ref<Array<SelectionInfo>> = ref([]);
@@ -130,10 +140,14 @@ function removeObjectSelections(objName: string) {
   selectionComp.value?.updateDistances();
 }
 
-defineExpose({removeObjectSelections});
+defineExpose({removeObjectSelections, openPlayground: () => showPlaygroundDialog.value = true});
 
 // Add keyboard shortcuts
-window.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', (event) => {
+  if ((event.target as any)?.tagName && ((event.target as any).tagName === 'INPUT' || (event.target as any).tagName === 'TEXTAREA')) {
+    // Ignore key events when an input is focused, except for text inputs
+    return;
+  }
   if (event.key === 'p') toggleProjection();
   else if (event.key === 'c') centerCamera();
   else if (event.key === 'd') downloadSceneGlb();
@@ -155,6 +169,13 @@ window.addEventListener('keydown', (event) => {
     <v-tooltip activator="parent">Re(c)enter Camera</v-tooltip>
     <svg-icon :path="mdiCrosshairsGps" type="mdi"/>
   </v-btn>
+  <span>
+    <v-tooltip activator="parent">To rotate the light hold shift and drag the mouse or use two fingers<br/>
+    Note that this breaks slightly clipping planes for now... (restart to fix)</v-tooltip>
+    <v-btn icon disabled style="background: black;">
+      <svg-icon :path="mdiLightbulb" type="mdi"/>
+    </v-btn>
+  </span>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
   <selection-component ref="selectionComp" v-model="selection" :viewer="props.viewer as any"
@@ -172,7 +193,7 @@ window.addEventListener('keydown', (event) => {
     </template>
     <template v-slot:default="{ isActive }">
       <if-not-small-build>
-        <playground-dialog-content v-if="sett != null" :initial-code="sett.code" @close="isActive.value = false"
+        <playground-dialog-content v-if="sett != null" :initial-code="sett.pg_code" @close="isActive.value = false"
                                    @update-model="(event: NetworkUpdateEvent) => emit('updateModel', event)"/>
       </if-not-small-build>
     </template>

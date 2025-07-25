@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import {VBtn, VNavigationDrawer, VToolbar, VToolbarItems} from "vuetify/lib/components/index.mjs";
 import {mdiChevronLeft, mdiChevronRight, mdiClose} from '@mdi/js'
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 
 const props = defineProps<{

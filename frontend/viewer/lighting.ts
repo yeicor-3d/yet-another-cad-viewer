@@ -2,12 +2,13 @@ import {ModelViewerElement} from '@google/model-viewer';
 import {$scene} from "@google/model-viewer/lib/model-viewer-base";
 import {settings} from "../misc/settings.ts";
 
+export let currentSceneRotation = 0; // radians, 0 is the default rotation
+
 export async function setupLighting(modelViewer: ModelViewerElement) {
     modelViewer[$scene].environmentIntensity = (await settings()).environmentIntensity;
     // Code is mostly copied from the example at: https://modelviewer.dev/examples/stagingandcameras/#turnSkybox
     let lastX: number;
     let panning = false;
-    let skyboxAngle = 0;
     let radiansPerPixel: number;
 
     const startPan = () => {
@@ -20,11 +21,11 @@ export async function setupLighting(modelViewer: ModelViewerElement) {
     const updatePan = (thisX: number) => {
         const delta = (thisX - lastX) * radiansPerPixel;
         lastX = thisX;
-        skyboxAngle += delta;
+        currentSceneRotation += delta;
         const orbit = modelViewer.getCameraOrbit();
         orbit.theta += delta;
         modelViewer.cameraOrbit = orbit.toString();
-        modelViewer.resetTurntableRotation(skyboxAngle);
+        modelViewer.resetTurntableRotation(currentSceneRotation);
         modelViewer.jumpCameraToGoal();
     }
 

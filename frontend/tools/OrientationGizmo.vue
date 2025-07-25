@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import {onMounted, onUpdated, ref} from "vue";
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
+// @ts-expect-error
 import * as OrientationGizmoRaw from "three-orientation-gizmo/src/OrientationGizmo";
+import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
+import {currentSceneRotation} from "../viewer/lighting.ts";
 
 // Optimized minimal dependencies from three
 import {Vector3} from "three/src/math/Vector3.js";
 import {Matrix4} from "three/src/math/Matrix4.js";
-import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
+import {Euler} from "three/src/math/Euler.js";
 
 (globalThis as any).THREE = {Vector3, Matrix4} as any // HACK: Required for the gizmo to work
 
@@ -48,7 +51,7 @@ function createGizmo(expectedParent: HTMLElement, scene: ModelScene): HTMLElemen
         axis.direction.y = -axis.direction.y;
         axis.direction.z = -axis.direction.z;
       }
-      wantedTheta = Math.atan2(axis.direction.x, axis.direction.z);
+      wantedTheta = Math.atan2(axis.direction.x, axis.direction.z) + currentSceneRotation;
       wantedPhi = Math.asin(-axis.direction.y) + Math.PI / 2;
       attempt++;
     }
@@ -66,7 +69,12 @@ let gizmo: HTMLElement & { update: () => void }
 
 function updateGizmo() {
   if (gizmo.isConnected) {
+    // HACK: Update camera temporarily to match skybox rotation before updating the gizmo and go back
+    let prevRot = ((gizmo as any).camera).rotation.clone() as Euler;
+    let thetaMat = new Matrix4().makeRotationY(-currentSceneRotation);
+    ((gizmo as any).camera).rotation.setFromRotationMatrix(thetaMat.multiply(new Matrix4().makeRotationFromEuler(prevRot)));
     gizmo.update();
+    ((gizmo as any).camera).rotation.set(prevRot.x, prevRot.y, prevRot.z);
     requestIdleCallback(updateGizmo, {timeout: 250});
   }
 }

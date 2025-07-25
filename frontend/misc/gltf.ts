@@ -1,5 +1,5 @@
 import {Buffer, Document, Scene, type Transform, WebIO} from "@gltf-transform/core";
-import {unpartition, mergeDocuments} from "@gltf-transform/functions";
+import {mergeDocuments, unpartition} from "@gltf-transform/functions";
 
 let io = new WebIO();
 export let extrasNameKey = "__yacv_name";
@@ -34,7 +34,9 @@ export async function mergePartial(url: string, name: string, document: Document
                 if (alreadyTried["draco"]) throw e; else alreadyTried["draco"] = true;
                 // WARNING: Draco decompression on web is really slow for non-trivial models! (it should work?)
                 let {KHRDracoMeshCompression} = await import("@gltf-transform/extensions")
+                // @ts-expect-error
                 let dracoDecoderWeb = await import("three/examples/jsm/libs/draco/draco_decoder.js");
+                // @ts-expect-error
                 let dracoEncoderWeb = await import("three/examples/jsm/libs/draco/draco_encoder.js");
                 io.registerExtensions([KHRDracoMeshCompression])
                     .registerDependencies({
