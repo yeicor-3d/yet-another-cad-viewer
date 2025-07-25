@@ -8,7 +8,7 @@ await micropip.install("lib3mf")
 micropip.add_mock_package("py-lib3mf", "2.4.1", modules={"py_lib3mf": 'from lib3mf import *'})
 
 # Install the yacv_server package, which is the main server for the OCP.wasm playground; and also preinstalls build123d.
-await micropip.install("yacv_server")
+await micropip.install("yacv_server", pre=True)
 
 # Preimport the yacv_server package to ensure it is available in the global scope, and mock the ocp_vscode package.
 from yacv_server import *
