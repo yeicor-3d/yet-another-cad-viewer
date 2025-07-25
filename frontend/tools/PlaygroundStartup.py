@@ -16,7 +16,7 @@ micropip.add_mock_package("ocp-vscode", "2.8.9", modules={"ocp_vscode": 'from ya
 show_object = show
 
 # Preinstall a font to avoid issues with no font being available.
-def install_font_to_ocp(font_url, font_name=None):
+async def install_font_to_ocp(font_url, font_name=None):
     # noinspection PyUnresolvedReferences
     from pyodide.http import pyfetch
     from OCP.Font import Font_FontMgr, Font_SystemFont, Font_FA_Regular
@@ -30,9 +30,8 @@ def install_font_to_ocp(font_url, font_name=None):
     os.makedirs(os.path.dirname(font_path), exist_ok=True)
 
     # Download the font using pyfetch
-    loop = asyncio.get_event_loop()
-    response = loop.run_until_complete(pyfetch(font_url))
-    font_data = loop.run_until_complete(response.bytes())
+    response = await pyfetch(font_url)
+    font_data = await response.bytes()
 
     # Save it to the system-like folder
     with open(font_path, "wb") as f:
@@ -47,4 +46,4 @@ def install_font_to_ocp(font_url, font_name=None):
 
 
 # Make sure there is at least one font installed, so that the tests can run
-install_font_to_ocp("https://raw.githubusercontent.com/xbmc/xbmc/d3a7f95f3f017b8e861d5d95cc4b33eef4286ce2/media/Fonts/arial.ttf")
+await install_font_to_ocp("https://raw.githubusercontent.com/xbmc/xbmc/d3a7f95f3f017b8e861d5d95cc4b33eef4286ce2/media/Fonts/arial.ttf")
