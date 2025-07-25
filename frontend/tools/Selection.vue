@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {inject, ref, type ShallowRef, watch} from "vue";
 import {VBtn, VSelect, VTooltip} from "vuetify/lib/components/index.mjs";
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import type {ModelScene} from "@google/model-viewer/lib/three-components/ModelScene";
@@ -28,7 +29,7 @@ let emit = defineEmits<{ findModel: [string] }>();
 let {setDisableTap} = inject<{ setDisableTap: (arg0: boolean) => void }>('disableTap')!!;
 let selectionEnabled = ref(false);
 let selected = defineModel<Array<SelectionInfo>>({default: []});
-let highlightNextSelection = ref([false, false]); // Second is whether selection was enabled before
+let openNextSelection = ref([false, false]); // Second is whether selection was enabled before
 let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
 let showDistances = ref<Boolean>(true);
 
@@ -149,7 +150,7 @@ let mouseUpListener = (event: MouseEvent) => {
       // Return the best hit
       [0] as Intersection<MObject3D> | undefined;
 
-  if (!highlightNextSelection.value[0]) {
+  if (!openNextSelection.value[0]) {
     // If we are selecting, toggle the selection or deselect all if no hit
     let selInfo: SelectionInfo | null = null;
     if (hit) selInfo = hitToSelectionInfo(hit);
@@ -171,7 +172,7 @@ let mouseUpListener = (event: MouseEvent) => {
     // Otherwise, highlight the model that owns the hit
     emit('findModel', hit.object.userData[extrasNameKey])
     // And reset the selection mode
-    toggleHighlightNextSelection()
+    toggleOpenNextSelection()
   }
   scene.queueRender() // Force rerender of model-viewer
 }
@@ -209,17 +210,17 @@ function toggleSelection() {
   setDisableTap(selectionEnabled.value);
 }
 
-function toggleHighlightNextSelection() {
-  highlightNextSelection.value = [
-    !highlightNextSelection.value[0],
-    highlightNextSelection.value[0] ? highlightNextSelection.value[1] : selectionEnabled.value
+function toggleOpenNextSelection() {
+  openNextSelection.value = [
+    !openNextSelection.value[0],
+    openNextSelection.value[0] ? openNextSelection.value[1] : selectionEnabled.value
   ];
-  if (highlightNextSelection.value[0]) {
+  if (openNextSelection.value[0]) {
     // Reuse selection code to identify the model
     if (!selectionEnabled.value) toggleSelection()
   } else {
-    if (selectionEnabled.value !== highlightNextSelection.value[1]) toggleSelection()
-    highlightNextSelection.value = [false, false];
+    if (selectionEnabled.value !== openNextSelection.value[1]) toggleSelection()
+    openNextSelection.value = [false, false];
   }
 }
 
@@ -427,6 +428,10 @@ defineExpose({deselect, updateBoundingBox, updateDistances});
 
 // Add keyboard shortcuts
 window.addEventListener('keydown', (event) => {
+  if ((event.target as any)?.tagName && ((event.target as any).tagName === 'INPUT' || (event.target as any).tagName === 'TEXTAREA')) {
+    // Ignore key events when an input is focused, except for text inputs
+    return;
+  }
   if (event.key === 's') {
     if (selectFilter.value == 'Any (S)') toggleSelection();
     else {
@@ -455,8 +460,8 @@ window.addEventListener('keydown', (event) => {
     toggleShowBoundingBox();
   } else if (event.key === 'd') {
     toggleShowDistances();
-  } else if (event.key === 'h') {
-    toggleHighlightNextSelection();
+  } else if (event.key === 'o') {
+    toggleOpenNextSelection();
   }
 });
 </script>
@@ -474,8 +479,8 @@ window.addEventListener('keydown', (event) => {
                 variant="underlined"/>
     </template>
   </v-tooltip>
-  <v-btn :color="highlightNextSelection[0] ? 'surface-light' : ''" icon @click="toggleHighlightNextSelection">
-    <v-tooltip activator="parent">(H)ighlight the next clicked element in the models list</v-tooltip>
+  <v-btn :color="openNextSelection[0] ? 'surface-light' : ''" icon @click="toggleOpenNextSelection">
+    <v-tooltip activator="parent">(O)pen the next clicked element in the models list</v-tooltip>
     <svg-icon :path="mdiFeatureSearch" type="mdi"/>
   </v-btn>
   <v-btn :color="showBoundingBox ? 'surface-light' : ''" icon @click="toggleShowBoundingBox">

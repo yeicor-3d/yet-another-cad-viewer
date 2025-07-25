@@ -13,13 +13,26 @@ import {
 import OrientationGizmo from "./OrientationGizmo.vue";
 import type {PerspectiveCamera} from "three/src/cameras/PerspectiveCamera.js";
 import {OrthographicCamera} from "three/src/cameras/OrthographicCamera.js";
-import {mdiClose, mdiCrosshairsGps, mdiDownload, mdiGithub, mdiLicense, mdiProjector} from '@mdi/js'
+import {
+  mdiClose,
+  mdiCrosshairsGps,
+  mdiDownload,
+  mdiGithub,
+  mdiLicense,
+  mdiLightbulb,
+  mdiProjector,
+  mdiScriptTextPlay
+} from '@mdi/js'
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {defineAsyncComponent, ref, type Ref} from "vue";
 import type {SelectionInfo} from "./selection";
+import {settings} from "../misc/settings.ts";
+import type {NetworkUpdateEvent} from "../misc/network.ts";
+import IfNotSmallBuild from "../misc/IfNotSmallBuild.vue";
 
 const SelectionComponent = defineAsyncComponent({
   loader: () => import("./Selection.vue"),
@@ -34,9 +47,22 @@ const LicensesDialogContent = defineAsyncComponent({
   delay: 0,
 });
 
+const PlaygroundDialogContent = defineAsyncComponent({
+  loader: () => import("./PlaygroundDialogContent.vue"),
+  loadingComponent: Loading,
+  delay: 0,
+});
+
 
 let props = defineProps<{ viewer: InstanceType<typeof ModelViewerWrapper> | null }>();
-const emit = defineEmits<{ findModel: [string] }>()
+const emit = defineEmits<{ findModel: [string], updateModel: [NetworkUpdateEvent] }>()
+
+const sett = ref<any | null>(null);
+const showPlaygroundDialog = ref(false);
+(async () => {
+  sett.value = await settings();
+  showPlaygroundDialog.value = sett.value.pg_code != "";
+})();
 
 let selection: Ref<Array<SelectionInfo>> = ref([]);
 let selectionFaceCount = () => selection.value.filter((s) => s.kind == 'face').length
@@ -114,10 +140,14 @@ function removeObjectSelections(objName: string) {
   selectionComp.value?.updateDistances();
 }
 
-defineExpose({removeObjectSelections});
+defineExpose({removeObjectSelections, openPlayground: () => showPlaygroundDialog.value = true});
 
 // Add keyboard shortcuts
-window.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', (event) => {
+  if ((event.target as any)?.tagName && ((event.target as any).tagName === 'INPUT' || (event.target as any).tagName === 'TEXTAREA')) {
+    // Ignore key events when an input is focused, except for text inputs
+    return;
+  }
   if (event.key === 'p') toggleProjection();
   else if (event.key === 'c') centerCamera();
   else if (event.key === 'd') downloadSceneGlb();
@@ -139,6 +169,13 @@ window.addEventListener('keydown', (event) => {
     <v-tooltip activator="parent">Re(c)enter Camera</v-tooltip>
     <svg-icon :path="mdiCrosshairsGps" type="mdi"/>
   </v-btn>
+  <span>
+    <v-tooltip activator="parent">To rotate the light hold shift and drag the mouse or use two fingers<br/>
+    Note that this breaks slightly clipping planes for now... (restart to fix)</v-tooltip>
+    <v-btn icon disabled style="background: black;">
+      <svg-icon :path="mdiLightbulb" type="mdi"/>
+    </v-btn>
+  </span>
   <v-divider/>
   <h5>Selection ({{ selectionFaceCount() }}F {{ selectionEdgeCount() }}E {{ selectionVertexCount() }}V)</h5>
   <selection-component ref="selectionComp" v-model="selection" :viewer="props.viewer as any"
@@ -146,11 +183,26 @@ window.addEventListener('keydown', (event) => {
   <v-divider/>
   <v-spacer></v-spacer>
   <h5>Extras</h5>
+  <v-dialog v-model="showPlaygroundDialog" persistent :scrim="false" attach="body">
+    <template v-slot:activator="{ props }">
+      <v-btn v-bind="props" style="width: 100%">
+        <v-tooltip activator="parent">Open a python editor and build models directly in the browser!</v-tooltip>
+        <svg-icon :path="mdiScriptTextPlay" type="mdi"/>
+        &nbsp;Sandbox
+      </v-btn>
+    </template>
+    <template v-slot:default="{ isActive }">
+      <if-not-small-build>
+        <playground-dialog-content v-if="sett != null" :initial-code="sett.pg_code" @close="isActive.value = false"
+                                   @update-model="(event: NetworkUpdateEvent) => emit('updateModel', event)"/>
+      </if-not-small-build>
+    </template>
+  </v-dialog>
   <v-btn icon @click="downloadSceneGlb">
     <v-tooltip activator="parent">(D)ownload Scene</v-tooltip>
     <svg-icon :path="mdiDownload" type="mdi"/>
   </v-btn>
-  <v-dialog id="licenses-dialog" fullscreen>
+  <v-dialog>
     <template v-slot:activator="{ props }">
       <v-btn icon v-bind="props">
         <v-tooltip activator="parent">Show Licenses</v-tooltip>
@@ -158,11 +210,10 @@ window.addEventListener('keydown', (event) => {
       </v-btn>
     </template>
     <template v-slot:default="{ isActive }">
-      <v-card>
-        <v-toolbar>
+      <v-card style="height: 90vh">
+        <v-toolbar class="popup">
           <v-toolbar-title>Licenses</v-toolbar-title>
-          <v-spacer>
-          </v-spacer>
+          <v-spacer></v-spacer>
           <v-btn icon @click="isActive.value = false">
             <svg-icon :path="mdiClose" type="mdi"/>
           </v-btn>
@@ -198,5 +249,18 @@ window.addEventListener('keydown', (event) => {
 
 h5 {
   font-size: 14px;
+}
+
+.v-toolbar {
+  position: sticky !important;
+  top: 0;
+}
+
+.v-toolbar.popup {
+  height: 32px;
+}
+
+.v-toolbar.popup > div {
+  height: 32px !important;
 }
 </style>

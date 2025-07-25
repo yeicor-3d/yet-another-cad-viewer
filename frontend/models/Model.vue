@@ -25,6 +25,7 @@ import {
   mdiVectorLine,
   mdiVectorRectangle
 } from '@mdi/js'
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 import {BackSide, FrontSide} from "three/src/constants.js";
 import {Box3} from "three/src/math/Box3.js";
@@ -34,6 +35,8 @@ import {Vector3} from "three/src/math/Vector3.js";
 import type {MObject3D} from "../tools/Selection.vue";
 import {toLineSegments} from "../misc/lines.js";
 import {settings} from "../misc/settings.js"
+import {currentSceneRotation} from "../viewer/lighting.ts";
+import {Matrix4} from "three/src/math/Matrix4.js";
 
 const props = defineProps<{
   meshes: Array<Mesh>,
@@ -115,7 +118,8 @@ function onWireframeChange(newWireframe: boolean) {
   if (!scene || !sceneModel) return;
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
-      if (child.material && child.material.wireframe !== newWireframe) {
+      let childIsFace = child.type == 'Mesh' || child.type == 'SkinnedMesh'
+      if (child.material && child.material.wireframe !== newWireframe && childIsFace) {
         child.material.wireframe = newWireframe;
         child.material.needsUpdate = true;
       }
@@ -153,10 +157,11 @@ function onClipPlanesChange() {
           let offsetX = bbox.min.x + clipPlaneX.value * (bbox.max.x - bbox.min.x);
           let offsetY = bbox.min.y + clipPlaneY.value * (bbox.max.y - bbox.min.y);
           let offsetZ = bbox.min.z + (1 - clipPlaneZ.value) * (bbox.max.z - bbox.min.z);
+          let rotSceneMatrix = new Matrix4().makeRotationY(currentSceneRotation);
           let planes = [
-            new Plane(new Vector3(-1, 0, 0), offsetX),
-            new Plane(new Vector3(0, -1, 0), offsetY),
-            new Plane(new Vector3(0, 0, 1), -offsetZ),
+            new Plane(new Vector3(-1, 0, 0), offsetX).applyMatrix4(rotSceneMatrix),
+            new Plane(new Vector3(0, -1, 0), offsetY).applyMatrix4(rotSceneMatrix),
+            new Plane(new Vector3(0, 0, 1), -offsetZ).applyMatrix4(rotSceneMatrix),
           ];
           if (clipPlaneSwappedX.value) planes[0].negate();
           if (clipPlaneSwappedY.value) planes[1].negate();
@@ -227,9 +232,10 @@ function onEdgeWidthChange(newEdgeWidth: number) {
     line.userData.niceLine = line2;
     // line.parent!.remove(line); // Keep it for better raycast and selection!
     line2.userData.noHit = true;
+    line2.visible = enabledFeatures.value.includes(1);
     edgeWidthChangeCleanup.push(() => {
       line2.parent!.remove(line2);
-      line.visible = true;
+      line.visible = enabledFeatures.value.includes(1);
       props.viewer!!.onElemReady((elem) => {
         elem.removeEventListener('resize', () => resizeListener(elem));
       });

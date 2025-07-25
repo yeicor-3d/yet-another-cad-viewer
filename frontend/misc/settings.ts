@@ -1,4 +1,7 @@
 // These are the default values for the settings, which are overridden below
+import {ungzip} from "pako";
+import {b66Decode} from "../tools/b66.ts";
+
 let settingsCache: any = null;
 
 export async function settings() {
@@ -38,18 +41,50 @@ export async function settings() {
             "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==" :
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEW6urpaLVq8AAAACklEQVQI" +
             "12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="),
+
+        // Playground settings
+        pg_code: "", // Automatically loaded and executed code for the playground
+        pg_code_url: "", // URL to load the code from (overrides pg_code)
+        pg_opacity_loading: -1, // Opacity of the code during first load and run (< 0 is 0.0 if preload and 0.9 if not)
+        pg_opacity_loaded: 0.9, // Opacity of the code after it has been run for the first time
     };
 
-    // Auto-override any settings from the URL
+    // Auto-override any settings from the URL (either GET parameters or hash)
     const url = new URL(window.location.href);
     url.searchParams.forEach((value, key) => {
         if (key in settings) (settings as any)[key] = parseSetting(key, value, settings);
     })
+    if (url.hash.length > 0) { // Hash has bigger limits as it is not sent to the server
+        const hash = url.hash.slice(1);
+        const hashParams = new URLSearchParams(hash);
+        hashParams.forEach((value, key) => {
+            if (key in settings) (settings as any)[key] = parseSetting(key, value, settings);
+        });
+    }
+
+    // Grab the code from the URL if it is set
+    if (settings.pg_code_url.length > 0) {
+        // If the code URL is set, override the code
+        try {
+            const response = await fetch(settings.pg_code_url);
+            if (response.ok) {
+                settings.pg_code = await response.text();
+            } else {
+                console.warn("Failed to load code from URL:", settings.pg_code_url);
+            }
+        } catch (error) {
+            console.error("Error fetching code from URL:", settings.pg_code_url, error);
+        }
+    }
 
     // Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
     for (let i = 0; i < settings.preload.length; i++) {
         let url = settings.preload[i];
         if (url === '<auto>') {
+            if (settings.pg_code != "") { // <auto> means no preload URL if code is set
+                settings.preload = settings.preload.slice(0, i).concat(settings.preload.slice(i + 1));
+                continue; // Skip this preload URL
+            }
             const possibleBackend = new URL("./?api_updates=true", window.location.href)
             await fetch(possibleBackend, {method: "HEAD"}).then((response) => {
                 if (response.ok && response.headers.get("Content-Type") === "text/event-stream") {
@@ -63,6 +98,20 @@ export async function settings() {
         }
         settings.preload[i] = url;
     }
+
+    // Auto-decompress the code and other playground settings
+    if (settings.pg_code.length > 0) {
+        try {
+            settings.pg_code = ungzip(b66Decode(settings.pg_code), {to: 'string'});
+        } catch (error) {
+            console.warn("Failed to decompress code (assuming raw code):", error);
+        }
+        if (settings.pg_opacity_loading < 0) {
+            // If the opacity is not set, use 0.0 if preload is set, otherwise 0.9
+            settings.pg_opacity_loading = settings.preload.length > 0 ? 0.0 : 0.9;
+        }
+    }
+
     settingsCache = settings;
     return settings;
 }

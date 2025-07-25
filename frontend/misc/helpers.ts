@@ -82,7 +82,7 @@ export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
  * The grid is built as a box of triangles (representing lines) looking to the inside of the box.
  * This ensures that only the back of the grid is always visible, regardless of the camera position.
  */
-export async function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4, divisions = 10) {
+export function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4, divisions = 10) {
     // Create transformed positions for the inner faces of the box
     let allPositions: number[] = [];
     let allIndices: number[] = [];

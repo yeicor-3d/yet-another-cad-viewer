@@ -54,8 +54,8 @@ class BufferedPubSub(Generic[T]):
             self._subscribers.remove(q)
         logger.debug(f"Unsubscribed from %s (%d subscribers)", self, len(self._subscribers))
 
-    def subscribe(self, include_buffered: bool = True, include_future: bool = True, yield_timeout: float = 0.0) -> \
-            Generator[T, None, None]:
+    def subscribe(self, include_buffered: bool = True, include_future: bool = True,
+                  yield_timeout: float | None = 0.0) -> Generator[T, None, None]:
         """Subscribes to events as a generator that yields events and automatically unsubscribes"""
         q = self._subscribe(include_buffered, include_future)
         try:

@@ -11,7 +11,8 @@ import {NetworkManager, NetworkUpdateEvent, NetworkUpdateEventModel} from "./mis
 import {SceneMgr} from "./misc/scene";
 import {Document} from "@gltf-transform/core";
 import type ModelViewerWrapperT from "./viewer/ModelViewerWrapper.vue";
-import {mdiPlus} from '@mdi/js'
+import {mdiCube, mdiPlus, mdiScriptTextPlay} from '@mdi/js'
+// @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 
 // NOTE: The ModelViewer library is big (THREE.js), so we split it and import it asynchronously
@@ -21,7 +22,7 @@ const ModelViewerWrapper = defineAsyncComponent({
   delay: 0,
 });
 
-let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > 1200);
+let openSidebarsByDefault: Ref<boolean> = ref(window.innerWidth > window.innerHeight);
 
 const sceneUrl = ref("")
 const viewer: Ref<InstanceType<typeof ModelViewerWrapperT> | null> = ref(null);
@@ -80,17 +81,27 @@ let networkMgr = new NetworkManager();
 networkMgr.addEventListener('update-early',
     (e) => viewer.value?.onProgress((e as CustomEvent<Array<any>>).detail.length * 0.01));
 networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
+let preloadingModels = ref<Array<string>>([]);
 (async () => { // Start loading all configured models ASAP
   let sett = await settings();
-  watch(viewer, (newViewer) => {
-    if (newViewer) {
-      newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
-          ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+  if (sett.preload.length > 0) {
+    watch(viewer, (newViewer) => {
+      if (newViewer) {
+        newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
+            ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
+      }
+    });
+    for (let model of sett.preload) {
+      preloadingModels.value.push(model);
+      let removeFromPreloadingModels = () => {
+        preloadingModels.value = preloadingModels.value.filter((m) => m !== model);
+      };
+      networkMgr.load(model).then(removeFromPreloadingModels).catch((e) => {
+        removeFromPreloadingModels()
+        console.error("Error preloading model", model, e);
+      });
     }
-  });
-  for (let model of sett.preload) {
-    await networkMgr.load(model);
-  }
+  } // else No preloaded models (useful for playground mode)
 })();
 
 async function loadModelManual() {
@@ -104,7 +115,28 @@ async function loadModelManual() {
 
     <!-- The main content of the app is the model-viewer with the SVG "2D" overlay -->
     <v-main id="main">
-      <model-viewer-wrapper ref="viewer" :src="sceneUrl"/>
+      <model-viewer-wrapper v-if="sceneDocument.getRoot().listMeshes().length > 0" ref="viewer" :src="sceneUrl"/>
+      <!-- A nice no model loaded alternative to avoid breaking model-viewer-wrapper -->
+      <div v-else style="height: 100%; overflow-y: auto">
+        <v-toolbar-title class="text-center ma-16 text-h5">No model loaded</v-toolbar-title>
+        <v-btn @click="() => tools?.openPlayground()" class="mx-auto d-block my-4">
+          <svg-icon :path="mdiScriptTextPlay" type="mdi"/>&nbsp; Open playground...
+        </v-btn>
+        <v-btn @click="networkMgr.load('https://yeicor-3d.github.io/yet-another-cad-viewer/logo.glb')"
+               class="mx-auto d-block my-4">
+          <svg-icon :path="mdiCube" type="mdi"/>&nbsp; Load demo model...
+        </v-btn>
+        <v-btn @click="loadModelManual" class="mx-auto d-block my-4">
+          <svg-icon :path="mdiPlus" type="mdi"/>&nbsp; Load model manually...
+        </v-btn>
+        <span v-if="preloadingModels.length > 0" class="d-block text-center my-16">
+          <span class="d-block text-center text-h6">Still trying to load the following:</span>
+          <span class="d-block text-center" v-for="(model, index) in preloadingModels" :key="index">
+            {{ model }}<span v-if="index < preloadingModels.length - 1">, </span>
+          </span>
+        </span>
+
+      </div>
     </v-main>
 
     <!-- The left collapsible sidebar has the list of models -->
@@ -117,7 +149,7 @@ async function loadModelManual() {
           <svg-icon :path="mdiPlus" type="mdi"/>
         </v-btn>
       </template>
-      <models ref="models" :viewer="viewer" @remove="onModelRemoveRequest"/>
+      <models ref="models" :viewer="viewer" @remove-model="onModelRemoveRequest"/>
     </sidebar>
 
     <!-- The right collapsible sidebar has the list of tools -->
@@ -125,7 +157,7 @@ async function loadModelManual() {
       <template #toolbar>
         <v-toolbar-title>Tools</v-toolbar-title>
       </template>
-      <tools ref="tools" :viewer="viewer" @findModel="(name) => models?.findModel(name)"/>
+      <tools ref="tools" :viewer="viewer" @find-model="models?.findModel" @update-model="onModelUpdateRequest"/>
     </sidebar>
 
   </v-layout>
@@ -135,6 +167,6 @@ async function loadModelManual() {
 <style>
 html, body {
   height: 100%;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 </style>

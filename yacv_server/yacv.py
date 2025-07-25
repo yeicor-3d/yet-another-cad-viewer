@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from dataclasses import dataclass
+from enum import Enum, auto
 from http.server import ThreadingHTTPServer
 from io import BytesIO
 from threading import Thread
@@ -64,10 +65,20 @@ class UpdatesApiFullData(UpdatesApiData):
         return super().to_json()
 
 
+class YACVProtocol(Enum):
+    """Enum of communication protocols supported by the server"""
+    HTTP = auto()
+    """The recommended protocol for any platform that can run a web server."""
+    STDERR = auto()
+    """Prints the updates one by one to stderr (first metadata, then base64 of glb file) using a special prefix. Required for Pyodide support."""
+
+
 class YACV:
     """The main yacv_server class, which manages the web server and the CAD objects."""
 
     # Startup
+    protocol: YACVProtocol
+    """The protocol used by the server. Defaults to HTTP, but can be set to STDERR for Pyodide support."""
     server_thread: Optional[Thread]
     """The main thread running the server (will spawn other threads for each request)"""
     server: Optional[ThreadingHTTPServer]
@@ -127,6 +138,10 @@ class YACV:
     in the hexadecimal format #RRGGBB or #RRGGBBAA."""
 
     def __init__(self):
+        """Initializes the YACV server"""
+        raw_protocol = os.getenv('YACV_PROTOCOL', 'http' if sys.platform != 'emscripten' else 'stderr').upper()
+        self.protocol = YACVProtocol[raw_protocol] if raw_protocol in YACVProtocol.__members__ else YACVProtocol.HTTP
+        self.protocol = YACVProtocol.STDERR
         self.server_thread = None
         self.server = None
         self.startup_complete = threading.Event()
@@ -144,6 +159,7 @@ class YACV:
 
     def start(self):
         """Starts the web server in the background"""
+        if self.protocol == YACVProtocol.STDERR: return  # No server to start, just print to stderr
         assert self.server_thread is None, "Server currently running, cannot start another one"
         assert self.startup_complete.is_set() is False, "Server already started"
         # Start the server in a separate daemon thread
@@ -160,6 +176,8 @@ class YACV:
     # noinspection PyUnusedLocal
     def stop(self, *args):
         """Stops the web server"""
+        if self.protocol == YACVProtocol.STDERR: return  # No server to stop, just print to stderr
+        # The remainder is for the HTTP protocol only
         if self.server_thread is None:
             logger.error('Cannot stop server because it is not running')
             return
@@ -167,7 +185,7 @@ class YACV:
         # Inform the server that we are shutting down
         self.shutting_down.set()
         # noinspection PyTypeChecker
-        self.show_events.publish(UpdatesApiFullData(name='__shutdown', _hash='', is_remove=None, obj=None))
+        self._show_event(UpdatesApiFullData(name='__shutdown', _hash='', is_remove=None, obj=None))
 
         # If we were too fast, ensure that at least one client has connected
         graceful_secs_connect = float(os.getenv('YACV_GRACEFUL_SECS_CONNECT', 12.0))
@@ -195,9 +213,11 @@ class YACV:
             if len(args) >= 1 and args[0] in (signal.SIGINT, signal.SIGTERM):
                 sys.exit(0)  # Exit with success
 
+    _yacvServerModelPrefix = "yacv_server://model/"
+
     def _run_server(self):
         """Runs the web server"""
-        logger.info('Starting server...')
+        logger.info('Starting server in %s mode...', self.protocol.name)
         self.server = ThreadingHTTPServer(
             (os.getenv('YACV_HOST', 'localhost'), int(os.getenv('YACV_PORT', 32323))),
             lambda a, b, c: HTTPHandler(a, b, c, yacv=self))
@@ -205,6 +225,22 @@ class YACV:
         logger.info(f'Serving at http://{self.server.server_name}:{self.server.server_port}')
         self.startup_complete.set()
         self.server.serve_forever()
+
+    def _show_event(self, event: UpdatesApiFullData):
+        """Handles a show event by publishing it to the show events buffer (and special handling for stderr protocol)."""
+        self.show_events.publish(event)
+        # If the protocol is STDERR, we need to print the event to stderr
+        if self.protocol == YACVProtocol.STDERR:
+            msg = f'{self._yacvServerModelPrefix}{event.to_json()}'
+            if not event.is_remove:
+                # Always build the object even if the interface already has it (optimization disabled for Pyodide)
+                glb_and_hash = self.export(event.name)
+                if glb_and_hash is None:
+                    logger.warning('Object %s not found, ignoring it...', event.name)
+                    return
+                glb = glb_and_hash[0]
+                msg += f'{base64.b64encode(glb).decode("utf-8")}'
+            print(msg, file=sys.stderr, flush=True)
 
     def show(self, *objs: List[YACVSupported], names: Optional[Union[str, List[str]]] = None, **kwargs):
         """
@@ -252,13 +288,13 @@ class YACV:
             # Some properties may be lost in preprocessing, so save them in kwargs
             _kwargs = kwargs.copy()
             if obj_color is not None:
-                _kwargs['color_obj'] = obj_color # Only applies to highest-dimensional objects
+                _kwargs['color_obj'] = obj_color  # Only applies to highest-dimensional objects
             _kwargs['texture'] = _read_texture_uri(getattr(obj, 'yacv_texture', None) or kwargs.get('texture', None))
             if not isinstance(obj, bytes):
                 obj = _preprocess_cad(obj, **_kwargs)
             _hash = _hashcode(obj, **_kwargs)
             event = UpdatesApiFullData(name=name, _hash=_hash, obj=obj, kwargs=_kwargs or {})
-            self.show_events.publish(event)
+            self._show_event(event)
 
         logger.info('show %s took %.3f seconds', names, time.time() - start)
 
@@ -283,7 +319,7 @@ class YACV:
             # Publish the remove event
             show_event = copy.copy(show_events[-1])
             show_event.is_remove = True
-            self.show_events.publish(show_event)
+            self._show_event(show_event)
 
     def clear(self, except_names: List[str] = None):
         """Clears all previously-shown objects from the scene"""
