@@ -14,6 +14,8 @@ import {b66Encode} from "./b66.ts";
 import {Base64} from 'js-base64'; // More compatible with binary data from python...
 import {NetworkUpdateEvent, NetworkUpdateEventModel} from "../misc/network.ts";
 import {settings} from "../misc/settings.ts";
+// @ts-expect-error
+import playgroundStartupCode from './PlaygroundStartup.py?raw';
 
 const props = defineProps<{ initialCode: string }>();
 const emit = defineEmits<{ close: [], updateModel: [NetworkUpdateEvent] }>()
@@ -21,7 +23,7 @@ const emit = defineEmits<{ close: [], updateModel: [NetworkUpdateEvent] }>()
 // ============ LOAD MONACO EDITOR ============
 setupMonaco() // Must be called before using the editor
 
-const code = ref(props.initialCode); // TODO: Default code as input (and autorun!)
+const code = ref((import.meta as any)?.hot?.data?.code || props.initialCode);
 const outputText = ref(``);
 
 function output(text: string) {
@@ -69,13 +71,7 @@ async function setupPyodide() {
     output("Reusing existing Pyodide instance...\n");
   }
   output("Preloading packages...\n");
-  await pyodideWorker.asyncRun(`import micropip, asyncio
-micropip.set_index_urls(["https://yeicor.github.io/OCP.wasm", "https://pypi.org/simple"])
-await (micropip.install("lib3mf"))
-micropip.add_mock_package("py-lib3mf", "2.4.1", modules={"py_lib3mf": 'from lib3mf import *'})
-await (micropip.install(["https://files.pythonhosted.org/packages/67/25/80be117f39ff5652a4fdbd761b061123c5425e379f4b0a5ece4353215d86/yacv_server-0.10.0a4-py3-none-any.whl"]))
-from yacv_server import *
-micropip.add_mock_package("ocp-vscode", "2.8.9", modules={"ocp_vscode": 'from yacv_server import *'})`, output, output); // Also import yacv_server and mock ocp_vscode here for faster custom code execution
+  await pyodideWorker.asyncRun(playgroundStartupCode, output, output); // Also import yacv_server and mock ocp_vscode here for faster custom code execution
   running.value = false; // Indicate that Pyodide is ready
   output("Pyodide worker initialized.\n");
 }
@@ -92,6 +88,7 @@ async function runCode() {
   output("Running code...\n");
   try {
     running.value = true;
+    if ((import.meta as any).hot) (import.meta as any).hot.data.code = code.value; // Save code for hot reload
     await pyodideWorker.asyncRun(code.value, output, (msg: string) => {
       // Detect models printed to console (since http server is not available in pyodide)
       if (msg.startsWith(yacvServerModelPrefix)) {

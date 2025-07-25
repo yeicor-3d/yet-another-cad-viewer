@@ -1543,7 +1543,7 @@ The following npm packages may be included in this product:
 
  - @babel/helper-string-parser@7.27.1
  - @babel/helper-validator-identifier@7.27.1
- - @babel/types@7.28.1
+ - @babel/types@7.28.2
 
 These packages each contain the following license:
 
@@ -2028,7 +2028,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@3.9.0
+ - vuetify@3.9.2
 
 This package contains the following license:
 
@@ -2058,16 +2058,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.17
- - @vue/compiler-dom@3.5.17
- - @vue/compiler-sfc@3.5.17
- - @vue/compiler-ssr@3.5.17
- - @vue/reactivity@3.5.17
- - @vue/runtime-core@3.5.17
- - @vue/runtime-dom@3.5.17
- - @vue/server-renderer@3.5.17
- - @vue/shared@3.5.17
- - vue@3.5.17
+ - @vue/compiler-core@3.5.18
+ - @vue/compiler-dom@3.5.18
+ - @vue/compiler-sfc@3.5.18
+ - @vue/compiler-ssr@3.5.18
+ - @vue/reactivity@3.5.18
+ - @vue/runtime-core@3.5.18
+ - @vue/runtime-dom@3.5.18
+ - @vue/server-renderer@3.5.18
+ - @vue/shared@3.5.18
+ - vue@3.5.18
 
 These packages each contain the following license:
 
