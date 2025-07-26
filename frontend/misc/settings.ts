@@ -2,6 +2,7 @@
 import {ungzip} from "pako";
 import {b64UrlDecode} from "../tools/b64.ts";
 
+const firstTimeNames: Array<string> = []; // Needed for array values, which clear the array when overridden
 export const settings = (async () => {
     let settings = {
         preload: [
@@ -77,6 +78,12 @@ export const settings = (async () => {
     // Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
     for (let i = 0; i < settings.preload.length; i++) {
         let url = settings.preload[i];
+        // Ignore empty preload URLs to allow overriding default auto behavior
+        if (url === '') {
+            settings.preload = settings.preload.slice(0, i).concat(settings.preload.slice(i + 1));
+            continue; // Skip this preload URL
+        }
+        // Handle special <auto> preload URL
         if (url === '<auto>') {
             if (settings.pg_code != "") { // <auto> means no preload URL if code is set
                 settings.preload = settings.preload.slice(0, i).concat(settings.preload.slice(i + 1));
@@ -112,7 +119,6 @@ export const settings = (async () => {
     return settings;
 })()
 
-const firstTimeNames: Array<string> = []; // Needed for array values, which clear the array when overridden
 function parseSetting(name: string, value: string, settings: any): any {
     let arrayElem = name.endsWith(".0")
     if (arrayElem) name = name.slice(0, -2);

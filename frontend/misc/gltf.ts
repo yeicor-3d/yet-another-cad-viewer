@@ -15,11 +15,11 @@ let isSmallBuild = typeof __YACV_SMALL_BUILD__ !== 'undefined' && __YACV_SMALL_B
  *
  * Remember to call mergeFinalize after all models have been merged (slower required operations).
  */
-export async function mergePartial(url: string, name: string, document: Document, networkFinished: () => void = () => {
+export async function mergePartial(url: string | Blob, name: string, document: Document, networkFinished: () => void = () => {
 }): Promise<Document> {
     // Fetch the complete document from the network
     // This could be done at the same time as the document is being processed, but I wanted better metrics
-    let response = await fetch(url);
+    let response = await fetchOrRead(url);
     let buffer = await response.arrayBuffer();
     networkFinished();
 
@@ -118,3 +118,30 @@ function mergeScenes(): Transform {
         }
     }
 }
+
+/** Fetches a URL or reads it if it is a Blob URL */
+async function fetchOrRead(url: string | Blob) {
+    if (url instanceof Blob) {
+        // Use the FileReader API as fetch does not support Blob URLs
+        return new Promise<Response>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = (event: ProgressEvent<FileReader>) => {
+                if (event.target && event.target.result) {
+                    resolve(new Response(event.target.result));
+                } else {
+                    reject(new Error("Failed to read Blob URL: " + url));
+                }
+            };
+            reader.onerror = (error) => {
+                reject(new Error("Error reading Blob URL: " + url + " - " + error));
+            };
+            // Read the Blob URL as an ArrayBuffer
+            reader.readAsArrayBuffer(new Blob([url]));
+        });
+    } else {
+        // Fetch the URL
+        return fetch(url);
+    }
+
+}
+

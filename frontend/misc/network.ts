@@ -4,12 +4,12 @@ const batchTimeout = 250; // ms
 
 export class NetworkUpdateEventModel {
     name: string;
-    url: string;
+    url: string | Blob;
     // TODO: Detect and manage instances of the same object (same hash, different name)
     hash: string | null;
     isRemove: boolean | null; // This is null for a shutdown event
 
-    constructor(name: string, url: string, hash: string | null, isRemove: boolean | null) {
+    constructor(name: string, url: string | Blob, hash: string | null, isRemove: boolean | null) {
         this.name = name;
         this.url = url;
         this.hash = hash;
@@ -42,18 +42,26 @@ export class NetworkManager extends EventTarget {
      *
      * Updates will be emitted as "update" events, including the download URL and the model name.
      */
-    async load(url: string) {
-        if (url.startsWith("dev+") || url.startsWith("dev ")) {
+    async load(url: string | Blob) {
+        if (url instanceof String && (url.startsWith("dev+") || url.startsWith("dev "))) {
             let baseUrl = new URL(url.slice(4));
             baseUrl.searchParams.set("api_updates", "true");
             await this.monitorDevServer(baseUrl);
         } else {
-            // Get the last part of the URL as the "name" of the model
-            let name = url.split("/").pop();
-            name = name?.split(".")[0] || `unknown-${Math.random()}`;
-            // Use a head request to get the hash of the file
-            let response = await fetch(url, {method: "HEAD"});
-            let hash = response.headers.get("etag");
+            let name;
+            let hash = null;
+            if (url instanceof Blob) {
+                if (url instanceof File) name = (url as File).name
+                else name = `blob-${Math.random()}`;
+                name = name.replace('.glb', '').replace('.gltf', '');
+            } else {
+                // Get the last part of the URL as the "name" of the model
+                name = url.split("/").pop();
+                name = name?.split(".")[0] || `unknown-${Math.random()}`;
+                // Use a head request to get the hash of the file
+                let response = await fetch(url, {method: "HEAD"});
+                hash = response.headers.get("etag");
+            }
             // Only trigger an update if the hash has changed
             this.foundModel(name, hash, url, false);
         }
@@ -92,7 +100,7 @@ export class NetworkManager extends EventTarget {
         }
     }
 
-    private foundModel(name: string, hash: string | null, url: string, isRemove: boolean | null, disconnect: () => void = () => {
+    private foundModel(name: string, hash: string | null, url: string | Blob, isRemove: boolean | null, disconnect: () => void = () => {
     }) {
         // console.debug("Found model", name, "with hash", hash, "at", url, "isRemove", isRemove);
 

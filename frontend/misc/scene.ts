@@ -9,7 +9,7 @@ import {Matrix4} from "three/src/math/Matrix4.js"
 /** This class helps manage SceneManagerData. All methods are static to support reactivity... */
 export class SceneMgr {
     /** Loads a GLB model from a URL and adds it to the viewer or replaces it if the names match */
-    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string, updateHelpers: boolean = true, reloadScene: boolean = true): Promise<Document> {
+    static async loadModel(sceneUrl: Ref<string>, document: Document, name: string, url: string | Blob, updateHelpers: boolean = true, reloadScene: boolean = true): Promise<Document> {
         let loadStart = performance.now();
         let loadNetworkEnd: number;
 
@@ -100,7 +100,9 @@ export class SceneMgr {
         newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
         newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
         let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
-        return await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
+        let newDocument = await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
+        URL.revokeObjectURL(helpersUrl);
+        return newDocument;
     }
 
     /** Serializes the current document into a GLB and updates the viewerSrc */
@@ -112,6 +114,7 @@ export class SceneMgr {
         let buffer = await toBuffer(document);
         let blob = new Blob([buffer], {type: 'model/gltf-binary'});
         console.debug("Showing current doc", document, "with", buffer.length, "total bytes");
+        if (sceneUrl.value.startsWith("blob:")) URL.revokeObjectURL(sceneUrl.value);
         sceneUrl.value = URL.createObjectURL(blob);
 
         return document;

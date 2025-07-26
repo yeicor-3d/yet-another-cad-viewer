@@ -141,7 +141,7 @@ function onModelData(modelData: string) {
         "Invalid GLTF binary data received: " + binaryData.slice(0, 4).toString());
     // - Create a Blob from the binary data to be used as a URL
     const blob = new Blob([binaryData], {type: 'model/gltf-binary'});
-    modelMetadata.url = URL.createObjectURL(blob); // Set the hacked URL in the model metadata
+    modelMetadata.url = URL.createObjectURL(blob); // Set the hacked URL in the model metadata XXX: revoked on App.vue
   }
   // - Emit the event with the model metadata and URL
   let networkUpdateEvent = new NetworkUpdateEvent([modelMetadata], () => {

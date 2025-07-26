@@ -128,6 +128,7 @@ async function downloadSceneGlb() {
   link.download = file.name;
   link.href = URL.createObjectURL(file);
   link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 async function openGithub() {

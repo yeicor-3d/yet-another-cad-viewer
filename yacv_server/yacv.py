@@ -141,7 +141,6 @@ class YACV:
         """Initializes the YACV server"""
         raw_protocol = os.getenv('YACV_PROTOCOL', 'http' if sys.platform != 'emscripten' else 'stderr').upper()
         self.protocol = YACVProtocol[raw_protocol] if raw_protocol in YACVProtocol.__members__ else YACVProtocol.HTTP
-        self.protocol = YACVProtocol.STDERR
         self.server_thread = None
         self.server = None
         self.startup_complete = threading.Event()

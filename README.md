@@ -23,9 +23,9 @@ in a web browser.
 The [example](example) is a fully working project that shows how to use the viewer.
 
 You can play with the latest
-demo [here](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=logo.glb&preload=logo_hl.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)
+demo [here](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=logo.glb&preload=logo_hl.glb&preload=logo_hl_tex.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)
 (or
-[without animation](https://yeicor-3d.github.io/yet-another-cad-viewer/?autoplay=false&preload=logo.glb&preload=logo_hl.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)).
+[without animation](https://yeicor-3d.github.io/yet-another-cad-viewer/?autoplay=false&preload=logo.glb&preload=logo_hl.glb&preload=logo_hl_tex.glb&preload=fox.glb&preload=img.jpg.glb&preload=location.glb)).
 
 ![Demo](assets/screenshot.png)
 

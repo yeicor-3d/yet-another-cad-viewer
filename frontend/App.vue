@@ -108,6 +108,23 @@ async function loadModelManual() {
   const modelUrl = prompt("For an improved experience in viewing CAD/GLTF models with automatic updates, it's recommended to use the official yacv_server Python package. This ensures seamless serving of models and automatic updates.\n\nOtherwise, enter the URL of the model to load:");
   if (modelUrl) await networkMgr.load(modelUrl);
 }
+
+// Detect dropped .glb files and load them manually
+document.body.addEventListener("dragover", e => {
+  e.preventDefault(); // Allow drop
+});
+
+document.body.addEventListener("drop", async e => {
+  e.preventDefault();
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext === 'glb' || ext === 'gltf') {
+    await networkMgr.load(file);
+  }
+});
+
 </script>
 
 <template>
