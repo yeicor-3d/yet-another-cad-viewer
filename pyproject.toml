@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "yacv-server"
-version = "0.10.0-rc.6"
+version = "0.10.0"
 description = "Yet Another CAD Viewer (server)"
 authors = ["Yeicor <4929005+Yeicor@users.noreply.github.com>"]
 license = "MIT"
