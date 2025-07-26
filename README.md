@@ -15,7 +15,7 @@ in a web browser.
 - Select any entity and measure bounding box size and distances.
 - Hot reloading while editing the CAD model (using the `yacv-server` package).
 - Fully-featured static deployment: just upload the viewer and models to your server.
-- Build123d playground! code and build your model fully inside the
+- Build123d playground! Code and build your model fully inside the
   browser: [demo](https://yeicor-3d.github.io/yet-another-cad-viewer/#pg_code_url=https://raw.githubusercontent.com/gumyr/build123d/refs/heads/dev/examples/toy_truck.py).
 
 ## Usage
