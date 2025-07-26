@@ -21,11 +21,10 @@ async def install_font_to_ocp(font_url, font_name=None):
     from pyodide.http import pyfetch
     from OCP.Font import Font_FontMgr, Font_SystemFont, Font_FA_Regular
     from OCP.TCollection import TCollection_AsciiString
-    import os, asyncio
+    import os
 
+    # Prepare the font path and name
     font_name = font_name if font_name is not None else font_url.split("/")[-1]
-
-    # Choose a "system-like" font directory
     font_path = os.path.join("/tmp", font_name)
     os.makedirs(os.path.dirname(font_path), exist_ok=True)
 

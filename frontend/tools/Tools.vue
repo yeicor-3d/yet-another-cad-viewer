@@ -28,7 +28,7 @@ import SvgIcon from '@jamescoyle/vue-icon';
 import type {ModelViewerElement} from '@google/model-viewer';
 import Loading from "../misc/Loading.vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
-import {defineAsyncComponent, ref, type Ref} from "vue";
+import {defineAsyncComponent, ref} from "vue";
 import type {SelectionInfo} from "./selection";
 import {settings} from "../misc/settings.ts";
 import type {NetworkUpdateEvent} from "../misc/network.ts";
@@ -59,12 +59,14 @@ const emit = defineEmits<{ findModel: [string], updateModel: [NetworkUpdateEvent
 
 const sett = ref<any | null>(null);
 const showPlaygroundDialog = ref(false);
+const pg_model = ref({code: '# Loading...', firstTime: false});
 (async () => {
-  sett.value = await settings();
-  showPlaygroundDialog.value = sett.value.pg_code != "";
+  sett.value = await settings;
+  pg_model.value = {code: sett.value.pg_code, firstTime: true};
+  showPlaygroundDialog.value = pg_model.value.code != "";
 })();
 
-let selection: Ref<Array<SelectionInfo>> = ref([]);
+let selection = ref<Array<SelectionInfo>>([]);
 let selectionFaceCount = () => selection.value.filter((s) => s.kind == 'face').length
 let selectionEdgeCount = () => selection.value.filter((s) => s.kind == 'edge').length
 let selectionVertexCount = () => selection.value.filter((s) => s.kind == "vertex").length
@@ -193,7 +195,7 @@ document.addEventListener('keydown', (event) => {
     </template>
     <template v-slot:default="{ isActive }">
       <if-not-small-build>
-        <playground-dialog-content v-if="sett != null" :initial-code="sett.pg_code" @close="isActive.value = false"
+        <playground-dialog-content v-if="sett != null" v-model="pg_model" @close="isActive.value = false"
                                    @update-model="(event: NetworkUpdateEvent) => emit('updateModel', event)"/>
       </if-not-small-build>
     </template>

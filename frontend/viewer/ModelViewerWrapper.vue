@@ -29,7 +29,7 @@ const renderer = ref<Renderer | null>(null);
 const controls = ref<SmoothControls | null>(null);
 
 const sett = ref<any | null>(null);
-(async () => sett.value = await settings())();
+(async () => sett.value = await settings)();
 
 let lastCameraTargetPosition: Vector3 | undefined = undefined;
 let lastCameraZoom: number | undefined = undefined;

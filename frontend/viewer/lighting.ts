@@ -5,7 +5,7 @@ import {settings} from "../misc/settings.ts";
 export let currentSceneRotation = 0; // radians, 0 is the default rotation
 
 export async function setupLighting(modelViewer: ModelViewerElement) {
-    modelViewer[$scene].environmentIntensity = (await settings()).environmentIntensity;
+    modelViewer[$scene].environmentIntensity = (await settings).environmentIntensity;
     // Code is mostly copied from the example at: https://modelviewer.dev/examples/stagingandcameras/#turnSkybox
     let lastX: number;
     let panning = false;

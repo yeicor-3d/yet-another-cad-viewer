@@ -53,7 +53,7 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
     let model = event.models[modelIndex];
     tools.value?.removeObjectSelections(model.name);
     try {
-      let loadHelpers = (await settings()).loadHelpers;
+      let loadHelpers = (await settings).loadHelpers;
       if (!model.isRemove) {
         doc = await SceneMgr.loadModel(sceneUrl, doc, model.name, model.url, isLast && loadHelpers, isLast);
       } else {
@@ -83,7 +83,7 @@ networkMgr.addEventListener('update-early',
 networkMgr.addEventListener('update', (e) => onModelUpdateRequest(e as NetworkUpdateEvent));
 let preloadingModels = ref<Array<string>>([]);
 (async () => { // Start loading all configured models ASAP
-  let sett = await settings();
+  let sett = await settings;
   if (sett.preload.length > 0) {
     watch(viewer, (newViewer) => {
       if (newViewer) {

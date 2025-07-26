@@ -61,7 +61,7 @@ export class NetworkManager extends EventTarget {
 
     private async monitorDevServer(url: URL, stop: () => boolean = () => false) {
         while (!stop()) {
-            let monitorEveryMs = (await settings()).monitorEveryMs;
+            let monitorEveryMs = (await settings).monitorEveryMs;
             try {
                 // WARNING: This will spam the console logs with failed requests when the server is down
                 const controller = new AbortController();

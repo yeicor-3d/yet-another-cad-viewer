@@ -25,6 +25,9 @@ export type MessageEventDataIn = {
     id: number;
     path: string;
     content: string;
+} | {
+    type: 'makeSnapshot';
+    id: number;
 }
 
 self.onmessage = async (event: MessageEvent<MessageEventDataIn>) => {
@@ -61,6 +64,15 @@ self.onmessage = async (event: MessageEvent<MessageEventDataIn>) => {
         await pyodide.loadPackagesFromImports(code);
         try {
             self.postMessage({id: event.data.id, result: await pyodide.runPythonAsync(code)});
+        } catch (error: any) {
+            self.postMessage({id: event.data.id, error: error.message});
+        }
+    } else if (event.data.type === 'makeSnapshot') {
+        // Take a snapshot of the current Pyodide filesystem.
+        const pyodide = await pyodideReadyPromise;
+        try {
+            const snapshot = pyodide.makeMemorySnapshot();
+            self.postMessage({id: event.data.id, result: snapshot});
         } catch (error: any) {
             self.postMessage({id: event.data.id, error: error.message});
         }

@@ -38,6 +38,7 @@ export function newPyodideWorker(initOpts: Parameters<typeof loadPyodide>[0]) {
         mkdirTree: (path: string) => commonRequestResponse({type: "mkdirTree", id: requestId++, path}),
         writeFile: (path: string, content: string) =>
             commonRequestResponse({type: "writeFile", id: requestId++, path, content}),
+        makeSnapshot: () => commonRequestResponse({type: "makeSnapshot", id: requestId++}),
         terminate: () => worker.terminate()
     }
 }

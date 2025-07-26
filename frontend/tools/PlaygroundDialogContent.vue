@@ -4,26 +4,34 @@ import {VueMonacoEditor} from '@guolao/vue-monaco-editor'
 import {nextTick, onMounted, ref, shallowRef} from "vue";
 import Loading from "../misc/Loading.vue";
 import {newPyodideWorker} from "./pyodide-worker-api.ts";
-import {mdiCircleOpacity, mdiClose, mdiContentSave, mdiFolderOpen, mdiPlay, mdiReload, mdiShare} from "@mdi/js";
+import {
+  mdiBroom,
+  mdiCircleOpacity,
+  mdiClose,
+  mdiContentSave,
+  mdiFolderOpen,
+  mdiPlay,
+  mdiReload,
+  mdiShare
+} from "@mdi/js";
 import {VBtn, VCard, VCardText, VSlider, VSpacer, VToolbar, VToolbarTitle, VTooltip} from "vuetify/components";
 // @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
 import {version as pyodideVersion} from "pyodide";
 import {gzip} from 'pako';
-import {b66Encode} from "./b66.ts";
+import {b64UrlEncode} from "./b64.ts";
 import {Base64} from 'js-base64'; // More compatible with binary data from python...
 import {NetworkUpdateEvent, NetworkUpdateEventModel} from "../misc/network.ts";
 import {settings} from "../misc/settings.ts";
 // @ts-expect-error
 import playgroundStartupCode from './PlaygroundStartup.py?raw';
 
-const props = defineProps<{ initialCode: string }>();
+const model = defineModel<{ code: string, firstTime: boolean }>({required: true}); // Initial code should only be set on first load!
 const emit = defineEmits<{ close: [], updateModel: [NetworkUpdateEvent] }>()
 
 // ============ LOAD MONACO EDITOR ============
 setupMonaco() // Must be called before using the editor
 
-const code = ref((import.meta as any)?.hot?.data?.code || props.initialCode);
 const outputText = ref(``);
 
 function output(text: string) {
@@ -51,21 +59,24 @@ const MONACO_EDITOR_OPTIONS = {
 const editorTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? `vs-dark` : `vs`
 const editor = shallowRef()
 const handleMount = (editorInstance: typeof VueMonacoEditor) => (editor.value = editorInstance)
-const opacity = ref(0.9); // Opacity for the editor
+const opacity = ref(0.9); // Opacity for the editor (overriden when settings are loaded)
 
 // ============ LOAD PYODIDE (ASYNC) ============
 let pyodideWorker: ReturnType<typeof newPyodideWorker> | null = (import.meta as any).hot?.data?.pyodideWorker || null;
 const running = ref(true);
 
-async function setupPyodide() {
+async function setupPyodide(first: boolean, loadSnapshot: Uint8Array | undefined = undefined) {
   running.value = true;
-  if (opacity.value == 0.0) opacity.value = 0.9; // User doesn't know how to show code again, reset after reopening
+  if (opacity.value == 0.0 && !first) opacity.value = 0.9; // User doesn't know how to show code again, reset after reopening
   if (pyodideWorker === null) {
     output("Creating new Pyodide worker...\n");
-    pyodideWorker = newPyodideWorker({
-      indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`, // FIXME: Local deployment?
+    pyodideWorker = newPyodideWorker(Object.assign({
+      // Note: python wheels are downloaded from the CDN, as we can't know which ones are needed in advance to bundle them
+      // Furthermore, this lets us use the latest version of all wheels including ocp-specific ones without app updates
+      indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
       packages: ["micropip", "sqlite3"], // Faster load if done here
-    });
+      // _makeSnapshot: true, // Enable snapshotting for faster startup (still experimental: breaks loading any packages)
+    }, (loadSnapshot ? {_loadSnapshot: loadSnapshot} : {}))); // Load snapshot if provided
     if ((import.meta as any).hot) (import.meta as any).hot.data.pyodideWorker = pyodideWorker
   } else {
     output("Reusing existing Pyodide instance...\n");
@@ -73,7 +84,7 @@ async function setupPyodide() {
   output("Preloading packages...\n");
   await pyodideWorker.asyncRun(playgroundStartupCode, output, output); // Also import yacv_server and mock ocp_vscode here for faster custom code execution
   running.value = false; // Indicate that Pyodide is ready
-  output("Pyodide worker initialized.\n");
+  output("Pyodide worker ready.\n");
 }
 
 async function runCode() {
@@ -88,8 +99,7 @@ async function runCode() {
   output("Running code...\n");
   try {
     running.value = true;
-    if ((import.meta as any).hot) (import.meta as any).hot.data.code = code.value; // Save code for hot reload
-    await pyodideWorker.asyncRun(code.value, output, (msg: string) => {
+    await pyodideWorker.asyncRun(model.value.code, output, (msg: string) => {
       // Detect models printed to console (since http server is not available in pyodide)
       if (msg.startsWith(yacvServerModelPrefix)) {
         const modelData = msg.slice(yacvServerModelPrefix.length);
@@ -99,7 +109,7 @@ async function runCode() {
       }
     });
   } catch (e) {
-    output(`Error running initial code: ${e}\n`);
+    output(`Error running code: ${e}\n`);
   } finally {
     running.value = false; // Indicate that Pyodide is ready
   }
@@ -139,22 +149,26 @@ function onModelData(modelData: string) {
   emit('updateModel', networkUpdateEvent);
 }
 
-function resetWorker() {
+function resetWorker(loadSnapshot: Uint8Array | undefined = undefined) {
   if (pyodideWorker) {
     pyodideWorker.terminate(); // Terminate existing worker
     pyodideWorker = null; // Reset worker reference
   }
   outputText.value = ``; // Clear output text
-  setupPyodide(); // Reinitialize Pyodide
+  setupPyodide(false, loadSnapshot); // Reinitialize Pyodide
 }
 
 function shareLink() {
   const baseUrl = window.location
-  const urlParams = new URLSearchParams(baseUrl.hash.slice(1)); // Keep all previous URL parameters
-  urlParams.set('pg_code', b66Encode(gzip(code.value, {level: 9}))); // Compress and encode the code
-  const shareUrl = `${baseUrl.origin}${baseUrl.pathname}${baseUrl.search}#${urlParams.toString()}`; // Prefer hash to GET (bigger limits)
+  const searchParams = new URLSearchParams(baseUrl.search);
+  searchParams.delete('pg_code_url'); // Remove any existing pg_code parameter
+  searchParams.delete('pg_code'); // Remove any existing pg_code parameter
+  const hashParams = new URLSearchParams(baseUrl.hash.slice(1)); // Keep all previous URL parameters
+  hashParams.delete('pg_code_url') // Would overwrite the pg_code parameter
+  hashParams.set('pg_code', b64UrlEncode(gzip(model.value.code, {level: 9}))); // Compress and encode the code
+  const shareUrl = `${baseUrl.origin}${baseUrl.pathname}?${searchParams}#${hashParams}`; // Prefer hash to GET
   output(`Share link ready: ${shareUrl}\n`)
-  if (!navigator.clipboard) {
+  if (navigator.clipboard?.writeText === undefined) {
     output("Clipboard API not available. Please copy the link manually.\n");
     return;
   } else {
@@ -172,27 +186,28 @@ function loadSnapshot() {
   throw new Error("Not implemented yet!"); // TODO: Implement snapshot loading
 }
 
-const reused = (import.meta as any).hot?.data?.pyodideWorker !== undefined;
 (async () => {
-  const sett = await settings()
-  if (!reused) opacity.value = sett.pg_opacity_loading
-  await setupPyodide()
-  if (props.initialCode != "" && !reused) await runCode();
-  if (!reused) opacity.value = sett.pg_opacity_loaded
+  const sett = await settings
+  if (model.value.firstTime) opacity.value = sett.pg_opacity_loading
+  await setupPyodide(true);
+  if (model.value.firstTime) {
+    await runCode();
+    opacity.value = sett.pg_opacity_loaded
+    model.value.firstTime = false
+  }
 })()
 
 // Add keyboard shortcuts
 const editorRef = ref<HTMLElement | null>(null);
 onMounted(() => {
   if (editorRef.value) {
-    console.log(editorRef.value)
     editorRef.value.addEventListener('keydown', (event: Event) => {
       if (!(event instanceof KeyboardEvent)) return; // Ensure event is a KeyboardEvent
-      if (event.key === 'Enter' && event.ctrlKey) {
-        event.preventDefault(); // Prevent default behavior of Enter key
-        runCode(); // Run code on Ctrl+Enter
-      } else if (event.key === 'Escape') {
-        emit('close'); // Close on Escape key
+      if (event.key === 'F10') { // Run code on F10
+        event.preventDefault(); // Prevent default behavior of the key
+        runCode();
+      } else if (event.key === 'Escape') { // Close on Escape key
+        emit('close');
       }
     });
   }
@@ -256,11 +271,17 @@ onMounted(() => {
       <!-- Only show content if opacity is greater than 0 -->
       <div class="playground-container">
         <div class="playground-editor" ref="editorRef">
-          <VueMonacoEditor v-model:value="code" :theme="editorTheme" :options="MONACO_EDITOR_OPTIONS"
+          <VueMonacoEditor v-model:value="model.code" :theme="editorTheme" :options="MONACO_EDITOR_OPTIONS"
                            language="python" @mount="handleMount"/>
         </div>
         <div class="playground-console">
-          <h3>Console Output</h3>
+          <h3 style="display:flex; align-items: center; justify-content: space-between; margin: 0;">
+            Console Output
+            <v-spacer></v-spacer>
+            <v-btn @click="outputText = ''">
+              <svg-icon :path="mdiBroom" type="mdi" class="h-"/>
+            </v-btn>
+          </h3>
           <pre>{{ outputText }}</pre> <!-- Placeholder for console output -->
           <Loading v-if="running"/>
         </div>

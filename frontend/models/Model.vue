@@ -60,7 +60,7 @@ const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
 const edgeWidth = ref(0);
 (async () => {
-  let s = await settings();
+  let s = await settings;
   edgeWidth.value = s.edgeWidth;
 })();
 

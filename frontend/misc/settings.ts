@@ -1,11 +1,8 @@
 // These are the default values for the settings, which are overridden below
 import {ungzip} from "pako";
-import {b66Decode} from "../tools/b66.ts";
+import {b64UrlDecode} from "../tools/b64.ts";
 
-let settingsCache: any = null;
-
-export async function settings() {
-    if (settingsCache !== null) return settingsCache;
+export const settings = (async () => {
     let settings = {
         preload: [
             // @ts-ignore
@@ -102,9 +99,9 @@ export async function settings() {
     // Auto-decompress the code and other playground settings
     if (settings.pg_code.length > 0) {
         try {
-            settings.pg_code = ungzip(b66Decode(settings.pg_code), {to: 'string'});
+            settings.pg_code = ungzip(b64UrlDecode(settings.pg_code), {to: 'string'});
         } catch (error) {
-            console.warn("Failed to decompress code (assuming raw code):", error);
+            console.log("pg_code is not base64url+gzipped, assuming raw code. Decoding error:", error);
         }
         if (settings.pg_opacity_loading < 0) {
             // If the opacity is not set, use 0.0 if preload is set, otherwise 0.9
@@ -112,9 +109,8 @@ export async function settings() {
         }
     }
 
-    settingsCache = settings;
     return settings;
-}
+})()
 
 const firstTimeNames: Array<string> = []; // Needed for array values, which clear the array when overridden
 function parseSetting(name: string, value: string, settings: any): any {
