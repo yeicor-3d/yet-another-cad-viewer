@@ -20,7 +20,7 @@ build_frontend = "rm -rf yacv_server/frontend || true && yarn install && YACV_SM
 build_backend = "poetry build --format wheel"
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.14" # Due to vtk transitive dependency of build123d -> cadquery-ocp -> vtk
+python = ">=3.12,<3.13" # Due to vtk transitive dependency of build123d -> cadquery-ocp -> vtk
 
 # CAD
 build123d = ">=0.9,<0.10"
