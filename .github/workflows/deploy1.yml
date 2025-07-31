@@ -16,6 +16,7 @@ jobs:
       - uses: "actions/checkout@v4"
         with: # Ensure we are not in a detached HEAD state
           ref: "master"
+          token: "${{ secrets.GH_PAT }}"
       # Check that the tag commit is the latest master commit
       - run: |
           git fetch --tags
