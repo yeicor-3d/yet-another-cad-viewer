@@ -12,37 +12,13 @@ await micropip.install("yacv_server", pre=True)
 
 # Preimport the yacv_server package to ensure it is available in the global scope, and mock the ocp_vscode package.
 from yacv_server import *
+
 micropip.add_mock_package("ocp-vscode", "2.8.9", modules={"ocp_vscode": 'from yacv_server import *'})
 show_object = show
 
-# Preinstall a font to avoid issues with no font being available.
-async def install_font_to_ocp(font_url, font_name=None):
-    # noinspection PyUnresolvedReferences
-    from pyodide.http import pyfetch
-    from OCP.Font import Font_FontMgr, Font_SystemFont, Font_FA_Regular
-    from OCP.TCollection import TCollection_AsciiString
-    import os
+# Preinstall the font-fetcher package and install its hook to automatically download any requested font.
+await micropip.install("font-fetcher", pre=True)
 
-    # Prepare the font path and name
-    font_name = font_name if font_name is not None else font_url.split("/")[-1]
-    font_path = os.path.join("/tmp", font_name)
-    os.makedirs(os.path.dirname(font_path), exist_ok=True)
+from font_fetcher.ocp import install_ocp_font_hook
 
-    # Download the font using pyfetch
-    response = await pyfetch(font_url)
-    font_data = await response.bytes()
-
-    # Save it to the system-like folder
-    with open(font_path, "wb") as f:
-        f.write(font_data)
-
-    mgr = Font_FontMgr.GetInstance_s()
-    font_t = Font_SystemFont(TCollection_AsciiString(font_path))
-    font_t.SetFontPath(Font_FA_Regular, TCollection_AsciiString(font_path))
-    assert mgr.RegisterFont(font_t, False)
-    #print(f"✅ Font installed at: {font_path}")
-    return font_path
-
-
-# Make sure there is at least one font installed, so that the tests can run
-await install_font_to_ocp("https://raw.githubusercontent.com/xbmc/xbmc/d3a7f95f3f017b8e861d5d95cc4b33eef4286ce2/media/Fonts/arial.ttf")
+install_ocp_font_hook()
