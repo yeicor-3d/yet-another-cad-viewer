@@ -2965,6 +2965,7 @@ three-mesh-bvh@^0.9.0:
 
 "three-orientation-gizmo@git+https://github.com/jrj2211/three-orientation-gizmo.git":
   version "1.1.0"
+  uid "000281f0559c316f72cdd23a1885d63ae6901095"
   resolved "git+https://github.com/jrj2211/three-orientation-gizmo.git#000281f0559c316f72cdd23a1885d63ae6901095"
   dependencies:
     three "^0.125.0"
