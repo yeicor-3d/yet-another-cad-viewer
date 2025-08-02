@@ -56,8 +56,13 @@ export class NetworkManager extends EventTarget {
                 name = name.replace('.glb', '').replace('.gltf', '');
             } else {
                 // If there is a #name parameter in the URL, use it as the name
-                let urlObj = new URL(url);
-                let hashParams = new URLSearchParams(urlObj.hash.slice(1));
+                let hashParams: URLSearchParams
+                try {
+                    let urlObj = new URL(url);
+                    hashParams = new URLSearchParams(urlObj.hash.slice(1));
+                } catch (e) {
+                    hashParams = new URLSearchParams();
+                }
                 if (hashParams.has("name")) {
                     name = hashParams.get("name") || `unknown-${Math.random()}`;
                 } else { // Default to the last part of the URL as the "name" of the model
