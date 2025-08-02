@@ -62,12 +62,7 @@ export default defineConfig({
         __APP_VERSION__: JSON.stringify(version),
         __APP_GIT_SHA__: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
         __APP_GIT_DIRTY__: JSON.stringify(execSync('git diff --quiet || echo dirty').toString().trim()),
-        __YACV_SMALL_BUILD__: JSON.stringify(wantsSmallBuild),
-        process: {
-            env: {
-                LOCK_SECRET: "hudfhgd8fghdfgh3uhuifdgh" // Shhh, this is a secret key for the vouz.tech locker
-            }
-        }
+        __YACV_SMALL_BUILD__: JSON.stringify(wantsSmallBuild)
     }
 })
 

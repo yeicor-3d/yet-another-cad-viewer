@@ -113,6 +113,7 @@ async function runCode() {
   } catch (e) {
     output(`Error running code: ${e}\n`);
   } finally {
+    output("Code execution finished.\n");
     running.value = false; // Indicate that Pyodide is ready
   }
 }
