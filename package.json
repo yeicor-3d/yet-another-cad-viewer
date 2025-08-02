@@ -28,7 +28,7 @@
     "pako": "^2.1.0",
     "pyodide": "^0.28.0",
     "tanmayo7lock": "^1.0.18",
-    "three": "^0.178.0",
+    "three": "^0.179.0",
     "three-mesh-bvh": "^0.9.0",
     "three-orientation-gizmo": "git+https://github.com/jrj2211/three-orientation-gizmo.git",
     "vue": "^3.5.13",
