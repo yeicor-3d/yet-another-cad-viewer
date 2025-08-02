@@ -1,7 +1,10 @@
-(globalThis as any).process = (globalThis as any).process || {};
-(globalThis as any).process.env = (globalThis as any).env || {};
-(globalThis as any).process.env.LOCK_SECRET = (globalThis as any).process.env.LOCK_SECRET || "hudfhgd8fghdfgh3uhuifdgh"; // Shhh, this is a secret key for the vouz.tech locker
-import {encrypt} from "tanmayo7lock";
+import encryptCode from "tanmayo7lock/dist/index.js?raw";
+
+function encrypt(msg: string, secret: string = "hudfhgd8fghdfgh3uhuifdgh"): string {
+    let exports: any = {};
+    eval(encryptCode.replace("exports.encrypt = encrypt;", "exports.LargeDataCrypto = LargeDataCrypto;\nexports.encrypt = encrypt;"));
+    return exports.LargeDataCrypto.encrypt(msg, secret);
+}
 
 async function check(lockerName: string) {
     const fileUrl = `https://vouz-backend.onrender.com/api/check_key`;

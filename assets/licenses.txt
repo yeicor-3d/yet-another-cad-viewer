@@ -809,9 +809,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 The following npm packages may be included in this product:
 
- - @img/sharp-linux-x64@0.33.5
- - @img/sharp-linuxmusl-x64@0.33.5
- - sharp@0.33.5
+ - @img/sharp-linux-x64@0.34.3
+ - @img/sharp-linuxmusl-x64@0.34.3
+ - sharp@0.34.3
 
 These packages each contain the following license:
 
@@ -1506,6 +1506,16 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
+ - tanmayo7lock@1.0.18
+
+This package contains the following license:
+
+ISC
+
+-----------
+
+The following npm package may be included in this product:
+
  - picocolors@1.1.1
 
 This package contains the following license:
@@ -1530,8 +1540,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @img/sharp-libvips-linux-x64@1.0.4
- - @img/sharp-libvips-linuxmusl-x64@1.0.4
+ - @img/sharp-libvips-linux-x64@1.2.0
+ - @img/sharp-libvips-linuxmusl-x64@1.2.0
 
 These packages each contain the following license:
 
@@ -1908,7 +1918,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - three@0.178.0
+ - three@0.179.1
 
 This package contains the following license:
 
@@ -2028,7 +2038,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@3.9.2
+ - vuetify@3.9.3
 
 This package contains the following license:
 
@@ -2128,7 +2138,7 @@ SOFTWARE.
 The following npm packages may be included in this product:
 
  - ndarray-lanczos@0.3.0
- - ndarray-pixels@4.1.0
+ - ndarray-pixels@5.0.1
  - property-graph@3.0.0
 
 These packages each contain the following license:
@@ -2159,9 +2169,9 @@ SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @gltf-transform/core@4.2.0
- - @gltf-transform/extensions@4.2.0
- - @gltf-transform/functions@4.2.0
+ - @gltf-transform/core@4.2.1
+ - @gltf-transform/extensions@4.2.1
+ - @gltf-transform/functions@4.2.1
 
 These packages each contain the following license:
 
