@@ -12,6 +12,8 @@ jobs:
 
   update-versions:
     runs-on: "ubuntu-latest"
+    outputs:
+      skip: "${{ steps.check_recursive.outputs.skip || 'false' }}" # Default to false if not set
     steps:
       - uses: "actions/checkout@v4"
         with: # Ensure we are not in a detached HEAD state
@@ -56,6 +58,7 @@ jobs:
 
   deploy: # Makes sure all artifacts are updated and use the new version for the next deployment steps
     needs: "update-versions"
+    if: "needs.update-versions.outputs.skip != 'true'" # Only run if the update-versions job did not skip
     uses: "./.github/workflows/deploy2.yml"
     secrets: "inherit" # Inherit the secrets from the parent workflow
     with:
