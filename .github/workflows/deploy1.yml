@@ -18,13 +18,14 @@ jobs:
           ref: "master"
           token: "${{ secrets.GH_PAT }}"
       # Check that the tag commit is the latest master commit
-      - run: |
+      - id: check_recursive
+        run: |
           git fetch --tags
           tag_commit=$(git rev-parse ${{ github.ref }})
           master_commit=$(git rev-parse master)
           if [ "$tag_commit" != "$master_commit" ]; then
-              echo "The tag commit ($tag_commit) is not the latest master commit ($master_commit)"
-              exit 1
+              echo "::warning ::The tag commit $tag_commit does not match the latest master commit $master_commit. This is probably a recursive tag push that will be ignored."
+              echo "skip=true" >> $GITHUB_OUTPUT
           fi
       - run: "echo 'CLEAN_VERSION=${{ github.ref }}' | sed 's,refs/tags/v,,g' >> $GITHUB_ENV"
       # Write the new version to package.json
@@ -38,7 +39,8 @@ jobs:
           cache: "poetry"
       - run: "poetry version $CLEAN_VERSION"
       # Commit the changes and move the tag!
-      - run: |
+      - if: "steps.check_recursive.outputs.skip != 'true'"
+        run: |
           git config --global user.email "yeicor@users.noreply.github.com"
           git config --global user.name "Yeicor"
           if git commit -am "Automatically update version to $CLEAN_VERSION"; then
