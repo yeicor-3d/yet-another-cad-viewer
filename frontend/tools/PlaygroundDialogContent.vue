@@ -145,7 +145,7 @@ function onModelData(modelData: string) {
     // - Save for upload and share link feature
     builtModelsGlb[modelMetadata.name] = binaryData;
     // - Create a Blob from the binary data to be used as a URL
-    const blob = new Blob([binaryData], {type: 'model/gltf-binary'});
+    const blob = new Blob([binaryData as ArrayBufferView<ArrayBuffer>], {type: 'model/gltf-binary'});
     modelMetadata.url = URL.createObjectURL(blob); // Set the hacked URL in the model metadata XXX: revoked on App.vue
   } else {
     delete builtModelsGlb[modelMetadata.name]; // Remove from built models if it's a remove request

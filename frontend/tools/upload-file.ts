@@ -53,7 +53,7 @@ export async function uploadFile(name: string, data: Uint8Array): Promise<string
     // Upload file to the locker
     const uploadUrl = `https://vouz-backend.onrender.com/api/upload`;
     const formData = new FormData();
-    formData.append('file', new Blob([data], {type: 'application/octet-stream'}), name);
+    formData.append('file', new Blob([data as ArrayBufferView<ArrayBuffer>], {type: 'application/octet-stream'}), name);
     formData.append("name", encrypt(lockerName));
     formData.append("passkey", encrypt(lockerName));
     const response = await fetch(uploadUrl, {

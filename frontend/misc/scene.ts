@@ -99,7 +99,7 @@ export class SceneMgr {
         let transform = (new Matrix4()).makeTranslation(bb.getCenter(new Vector3()));
         newAxes(helpersDoc, bb.getSize(new Vector3()).multiplyScalar(0.5), transform);
         newGridBox(helpersDoc, bb.getSize(new Vector3()), transform);
-        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc)]));
+        let helpersUrl = URL.createObjectURL(new Blob([await toBuffer(helpersDoc) as ArrayBufferView<ArrayBuffer>]));
         let newDocument = await SceneMgr.loadModel(sceneUrl, document, extrasNameValueHelpers, helpersUrl, false, reloadScene);
         URL.revokeObjectURL(helpersUrl);
         return newDocument;
@@ -112,7 +112,7 @@ export class SceneMgr {
 
         // Serialize the document into a GLB and update the viewerSrc
         let buffer = await toBuffer(document);
-        let blob = new Blob([buffer], {type: 'model/gltf-binary'});
+        let blob = new Blob([buffer as ArrayBufferView<ArrayBuffer>], {type: 'model/gltf-binary'});
         console.debug("Showing current doc", document, "with", buffer.length, "total bytes");
         if (sceneUrl.value.startsWith("blob:")) URL.revokeObjectURL(sceneUrl.value);
         sceneUrl.value = URL.createObjectURL(blob);
