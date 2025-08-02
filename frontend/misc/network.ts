@@ -58,7 +58,7 @@ export class NetworkManager extends EventTarget {
                 // If there is a #name parameter in the URL, use it as the name
                 let hashParams: URLSearchParams
                 try {
-                    let urlObj = new URL(url);
+                    let urlObj = new URL(url, window.location.href);
                     hashParams = new URLSearchParams(urlObj.hash.slice(1));
                 } catch (e) {
                     hashParams = new URLSearchParams();
