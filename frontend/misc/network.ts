@@ -55,8 +55,14 @@ export class NetworkManager extends EventTarget {
                 else name = `blob-${Math.random()}`;
                 name = name.replace('.glb', '').replace('.gltf', '');
             } else {
-                // Get the last part of the URL as the "name" of the model
-                name = url.split("/").pop();
+                // If there is a #name parameter in the URL, use it as the name
+                let urlObj = new URL(url);
+                let hashParams = new URLSearchParams(urlObj.hash.slice(1));
+                if (hashParams.has("name")) {
+                    name = hashParams.get("name") || `unknown-${Math.random()}`;
+                } else { // Default to the last part of the URL as the "name" of the model
+                    name = url.split("/").pop();
+                }
                 name = name?.split(".")[0] || `unknown-${Math.random()}`;
                 // Use a head request to get the hash of the file
                 let response = await fetch(url, {method: "HEAD"});

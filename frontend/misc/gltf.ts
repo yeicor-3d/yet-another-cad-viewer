@@ -1,5 +1,6 @@
 import {Buffer, Document, Scene, type Transform, WebIO} from "@gltf-transform/core";
 import {mergeDocuments, unpartition} from "@gltf-transform/functions";
+import {retrieveFile} from "../tools/upload-file.ts";
 
 let io = new WebIO();
 export let extrasNameKey = "__yacv_name";
@@ -140,7 +141,7 @@ async function fetchOrRead(url: string | Blob) {
         });
     } else {
         // Fetch the URL
-        return fetch(url);
+        return retrieveFile(url);
     }
 
 }

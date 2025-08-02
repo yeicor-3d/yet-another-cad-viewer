@@ -1,6 +1,7 @@
 // These are the default values for the settings, which are overridden below
 import {ungzip} from "pako";
 import {b64UrlDecode} from "../tools/b64.ts";
+import {retrieveFile} from "../tools/upload-file.ts";
 
 const firstTimeNames: Array<string> = []; // Needed for array values, which clear the array when overridden
 export const settings = (async () => {
@@ -42,7 +43,6 @@ export const settings = (async () => {
 
         // Playground settings
         pg_code: "", // Automatically loaded and executed code for the playground
-        pg_code_url: "", // URL to load the code from (overrides pg_code)
         pg_opacity_loading: -1, // Opacity of the code during first load and run (< 0 is 0.0 if preload and 0.9 if not)
         pg_opacity_loaded: 0.9, // Opacity of the code after it has been run for the first time
     };
@@ -58,21 +58,6 @@ export const settings = (async () => {
         hashParams.forEach((value, key) => {
             if (key in settings) (settings as any)[key] = parseSetting(key, value, settings);
         });
-    }
-
-    // Grab the code from the URL if it is set
-    if (settings.pg_code_url.length > 0) {
-        // If the code URL is set, override the code
-        try {
-            const response = await fetch(settings.pg_code_url);
-            if (response.ok) {
-                settings.pg_code = await response.text();
-            } else {
-                console.warn("Failed to load code from URL:", settings.pg_code_url);
-            }
-        } catch (error) {
-            console.error("Error fetching code from URL:", settings.pg_code_url, error);
-        }
     }
 
     // Get the default preload URL if not overridden (requires a fetch that is avoided if possible)
@@ -105,17 +90,22 @@ export const settings = (async () => {
 
     // Auto-decompress the code and other playground settings
     if (settings.pg_code.length > 0) {
+        // pg_code has a few possible formats: URL, base64url+gzipped, or raw code (try them in that order)
         try {
-            settings.pg_code = ungzip(b64UrlDecode(settings.pg_code), {to: 'string'});
-        } catch (error) {
-            console.log("pg_code is not base64url+gzipped, assuming raw code. Decoding error:", error);
+            new URL(settings.pg_code); // Check if it's a valid absolute URL
+            settings.pg_code = await (await retrieveFile(settings.pg_code)).text();
+        } catch (error1) { // Not a valid URL, try base64url+gzipped
+            try {
+                settings.pg_code = ungzip(b64UrlDecode(settings.pg_code), {to: 'string'});
+            } catch (error2) { // Not base64url+gzipped, assume it's raw code
+                console.log("pg_code is not a URL (", error1, ") or base64url+gzipped (", error2, "), using it as raw code:", settings.pg_code);
+            }
         }
         if (settings.pg_opacity_loading < 0) {
             // If the opacity is not set, use 0.0 if preload is set, otherwise 0.9
             settings.pg_opacity_loading = settings.preload.length > 0 ? 0.0 : 0.9;
         }
     }
-
     return settings;
 })()
 
