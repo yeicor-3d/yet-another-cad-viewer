@@ -1,4 +1,5 @@
-import encryptCode from "tanmayo7lock/dist/index.js?raw";
+//@ts-expect-error
+import encryptCode from "tanmayo7lock?raw";
 
 function encrypt(msg: string, secret: string = "hudfhgd8fghdfgh3uhuifdgh"): string {
     let exports: any = {};
