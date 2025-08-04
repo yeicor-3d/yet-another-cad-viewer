@@ -109,6 +109,12 @@ async function loadModelManual() {
   if (modelUrl) await networkMgr.load(modelUrl);
 }
 
+function loadDemoModels() {
+  for (let name of ['fox.glb', 'img.glb', 'location.glb', 'logo.glb', 'logo_hl.glb', 'logo_hl_tex.glb']) {
+    networkMgr.load(`https://yeicor-3d.github.io/yet-another-cad-viewer/${name}`)
+  }
+}
+
 // Detect dropped .glb files and load them manually
 document.body.addEventListener("dragover", e => {
   e.preventDefault(); // Allow drop
@@ -124,7 +130,6 @@ document.body.addEventListener("drop", async e => {
     await networkMgr.load(file);
   }
 });
-
 </script>
 
 <template>
@@ -139,9 +144,8 @@ document.body.addEventListener("drop", async e => {
         <v-btn @click="() => tools?.openPlayground()" class="mx-auto d-block my-4">
           <svg-icon :path="mdiScriptTextPlay" type="mdi"/>&nbsp; Open playground...
         </v-btn>
-        <v-btn @click="networkMgr.load('https://yeicor-3d.github.io/yet-another-cad-viewer/logo.glb')"
-               class="mx-auto d-block my-4">
-          <svg-icon :path="mdiCube" type="mdi"/>&nbsp; Load demo model...
+        <v-btn @click="loadDemoModels" class="mx-auto d-block my-4">
+          <svg-icon :path="mdiCube" type="mdi"/>&nbsp; Load demo models...
         </v-btn>
         <v-btn @click="loadModelManual" class="mx-auto d-block my-4">
           <svg-icon :path="mdiPlus" type="mdi"/>&nbsp; Load model manually...

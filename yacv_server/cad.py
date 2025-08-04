@@ -117,7 +117,7 @@ def image_to_gltf(source: str | bytes, center: any, width: Optional[float] = Non
     # Handle arguments
     if name is None:
         if isinstance(source, str):
-            name = os.path.basename(source)
+            name, _ = os.path.splitext(os.path.basename(source))
         else:
             hasher = hashlib.md5()
             hasher.update(source)

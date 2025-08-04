@@ -13,9 +13,10 @@ import {
 } from "vuetify/lib/components/index.mjs";
 import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
 import {Mesh} from "@gltf-transform/core";
-import {ref, watch} from "vue";
+import {nextTick, ref, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
 import {
+  mdiArrowExpand,
   mdiCircleOpacity,
   mdiCube,
   mdiDelete,
@@ -58,7 +59,12 @@ const clipPlaneY = ref(1);
 const clipPlaneSwappedY = ref(false);
 const clipPlaneZ = ref(1);
 const clipPlaneSwappedZ = ref(false);
+
 const edgeWidth = ref(0);
+const explodeStrength = ref(0);
+const explodeSwapped = ref(false);
+
+// Load the settings for the default edge width
 (async () => {
   let s = await settings;
   edgeWidth.value = s.edgeWidth;
@@ -246,6 +252,76 @@ function onEdgeWidthChange(newEdgeWidth: number) {
 
 watch(edgeWidth, onEdgeWidthChange);
 
+// Explode the model
+function onExplodeChange(newExplodeStrength: number) {
+  let scene = props.viewer?.scene;
+  let sceneModel = (scene as any)?._model;
+  if (!scene || !sceneModel) return;
+
+  // Get direction and size of the explosion in a first pass
+  const meBbox = new Box3();
+  const othersBbox = new Box3();
+  sceneModel.traverse((child: MObject3D) => {
+    if (child == sceneModel) return; // Skip the scene itself
+    const isMe = child.userData[extrasNameKey] === modelName;
+    if ((child.type === 'Mesh' || child.type === 'SkinnedMesh' ||
+        child.type === 'Line' || child.type === 'LineSegments' ||
+        child.type === 'Points') && !child.userData.noHit) {
+      if (isMe) {
+        meBbox.expandByObject(child);
+      } else if (!isMe && child.userData[extrasNameKey]) {
+        othersBbox.expandByObject(child);
+      }
+    }
+  });
+  const modelSize = new Vector3();
+  meBbox.getSize(modelSize);
+  const maxDimension = Math.max(modelSize.x, modelSize.y, modelSize.z);
+  const pushDirection = new Vector3().subVectors(meBbox.getCenter(new Vector3()), othersBbox.getCenter(new Vector3())).normalize();
+
+
+  // Use absolute value for strength calculation
+  let strength = Math.abs(newExplodeStrength);
+  if (explodeSwapped.value) strength = -strength;
+
+  // Apply explosion
+  sceneModel.traverse((child: MObject3D) => {
+    if (child.userData[extrasNameKey] === modelName) {
+      if ((child.type === 'Mesh' || child.type === 'SkinnedMesh' ||
+          child.type === 'Line' || child.type === 'LineSegments' ||
+          child.type === 'Points')) {
+
+        // Handle zero vector case (if object is at origin)
+        const direction = pushDirection.clone();
+        if (direction.lengthSq() < 0.0001) {
+          direction.set(0, 1, 0);
+          console.warn("Explode direction was zero, using (0, 1, 0) instead");
+        }
+
+        // Calculate new position based on model size
+        const factor = strength * maxDimension;
+        const newPosition = new Vector3().add(direction.multiplyScalar(factor));
+
+        // Apply new position
+        child.position.copy(newPosition);
+
+        // Update related objects (back is automatically updated)
+        if (child.userData.niceLine) {
+          child.userData.niceLine.position.copy(newPosition);
+        }
+      }
+    }
+  });
+
+  scene.queueRender();
+  onClipPlanesChange();
+}
+
+// Add watchers for explode variables
+watch(explodeStrength, (newVal) => onExplodeChange(newVal));
+watch(explodeSwapped, () => onExplodeChange(explodeStrength.value));
+
+
 function onModelLoad() {
   let scene = props.viewer?.scene;
   let sceneModel = (scene as any)?._model;
@@ -312,15 +388,17 @@ function onModelLoad() {
 
   // Furthermore...
   // Enabled features may have been reset after a reload
-  onEnabledFeaturesChange(enabledFeatures.value)
+  onEnabledFeaturesChange(enabledFeatures.value);
   // Opacity may have been reset after a reload
-  onOpacityChange(opacity.value)
+  onOpacityChange(opacity.value);
   // Wireframe may have been reset after a reload
-  onWireframeChange(wireframe.value)
+  onWireframeChange(wireframe.value);
   // Clip planes may have been reset after a reload
-  onClipPlanesChange()
+  onClipPlanesChange();
   // Edge width may have been reset after a reload
-  onEdgeWidthChange(edgeWidth.value)
+  onEdgeWidthChange(edgeWidth.value);
+  // Explode may have been reset after a reload
+  if (explodeStrength.value > 0) nextTick(() => onExplodeChange(explodeStrength.value));
 
   scene.queueRender()
 }
@@ -368,6 +446,21 @@ if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) a
         <template v-slot:append>
           <v-tooltip activator="parent">Wireframe</v-tooltip>
           <v-checkbox-btn v-model="wireframe" falseIcon="mdi-triangle" trueIcon="mdi-triangle-outline"></v-checkbox-btn>
+        </template>
+      </v-slider>
+      <v-slider v-model="explodeStrength" hide-details max="1" min="0">
+        <template v-slot:prepend>
+          <v-tooltip activator="parent">Explode model</v-tooltip>
+          <svg-icon :path="mdiArrowExpand" type="mdi"></svg-icon>
+        </template>
+        <template v-slot:append>
+          <v-tooltip activator="parent">Swap explode direction (may go crazy)</v-tooltip>
+          <v-checkbox-btn v-model="explodeSwapped" falseIcon="mdi-checkbox-blank-outline"
+                          trueIcon="mdi-checkbox-marked-outline">
+            <template v-slot:label>
+              <svg-icon :path="mdiSwapHorizontal" type="mdi"></svg-icon>
+            </template>
+          </v-checkbox-btn>
         </template>
       </v-slider>
       <v-slider v-if="edgeCount > 0 || vertexCount > 0" v-model="edgeWidth" hide-details max="1" min="0">

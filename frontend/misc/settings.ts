@@ -14,7 +14,7 @@ export const settings = (async () => {
             // @ts-ignore
             // new URL('../../assets/logo_build/location.glb', import.meta.url).href,
             // @ts-ignore
-            // new URL('../../assets/logo_build/img.jpg.glb', import.meta.url).href,
+            // new URL('../../assets/logo_build/img.glb', import.meta.url).href,
             // Websocket URLs automatically listen for new models from the python backend
             '<auto>', // Get the default preload URL if not overridden
         ],
