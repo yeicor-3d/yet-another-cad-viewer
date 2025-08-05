@@ -203,7 +203,7 @@ async function uploadAndShareLink() {
 
     // Upload code.py
     const codeBlob = new Blob([model.value.code], {type: 'text/x-python'});
-    const newParams: Record<string, string> = {
+    const newParams: Record<string, string | Array<string>> = {
       'pg_code': await uploadFile('code.py', new Uint8Array(await codeBlob.arrayBuffer()))
     };
 
