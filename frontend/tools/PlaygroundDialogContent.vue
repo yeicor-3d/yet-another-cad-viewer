@@ -165,13 +165,21 @@ function resetWorker(loadSnapshot: Uint8Array | undefined = undefined) {
   setupPyodide(false, loadSnapshot); // Reinitialize Pyodide
 }
 
-function shareLinkCommon(added: Record<string, string>, forgotten: Array<string>) {
+function shareLinkCommon(added: Record<string, Array<string> | string>, forgotten: Array<string>) {
   const baseUrl = window.location
   const searchParams = new URLSearchParams(baseUrl.search);
   for (const k of forgotten) searchParams.delete(k);
   const hashParams = new URLSearchParams(baseUrl.hash.slice(1)); // Keep all previous URL parameters
   for (const k of forgotten) hashParams.delete(k);
-  for (const k in added) hashParams.append(k, added[k]); // Prefer hash to GET
+  for (const k in added) {
+    if (Array.isArray(added[k])) {
+      for (const v of added[k]) {
+        hashParams.append(k, v); // Prefer hash to GET
+      }
+    } else if (typeof added[k] === 'string') {
+      hashParams.set(k, added[k]); // Prefer hash to GET
+    }
+  }
   const shareUrl = `${baseUrl.origin}${baseUrl.pathname}?${searchParams}#${hashParams}`;
   output(`Share link ready: ${shareUrl}\n`)
   if (navigator.clipboard?.writeText === undefined) {
@@ -200,9 +208,11 @@ async function uploadAndShareLink() {
     };
 
     // Upload all models
+    newParams['preload'] = []
     for (const name in builtModelsGlb) {
       const glb: any = builtModelsGlb[name];
-      newParams['preload'] = await uploadFile(name + '.glb', glb);
+      const url = await uploadFile(name + '.glb', glb)
+      newParams['preload'].push(url); // Add to preload list
     }
 
     // Build share URL
