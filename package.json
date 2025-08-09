@@ -38,7 +38,7 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^22.9.3",
     "@types/pako": "^2.0.3",
-    "@types/three": "^0.178.0",
+    "@types/three": "^0.179.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^5.0.0",
     "@vue/tsconfig": "^0.7.0",
