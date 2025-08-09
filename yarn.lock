@@ -2594,9 +2594,9 @@ property-graph@^3.0.0:
   integrity sha512-TnzxUsttmGtw+OiU0LDw+0FlMbJ8vV8pOjyDI7+Kdni4Tj0hW5BFh7TatQu7Y68hcvvFmiFOHilKShsA4R82fA==
 
 pyodide@^0.28.0:
-  version "0.28.0"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.28.0.tgz#43c50db977e28eba83da84a326c32537bc713460"
-  integrity sha512-QML/Gh8eu50q5zZKLNpW6rgS0XUdK+94OSL54AUSKV8eJAxgwZrMebqj+CyM0EbF3EUX8JFJU3ryaxBViHammQ==
+  version "0.28.1"
+  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.28.1.tgz#1780394b8d858b817b15658d80a200a977a3c8aa"
+  integrity sha512-7O1jZdfUc4/9PAKzEIyLOh3yhxknTWA8xQaCfZ4R56pOnchS909x2sqt2Wh+qHf+b7MzyB8igE5ZzYdP1pZN5w==
   dependencies:
     ws "^8.5.0"
 
