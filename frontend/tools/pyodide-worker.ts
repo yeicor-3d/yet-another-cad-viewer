@@ -1,4 +1,4 @@
-import {loadPyodide, type PyodideInterface} from "pyodide";
+import {loadPyodide, type PyodideAPI} from "pyodide";
 
 let myLoadPyodide = (initOpts: Parameters<typeof loadPyodide>[0]) => loadPyodide({
     ...initOpts,
@@ -10,7 +10,7 @@ let myLoadPyodide = (initOpts: Parameters<typeof loadPyodide>[0]) => loadPyodide
     },
 });
 
-let pyodideReadyPromise: Promise<PyodideInterface> | null = null;
+let pyodideReadyPromise: Promise<PyodideAPI> | null = null;
 
 export type MessageEventDataIn = {
     type: 'asyncRun';
@@ -41,7 +41,7 @@ self.onmessage = async (event: MessageEvent<MessageEventDataIn>) => {
         // Create a directory tree in the Pyodide filesystem.
         const pyodide = await pyodideReadyPromise;
         try {
-            pyodide.FS.mkdirTree(event.data.path);
+            await pyodide.FS.mkdirTree(event.data.path);
             self.postMessage({id: event.data.id, result: true});
         } catch (error: any) {
             self.postMessage({id: event.data.id, error: error.message});
@@ -51,7 +51,7 @@ self.onmessage = async (event: MessageEvent<MessageEventDataIn>) => {
         // Write a file to the Pyodide filesystem.
         const pyodide = await pyodideReadyPromise;
         try {
-            pyodide.FS.writeFile(event.data.path, event.data.content);
+            await pyodide.FS.writeFile(event.data.path, event.data.content);
             self.postMessage({id: event.data.id, result: true});
         } catch (error: any) {
             self.postMessage({id: event.data.id, error: error.message});
