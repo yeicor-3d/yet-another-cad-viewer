@@ -2038,9 +2038,9 @@ just-diff@^6.0.0:
   integrity sha512-S59eriX5u3/QhMNq3v/gm8Kd0w8OS6Tz2FS1NG4blv+z0MuQcBRJyFWjdovM0Rad4/P4aUPFtnkNjMjyMlMSYA==
 
 ktx-parse@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-1.0.1.tgz#41f4acc2b5894fd4df1b6856e6dc7396926c45d4"
-  integrity sha512-djwUWv/82Xc8LOVinJU4EBrVqYkO8OsUDSPEtY/OOVY8BSe3DMU7D7PlIAZ0pI7ZZtErj7mqpJcgffUTABvgaA==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-1.1.0.tgz#1077c87776ddabfc32fc01f644f6ad8f8890abf8"
+  integrity sha512-mKp3y+FaYgR7mXWAbyyzpa/r1zDWeaunH+INJO4fou3hb45XuNSwar+7llrRyvpMWafxSIi99RNFJ05MHedaJQ==
 
 lie@^3.0.2:
   version "3.3.0"
