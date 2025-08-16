@@ -41,7 +41,7 @@
     "@types/three": "^0.179.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^5.0.0",
-    "@vue/tsconfig": "^0.7.0",
+    "@vue/tsconfig": "^0.8.0",
     "buffer": "^5.5.0||^6.0.0",
     "commander": "^14.0.0",
     "generate-license-file": "^4.0.0",
