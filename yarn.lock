@@ -1222,10 +1222,10 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.19.tgz#5301967a910cb62145e4f17131f3bee88b463c83"
   integrity sha512-IhXCOn08wgKrLQxRFKKlSacWg4Goi1BolrdEeLYn6tgHjJNXVrWJ5nzoxZqNwl5p88aLlQ8LOaoMa3AYvaKJ/Q==
 
-"@vue/tsconfig@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@vue/tsconfig/-/tsconfig-0.7.0.tgz#67044c847b7a137b8cbfd6b23104c36dbaf80d1d"
-  integrity sha512-ku2uNz5MaZ9IerPPUyOHzyjhXoX2kVJaVf7hL315DC17vS6IiZRmmCPfggNbU16QTvM80+uYYy3eYJB59WCtvg==
+"@vue/tsconfig@^0.8.0":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@vue/tsconfig/-/tsconfig-0.8.1.tgz#4732251fa58945024424385cf3be0b1708fad5fe"
+  integrity sha512-aK7feIWPXFSUhsCP9PFqPyFOcz4ENkb8hZ2pneL6m2UjCkccvaOhC/5KCKluuBufvp2KzkbdA2W2pk20vLzu3g==
 
 "@webgpu/types@*":
   version "0.1.64"
