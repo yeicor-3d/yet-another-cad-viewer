@@ -213,7 +213,7 @@ function toggleSelection() {
 function toggleOpenNextSelection() {
   openNextSelection.value = [
     !openNextSelection.value[0],
-    openNextSelection.value[0] ? openNextSelection.value[1] : selectionEnabled.value
+    openNextSelection.value[0] ? (openNextSelection.value[1] ?? false) : selectionEnabled.value
   ];
   if (openNextSelection.value[0]) {
     // Reuse selection code to identify the model
@@ -330,14 +330,20 @@ function updateBoundingBox() {
   // Only draw one edge per axis, the 2nd closest one to the camera
   for (let edgeI in edgesByAxis) {
     let axisEdges = edgesByAxis[edgeI];
-    let edge: Array<number> = axisEdges[0];
+    if (!axisEdges || axisEdges.length === 0) continue;
+    let edge: Array<number> = axisEdges[0] ?? [];
     for (let i = 0; i < 2; i++) { // Find the 2nd closest one by running twice dropping the first
-      edge = axisEdges[0];
+      if (!axisEdges || axisEdges.length === 0) break;
+      edge = axisEdges[0] ?? [];
       let edgeDist = Infinity;
       let cameraPos: Vector3 = props.viewer?.scene?.camera?.position ?? new Vector3();
       for (let testEdge of axisEdges) {
-        let from = new Vector3(...corners[testEdge[0]]);
-        let to = new Vector3(...corners[testEdge[1]]);
+        if (!testEdge || testEdge.length < 2) continue;
+        let cornerA = corners[testEdge[0] ?? 0];
+        let cornerB = corners[testEdge[1] ?? 0];
+        if (!cornerA || !cornerB) continue;
+        let from = new Vector3(...cornerA);
+        let to = new Vector3(...cornerB);
         let mid = from.clone().add(to).multiplyScalar(0.5);
         let newDist = cameraPos.distanceTo(mid);
         if (newDist < edgeDist) {
@@ -347,11 +353,16 @@ function updateBoundingBox() {
       }
       axisEdges = axisEdges.filter((e) => e !== edge);
     }
-    let from = new Vector3(...corners[edge[0]]);
-    let to = new Vector3(...corners[edge[1]]);
+    if (!edge || edge.length < 2) continue;
+    let cornerA = corners[edge[0] ?? 0];
+    let cornerB = corners[edge[1] ?? 0];
+    if (!cornerA || !cornerB) continue;
+    let from = new Vector3(...cornerA);
+    let to = new Vector3(...cornerB);
     let length = to.clone().sub(from).length();
     if (length < 0.05) continue; // Skip very small edges (e.g. a single point)
-    let color = [AxesColors.x, AxesColors.y, AxesColors.z][edgeI][1]; // Secondary colors
+    let colorArray = [AxesColors.x, AxesColors.y, AxesColors.z][parseInt(edgeI)];
+    let color = colorArray ? colorArray[1] : [255, 255, 255]; // Secondary colors
     let lineCacheKey = JSON.stringify([from, to]);
     let matchingLine = boundingBoxLines[lineCacheKey];
     if (matchingLine) {
@@ -359,7 +370,7 @@ function updateBoundingBox() {
     } else {
       let newLineId = props.viewer?.addLine3D(from, to,
           length.toFixed(1) + "mm", {
-            "stroke": "rgb(" + color.join(',') + ")",
+            "stroke": "rgb(" + (color ?? [255, 255, 255]).join(',') + ")",
             "stroke-width": "2"
           });
       if (newLineId) {
@@ -410,10 +421,17 @@ function updateDistances() {
   }
 
   // Add lines (if not already added)
-  let {min, center, max} = distances(selected.value[0], selected.value[1], props.viewer?.scene);
-  ensureLine(max[0], max[1], max[1].distanceTo(max[0]).toFixed(1) + "mm", "orange");
-  ensureLine(center[0], center[1], center[1].distanceTo(center[0]).toFixed(1) + "mm", "green");
-  ensureLine(min[0], min[1], min[1].distanceTo(min[0]).toFixed(1) + "mm", "cyan");
+  if (!selected.value[0] || !selected.value[1] || !props.viewer?.scene) return;
+  let {min, center, max} = distances(selected.value[0], selected.value[1], props.viewer.scene);
+  if (max[0] && max[1]) {
+    ensureLine(max[0], max[1], max[1].distanceTo(max[0]).toFixed(1) + "mm", "orange");
+  }
+  if (center[0] && center[1]) {
+    ensureLine(center[0], center[1], center[1].distanceTo(center[0]).toFixed(1) + "mm", "green");
+  }
+  if (min[0] && min[1]) {
+    ensureLine(min[0], min[1], min[1].distanceTo(min[0]).toFixed(1) + "mm", "cyan");
+  }
 
   // Remove the lines that are no longer needed
   for (let lineLocator of distanceLinesToRemove) {

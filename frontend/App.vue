@@ -51,6 +51,7 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
   for (let modelIndex in event.models) {
     let isLast = parseInt(modelIndex) === event.models.length - 1;
     let model = event.models[modelIndex];
+    if (!model) continue;
     tools.value?.removeObjectSelections(model.name);
     try {
       let loadHelpers = (await settings).loadHelpers;
@@ -153,7 +154,9 @@ document.body.addEventListener("drop", async e => {
         <span v-if="preloadingModels.length > 0" class="d-block text-center my-16">
           <span class="d-block text-center text-h6">Still trying to load the following:</span>
           <span class="d-block text-center" v-for="(model, index) in preloadingModels" :key="index">
-            {{ model }}<span v-if="index < preloadingModels.length - 1">, </span>
+            <template v-if="model !== undefined">
+              {{ model }}<span v-if="index < preloadingModels.length - 1">, </span>
+            </template>
           </span>
         </span>
 

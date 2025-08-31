@@ -85,7 +85,7 @@ export const settings = (async () => {
                 url = "dev+http://localhost:32323";
             }
         }
-        settings.preload[i] = url;
+        settings.preload[i] = url ?? "";
     }
 
     // Auto-decompress the code and other playground settings
