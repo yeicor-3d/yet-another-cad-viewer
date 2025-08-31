@@ -51,6 +51,7 @@ async function onModelUpdateRequest(event: NetworkUpdateEvent) {
   for (let modelIndex in event.models) {
     let isLast = parseInt(modelIndex) === event.models.length - 1;
     let model = event.models[modelIndex];
+    if (!model) continue;
     tools.value?.removeObjectSelections(model.name);
     try {
       let loadHelpers = (await settings).loadHelpers;

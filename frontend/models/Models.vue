@@ -17,7 +17,7 @@ function meshesList(sceneDocument: Document): Array<Array<Mesh>> {
   // Grouped by shared name
   return sceneDocument.getRoot().listMeshes().reduce((acc, mesh) => {
     let name = mesh.getExtras()[extrasNameKey]?.toString() ?? 'Unnamed';
-    let group = acc.find((group) => meshName(group[0]) === name);
+    let group = acc.find((group) => group[0] && meshName(group[0]) === name);
     if (group) {
       group.push(mesh);
     } else {
@@ -43,9 +43,9 @@ defineExpose({findModel})
 </script>
 
 <template>
-  <v-expansion-panels v-for="meshes in meshesList(sceneDocument)" :key="meshName(meshes[0])"
+  <v-expansion-panels v-for="meshes in meshesList(sceneDocument)" :key="meshes[0] ? meshName(meshes[0]) : 'unnamed'"
                       v-model="expandedNames as any" multiple>
-    <model :meshes="meshes" :viewer="props.viewer" @remove="onRemove(meshes[0])"/>
+    <model :meshes="meshes" :viewer="props.viewer" @remove="meshes[0] ? onRemove(meshes[0]) : undefined"/>
   </v-expansion-panels>
 </template>
 

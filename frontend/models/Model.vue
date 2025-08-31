@@ -45,7 +45,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ remove: [] }>()
 
-let modelName = props.meshes[0].getExtras()[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
+let modelName = props.meshes[0]?.getExtras()?.[extrasNameKey] // + " blah blah blah blah blag blah blah blah"
 
 // Count the number of faces, edges and vertices
 let faceCount = ref(-1);
@@ -169,9 +169,9 @@ function onClipPlanesChange() {
             new Plane(new Vector3(0, -1, 0), offsetY).applyMatrix4(rotSceneMatrix),
             new Plane(new Vector3(0, 0, 1), -offsetZ).applyMatrix4(rotSceneMatrix),
           ];
-          if (clipPlaneSwappedX.value) planes[0].negate();
-          if (clipPlaneSwappedY.value) planes[1].negate();
-          if (clipPlaneSwappedZ.value) planes[2].negate();
+          if (clipPlaneSwappedX.value) planes[0]?.negate();
+          if (clipPlaneSwappedY.value) planes[1]?.negate();
+          if (clipPlaneSwappedZ.value) planes[2]?.negate();
           if (!enabledZ) planes.pop();
           if (!enabledY) planes.splice(1, 1);
           if (!enabledX) planes.shift();

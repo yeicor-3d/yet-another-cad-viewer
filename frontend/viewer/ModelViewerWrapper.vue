@@ -161,9 +161,9 @@ function addLine3D(p1: Vector3, p2: Vector3, centerText?: string, lineAttrs: { [
 function removeLine3D(id: number): boolean {
   if (!scene.value || !(id in lines.value)) return false;
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_start'}));
-  lines.value[id].startHotspot.parentElement?.remove()
+  lines.value[id]?.startHotspot.parentElement?.remove()
   scene.value.removeHotspot(new Hotspot({name: 'line' + id + '_end'}));
-  lines.value[id].endHotspot.parentElement?.remove()
+  lines.value[id]?.endHotspot.parentElement?.remove()
   delete lines.value[id];
   scene.value.queueRender() // Needed to update the hotspots
   return true;
@@ -175,17 +175,17 @@ function onCameraChangeLine(lineId: number) {
   if (!(lineId in lines.value) || !(elem.value)) return // Silently ignore (not updated yet)
   // Update start and end 2D positions
   let {x: xB, y: yB} = elem.value.getBoundingClientRect();
-  let {x, y} = lines.value[lineId].startHotspot.getBoundingClientRect();
-  lines.value[lineId].start2D = [x - xB, y - yB];
-  let {x: x2, y: y2} = lines.value[lineId].endHotspot.getBoundingClientRect();
-  lines.value[lineId].end2D = [x2 - xB, y2 - yB];
+  let {x, y} = lines.value[lineId]?.startHotspot.getBoundingClientRect() ?? {x: 0, y: 0};
+  if (lines.value[lineId]) lines.value[lineId].start2D = [x - xB, y - yB];
+  let {x: x2, y: y2} = lines.value[lineId]?.endHotspot.getBoundingClientRect() ?? {x: 0, y: 0};
+  if (lines.value[lineId]) lines.value[lineId].end2D = [x2 - xB, y2 - yB];
 
   // Update the center text size if needed
-  if (svg.value && lines.value[lineId].centerText && lines.value[lineId].centerTextSize[0] === 0) {
+  if (svg.value && lines.value[lineId]?.centerText && lines.value[lineId]?.centerTextSize[0] === 0) {
     let text = svg.value.getElementsByClassName('line' + lineId + '_text')[0] as SVGTextElement | undefined;
     if (text) {
       let bbox = text.getBBox();
-      lines.value[lineId].centerTextSize = [bbox.width, bbox.height];
+      if (lines.value[lineId]) lines.value[lineId].centerTextSize = [bbox.width, bbox.height];
     }
   }
 }
