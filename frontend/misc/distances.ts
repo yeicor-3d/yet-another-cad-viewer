@@ -8,8 +8,11 @@ function getCenterAndVertexList(selInfo: SelectionInfo, scene: ModelScene): {
     center: Vector3,
     vertices: Array<Vector3>
 } {
-    let pos: BufferAttribute | InterleavedBufferAttribute = selInfo.object.geometry.getAttribute('position');
-    let ind: BufferAttribute | null = selInfo.object.geometry.index;
+    if (!selInfo.object?.geometry) {
+        throw new Error("selInfo.object or geometry is undefined");
+    }
+    let pos = selInfo.object.geometry.getAttribute('position');
+    let ind = selInfo.object.geometry.index;
     if (ind === null) {
         ind = new BufferAttribute(new Uint16Array(pos.count), 1);
         for (let i = 0; i < pos.count; i++) {
@@ -52,16 +55,18 @@ export function distances(a: SelectionInfo, b: SelectionInfo, scene: ModelScene)
     let maxDistanceVertices = [new Vector3(), new Vector3()];
     for (let i = 0; i < aVertices.length; i++) {
         for (let j = 0; j < bVertices.length; j++) {
-            let distance = aVertices[i].distanceTo(bVertices[j]);
-            if (distance < minDistance) {
-                minDistance = distance;
-                minDistanceVertices[0] = aVertices[i];
-                minDistanceVertices[1] = bVertices[j];
-            }
-            if (distance > maxDistance) {
-                maxDistance = distance;
-                maxDistanceVertices[0] = aVertices[i];
-                maxDistanceVertices[1] = bVertices[j];
+            if (aVertices[i] && bVertices[j]) {
+                let distance = aVertices[i].distanceTo(bVertices[j]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minDistanceVertices[0] = aVertices[i];
+                    minDistanceVertices[1] = bVertices[j];
+                }
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    maxDistanceVertices[0] = aVertices[i];
+                    maxDistanceVertices[1] = bVertices[j];
+                }
             }
         }
     }

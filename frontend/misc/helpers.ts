@@ -15,15 +15,17 @@ export const AxesColors = {
 
 function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: number[], rawColors: number[] | null, transform: Matrix4, name: string = '__helper', mode: number = WebGL2RenderingContext.LINES) {
     const buffer = doc.getRoot().listBuffers()[0] ?? doc.createBuffer(name + 'Buffer')
-    const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0] ?? doc.createScene(name + 'Scene')
+    const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0] ?? doc.createScene(name + 'Scene');
+    if (!scene) throw new Error("Scene is undefined");
+    if (!rawPositions) throw new Error("rawPositions is undefined");
     const positions = doc.createAccessor(name + 'Position')
         .setArray(new Float32Array(rawPositions) as TypedArray)
         .setType('VEC3')
-        .setBuffer(buffer)
+        .setBuffer(buffer);
     const indices = doc.createAccessor(name + 'Indices')
         .setArray(new Uint32Array(rawIndices) as TypedArray)
         .setType('SCALAR')
-        .setBuffer(buffer)
+        .setBuffer(buffer);
     let colors = null;
     if (rawColors) {
         colors = doc.createAccessor(name + 'Color')
@@ -32,14 +34,14 @@ function buildSimpleGltf(doc: Document, rawPositions: number[], rawIndices: numb
             .setBuffer(buffer);
     }
     const material = doc.createMaterial(name + 'Material')
-        .setAlphaMode('OPAQUE')
+        .setAlphaMode('OPAQUE');
     const geometry = doc.createPrimitive()
         .setIndices(indices)
         .setAttribute('POSITION', positions)
         .setMode(mode as any)
-        .setMaterial(material)
+        .setMaterial(material);
     if (rawColors) {
-        geometry.setAttribute('COLOR_0', colors)
+        geometry.setAttribute('COLOR_0', colors);
     }
     if (mode == WebGL2RenderingContext.TRIANGLES) {
         geometry.setExtras({face_triangles_end: [rawIndices.length / 6, rawIndices.length * 2 / 6, rawIndices.length * 3 / 6, rawIndices.length * 4 / 6, rawIndices.length * 5 / 6, rawIndices.length]})
