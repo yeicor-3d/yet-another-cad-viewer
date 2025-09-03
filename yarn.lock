@@ -787,9 +787,9 @@
     validate-npm-package-license "^3.0.4"
 
 "@npmcli/promise-spawn@^8.0.0":
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/@npmcli/promise-spawn/-/promise-spawn-8.0.2.tgz#053688f8bc2b4ecc036d2d52c691fd82af58ea5e"
-  integrity sha512-/bNJhjc+o6qL+Dwz/bqfTQClkEO5nTQ1ZEcdCkAQjhkZMHIh22LPG7fNh1enJP1NKWDqYiiABnjFCY7E0zHYtQ==
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/@npmcli/promise-spawn/-/promise-spawn-8.0.3.tgz#08c5e4c1cab7ff848e442e4b19bbf0ee699d133f"
+  integrity sha512-Yb00SWaL4F8w+K8YGhQ55+xE4RUNdMHV43WZGsiTM92gS+lC0mGsn7I4hLug7pbao035S6bj3Y3w0cUNGLfmkg==
   dependencies:
     which "^5.0.0"
 
@@ -1798,9 +1798,9 @@ fsevents@~2.3.2, fsevents@~2.3.3:
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
 generate-license-file@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-4.0.0.tgz#3694e7ced051b504bbbd6855c3a4eca3de2de307"
-  integrity sha512-6EVrMj1KK/EeUht2ebgg1zD7bw0aOpjs/YyPtqOl3/5P1cDk+sZyqyUZY0wkvk3iZnCfk+ILAL6W0PluF57Jsw==
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-4.1.0.tgz#63c25c2322fb9bf689d755b7fcf337dc4106c5bb"
+  integrity sha512-g/GGnfquPMFnOiPeBVdjWBp+MwbmPvP/RatL8v97kuQrPYmZWb3Oqmm3PdMQyXWaE2cnjGRXNXB7o0tIV4ZT9A==
   dependencies:
     "@commander-js/extra-typings" "^13.1.0"
     "@npmcli/arborist" "^9.0.0"
@@ -2361,9 +2361,9 @@ negotiator@^1.0.0:
   integrity sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==
 
 node-gyp@^11.0.0:
-  version "11.4.1"
-  resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-11.4.1.tgz#b4ce9597e71d4e59efb3d4cdae2af8338151b2c4"
-  integrity sha512-GiVxQ1e4TdZSSVmFDYUn6uUsrEUP68pa8C/xBzCfL/FcLHa4reWrxxTP7tRGhNdviYrNsL5kRolBL5LNYEutCw==
+  version "11.4.2"
+  resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-11.4.2.tgz#bb74cc6a80a0cc301811c8efd755fac39efc7cd0"
+  integrity sha512-3gD+6zsrLQH7DyYOUIutaauuXrcyxeTPyQuZQCQoNPZMHMMS5m4y0xclNpvYzoK3VNzuyxT6eF4mkIL4WSZ1eQ==
   dependencies:
     env-paths "^2.2.0"
     exponential-backoff "^3.1.1"
@@ -2401,9 +2401,9 @@ npm-bundled@^4.0.0:
     npm-normalize-package-bin "^4.0.0"
 
 npm-install-checks@^7.1.0:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/npm-install-checks/-/npm-install-checks-7.1.1.tgz#e9d679fc8a1944c75cdcc96478a22f9d0f763632"
-  integrity sha512-u6DCwbow5ynAX5BdiHQ9qvexme4U3qHW3MWe5NqH+NeBm0LbiH6zvGjNNew1fY+AZZUtVHbOPF3j7mJxbUzpXg==
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/npm-install-checks/-/npm-install-checks-7.1.2.tgz#e338d333930ee18e0fb0be6bd8b67af98be3d2fa"
+  integrity sha512-z9HJBCYw9Zr8BqXcllKIs5nI+QggAImbBdHphOzVYrz2CB4iQ6FzWyKmlqDZua+51nAu7FcemlbTc9VgQN5XDQ==
   dependencies:
     semver "^7.1.1"
 
