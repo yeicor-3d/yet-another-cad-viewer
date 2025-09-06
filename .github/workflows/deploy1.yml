@@ -35,7 +35,7 @@ jobs:
       - run: "yarn version --new-version $CLEAN_VERSION --no-git-tag-version"
       # Write the new version to pyproject.toml
       - run: "pipx install poetry"
-      - uses: "actions/setup-python@v5"
+      - uses: "actions/setup-python@v6"
         with:
           python-version: "3.13"
           cache: "poetry"
