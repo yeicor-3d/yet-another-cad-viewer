@@ -31,7 +31,7 @@ jobs:
           fi
       - run: "echo 'CLEAN_VERSION=${{ github.ref }}' | sed 's,refs/tags/v,,g' >> $GITHUB_ENV"
       # Write the new version to package.json
-      - uses: "actions/setup-node@v4"
+      - uses: "actions/setup-node@v5"
       - run: "yarn version --new-version $CLEAN_VERSION --no-git-tag-version"
       # Write the new version to pyproject.toml
       - run: "pipx install poetry"
