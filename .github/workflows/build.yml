@@ -36,7 +36,7 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - run: "pipx install poetry"
-      - uses: "actions/setup-python@v5"
+      - uses: "actions/setup-python@v6"
         with:
           python-version: "3.13"
           cache: "poetry"
@@ -52,7 +52,7 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - run: "pipx install poetry"
-      - uses: "actions/setup-python@v5"
+      - uses: "actions/setup-python@v6"
         with:
           python-version: "3.13"
           cache: "poetry"
@@ -73,7 +73,7 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - run: "pipx install poetry"
-      - uses: "actions/setup-python@v5"
+      - uses: "actions/setup-python@v6"
         with:
           python-version: "3.13"
           cache: "poetry"
