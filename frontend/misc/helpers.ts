@@ -107,19 +107,6 @@ export function newAxes(doc: Document, size: Vector3, transform: Matrix4) {
   // Axes at (0, 0, 0)
   buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, new Matrix4(), "__helper_axes");
   buildSimpleGltf(doc, [0, 0, 0], [0], [1, 1, 1, 1], new Matrix4(), "__helper_axes", WebGL2RenderingContext.POINTS);
-  // Axes at center
-  if (new Matrix4() != transform) {
-    buildSimpleGltf(doc, rawPositions, rawIndices, rawColors, transform, "__helper_axes_center");
-    buildSimpleGltf(
-      doc,
-      [0, 0, 0],
-      [0],
-      [1, 1, 1, 1],
-      transform,
-      "__helper_axes_center",
-      WebGL2RenderingContext.POINTS,
-    );
-  }
 }
 
 /**
@@ -156,15 +143,7 @@ export function newGridBox(doc: Document, size: Vector3, baseTransform: Matrix4,
     }
   }
   let colors = new Array((allPositions.length / 3) * 4).fill(1);
-  buildSimpleGltf(
-    doc,
-    allPositions,
-    allIndices,
-    colors,
-    baseTransform,
-    "__helper_grid",
-    WebGL2RenderingContext.TRIANGLES,
-  );
+  buildSimpleGltf(doc, allPositions, allIndices, colors, baseTransform, "__helper_grid", WebGL2RenderingContext.TRIANGLES);
 }
 
 export function newGridPlane(size: Vector2, divisions = 10, divisionWidth = 0.002): [number[], number[]] {
