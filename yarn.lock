@@ -406,11 +406,11 @@
     lit "^3.2.1"
 
 "@guolao/vue-monaco-editor@^1.5.5":
-  version "1.5.5"
-  resolved "https://registry.yarnpkg.com/@guolao/vue-monaco-editor/-/vue-monaco-editor-1.5.5.tgz#c29fb7ba6e93763d4efd2dc06a12bb3b687363f7"
-  integrity sha512-NFGImQ8dBYj6ehIxy1DngPRkctB9b6GbxvCm6aXZztNsgm/TtM4u+YM9ZwZHQPlXt7a4IODXoKCcTYEVycBSyA==
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@guolao/vue-monaco-editor/-/vue-monaco-editor-1.6.0.tgz#76a7ccb0d3305c0113717bb03ab602d24dffc8b6"
+  integrity sha512-w2IiJ6eJGGeuIgCK6EKZOAfhHTTUB5aZwslzwGbZ5e89Hb4avx6++GkLTW8p84Sng/arFMjLPPxSBI56cFudyQ==
   dependencies:
-    "@monaco-editor/loader" "^1.5.0"
+    "@monaco-editor/loader" "^1.6.1"
     vue-demi latest
 
 "@img/colour@^1.0.0":
@@ -653,7 +653,7 @@
   resolved "https://registry.yarnpkg.com/@mdi/svg/-/svg-7.4.47.tgz#f8e5516aae129764a76d1bb2f27e55bee03e6e90"
   integrity sha512-WQ2gDll12T9WD34fdRFgQVgO8bag3gavrAgJ0frN4phlwdJARpE6gO1YvLEMJR0KKgoc+/Ea/A0Pp11I00xBvw==
 
-"@monaco-editor/loader@^1.5.0":
+"@monaco-editor/loader@^1.6.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@monaco-editor/loader/-/loader-1.6.1.tgz#c99177d87765abf10de31a0086084e714acfbc0f"
   integrity sha512-w3tEnj9HYEC73wtjdpR089AqkUPskFRcdkxsiSFt3SoUc3OHpmu+leP94CXBm4mHfefmhsdfI0ZQu6qJ0wgtPg==
