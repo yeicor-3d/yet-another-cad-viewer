@@ -22,7 +22,7 @@ jobs:
           cache: "yarn"
       - run: "yarn install"
       - run: "yarn build"
-      - uses: "actions/upload-artifact@v4"
+      - uses: "actions/upload-artifact@v5"
         with:
           name: "frontend"
           path: "dist"
@@ -59,7 +59,7 @@ jobs:
       - run: "poetry lock"
       - run: "poetry install"
       - run: "poetry run python yacv_server/logo.py"
-      - uses: "actions/upload-artifact@v4"
+      - uses: "actions/upload-artifact@v5"
         with:
           name: "logo"
           path: "assets/logo_build"
@@ -80,7 +80,7 @@ jobs:
       - run: "poetry lock"
       - run: "poetry install"
       - run: "YACV_DISABLE_SERVER=true poetry run python example/object.py"
-      - uses: "actions/upload-artifact@v4"
+      - uses: "actions/upload-artifact@v5"
         with:
           name: "example"
           path: "export"
