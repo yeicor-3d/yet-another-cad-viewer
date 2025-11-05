@@ -23,7 +23,7 @@ build_backend = "poetry build --format wheel"
 python = ">=3.12,<3.13" # Due to vtk transitive dependency of build123d -> cadquery-ocp -> vtk
 
 # CAD
-build123d = ">=0.9,<0.10"
+build123d = ">=0.10,<0.11"
 
 # Misc
 pygltflib = "^1.16.2"
