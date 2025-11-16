@@ -1563,9 +1563,9 @@ cssesc@^3.0.0:
   integrity sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==
 
 csstype@^3.1.3:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.2.1.tgz#d19b5c2b584e8f57361e7129e160a75aba418e40"
-  integrity sha512-98XGutrXoh75MlgLihlNxAGbUuFQc7l1cqcnEZlLNKc0UrVdPndgmaDmYTDDh929VS/eqTZV0rozmhu2qqT1/g==
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.2.2.tgz#6800c4d295639fbe03ac1f3df642e58506f9b65a"
+  integrity sha512-D80T+tiqkd/8B0xNlbstWDG4x6aqVfO52+OlSUNIdkTvmNw0uQpJLeos2J/2XvpyidAFuTPmpad+tUxLndwj6g==
 
 cwise-compiler@^1.0.0:
   version "1.1.3"
