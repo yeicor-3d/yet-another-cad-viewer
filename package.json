@@ -24,7 +24,7 @@
     "@mdi/js": "^7.4.47",
     "@mdi/svg": "^7.4.47",
     "js-base64": "^3.7.7",
-    "monaco-editor": "^0.54.0",
+    "monaco-editor": "^0.55.0",
     "pako": "^2.1.0",
     "pyodide": "^0.29.0",
     "tanmayo7lock": "^1.0.18",
