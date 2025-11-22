@@ -1023,9 +1023,9 @@
     "@sigstore/protobuf-specs" "^0.5.0"
 
 "@tsconfig/node20@^20.1.4":
-  version "20.1.7"
-  resolved "https://registry.yarnpkg.com/@tsconfig/node20/-/node20-20.1.7.tgz#baf448f4fafd1d2d3bf35a4651e6a91048c5bed9"
-  integrity sha512-Lt137u6AoCCJNNklpNtfGIYFEywma7Hd3B083jqMga37opSEVw7beWsD4OTXyzKS0I3G2kbQJVoZpOxy9GnxBQ==
+  version "20.1.8"
+  resolved "https://registry.yarnpkg.com/@tsconfig/node20/-/node20-20.1.8.tgz#a11034b1f3362ffaeb7255f6c975040d8a395d70"
+  integrity sha512-Em+IdPfByIzWRRpqWL4Z7ArLHZGxmc36BxE3jCz9nBFSm+5aLaPMZyjwu4yetvyKXeogWcxik4L1jB5JTWfw7A==
 
 "@tufjs/canonical-json@2.0.0":
   version "2.0.0"
