@@ -15,7 +15,7 @@ jobs:
     outputs:
       skip: "${{ steps.check_recursive.outputs.skip || 'false' }}" # Default to false if not set
     steps:
-      - uses: "actions/checkout@v5"
+      - uses: "actions/checkout@v6"
         with: # Ensure we are not in a detached HEAD state
           ref: "master"
           token: "${{ secrets.GH_PAT }}"
