@@ -2871,9 +2871,9 @@ terser@^5.36.0:
     source-map-support "~0.5.20"
 
 three-mesh-bvh@^0.9.0:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.9.2.tgz#ff8258daaab5d0f9215494c863fa8c4674cc3ddf"
-  integrity sha512-W0oUU4AZv0QwisjlkYlLVaYTVxijhMXCztyNvVlDmTK/u0QB16Xbfem5nWkQBsz3oTzztA1B/ouiz4wYCMj78g==
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.9.3.tgz#2e53ad5f509c6a366357bfb879191fe381e68ab4"
+  integrity sha512-LaxfvQpF+At96fS90GnQxHpff9bu78UL5eooJNxYyBbyiWrOBpjRx+5yn/+Dj2lQVhz5A/jHqwpVchYYnz/hWQ==
 
 "three-orientation-gizmo@git+https://github.com/jrj2211/three-orientation-gizmo.git":
   version "1.1.0"
