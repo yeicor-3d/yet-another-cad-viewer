@@ -32,7 +32,7 @@ jobs:
       name: "github-pages"
       url: "${{ steps.deployment.outputs.page_url }}"
     steps:
-      - uses: "actions/download-artifact@v6"
+      - uses: "actions/download-artifact@v7"
         with: # Downloads all artifacts from the build job
           path: "./public"
           merge-multiple: true
