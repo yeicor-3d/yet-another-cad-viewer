@@ -35,7 +35,7 @@
     "vuetify": "^3.7.4"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
+    "@tsconfig/node24": "^24.0.0",
     "@types/node": "^24.0.0",
     "@types/pako": "^2.0.3",
     "@types/three": "^0.182.0",
