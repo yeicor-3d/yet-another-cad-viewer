@@ -999,10 +999,10 @@
     "@sigstore/core" "^3.0.0"
     "@sigstore/protobuf-specs" "^0.5.0"
 
-"@tsconfig/node20@^20.1.4":
-  version "20.1.8"
-  resolved "https://registry.yarnpkg.com/@tsconfig/node20/-/node20-20.1.8.tgz#a11034b1f3362ffaeb7255f6c975040d8a395d70"
-  integrity sha512-Em+IdPfByIzWRRpqWL4Z7ArLHZGxmc36BxE3jCz9nBFSm+5aLaPMZyjwu4yetvyKXeogWcxik4L1jB5JTWfw7A==
+"@tsconfig/node22@^22.0.0":
+  version "22.0.5"
+  resolved "https://registry.yarnpkg.com/@tsconfig/node22/-/node22-22.0.5.tgz#56be9f34ccffd3aa85f9cc7365ad9765d5829adb"
+  integrity sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw==
 
 "@tufjs/canonical-json@2.0.0":
   version "2.0.0"
