@@ -234,9 +234,9 @@
   integrity sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==
 
 "@emnapi/runtime@^1.7.0":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@emnapi/runtime/-/runtime-1.7.1.tgz#a73784e23f5d57287369c808197288b52276b791"
-  integrity sha512-PVtJr5CmLwYAU9PZDMITZoR5iAOShYREoR45EyyLrbntV50mdePTgUn4AmOw90Ifcj+x2kRjdzr1HP3RrNiHGA==
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@emnapi/runtime/-/runtime-1.8.0.tgz#85d78a090880b3524f88d9916124f1acd6b6c6de"
+  integrity sha512-Z82FDl1ByxqPEPrAYYeTQVlx2FSHPe1qwX465c+96IRS3fTdSYRoJcRxg3g2fEG5I69z1dSEWQlNRRr0/677mg==
   dependencies:
     tslib "^2.4.0"
 
@@ -370,14 +370,14 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.27.2.tgz#9e585ab6086bef994c6e8a5b3a0481219ada862b"
   integrity sha512-sRdU18mcKf7F+YgheI/zGf5alZatMUTKj/jNS6l744f9u3WFu4v7twcUI9vu4mknF4Y9aDlblIie0IM+5xxaqQ==
 
-"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.2.1", "@gltf-transform/core@^4.3.0":
+"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.3.0.tgz#2490aee3d592543e4f9dd99e0a724e037a18d0cb"
   integrity sha512-ZeaQfszGJ9LYwELszu45CuDQCsE26lJNNe36FVmN8xclaT6WDdCj7fwGpQXo0/l/YgAVAHX+uO7YNBW75/SRYw==
   dependencies:
     property-graph "^4.0.0"
 
-"@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.2.1":
+"@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.3.0.tgz#b0560a598fdacaf02c9c50db2bceadc12cb34f3b"
   integrity sha512-XDAjQPYVMHa/VDpSbfCBwI+/1muwRJCaXhUpLgnUzAjn0D//PgvIAcbNm1EwBl3LIWBSwjDUCn2LiMAjp+aXVw==
@@ -386,12 +386,12 @@
     ktx-parse "^1.0.1"
 
 "@gltf-transform/functions@^4.1.0":
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.2.1.tgz#88a6fc519685521ba276607f4890119c787a365d"
-  integrity sha512-hFCI80N6zt7yHlqXbzlYEYQbFwK+2OOZNvacrRtrWiCWKI0k1Ad5+nZFsmuIZZV03aXb5XG6UF7JINT3wETS1Q==
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.3.0.tgz#46d4556322252cd3e7513ac15e7d8ea3c452bf61"
+  integrity sha512-FZggHVgt3DHOezgESBrf2vDzuD2FYQYaNT2sT/aP316SIwhuiIwby3z7rhV9joDvWqqUaPkf1UmkjlOaY9riSQ==
   dependencies:
-    "@gltf-transform/core" "^4.2.1"
-    "@gltf-transform/extensions" "^4.2.1"
+    "@gltf-transform/core" "^4.3.0"
+    "@gltf-transform/extensions" "^4.3.0"
     ktx-parse "^1.0.1"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
