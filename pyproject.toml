@@ -28,7 +28,7 @@ build123d = ">=0.10,<0.11"
 # Misc
 pygltflib = "^1.16.2"
 pillow = ">=12,<12.2"
-poetry-core = "==2.2.1"
+poetry-core = "==2.3.0"
 
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.14.1"

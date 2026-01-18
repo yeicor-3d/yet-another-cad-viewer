@@ -1042,14 +1042,14 @@ xmp = ["defusedxml"]
 
 [[package]]
 name = "poetry-core"
-version = "2.2.1"
+version = "2.3.0"
 description = "Poetry PEP 517 Build Backend"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "poetry_core-2.2.1-py3-none-any.whl", hash = "sha256:bdfce710edc10bfcf9ab35041605c480829be4ab23f5bc01202cfe5db8f125ab"},
-    {file = "poetry_core-2.2.1.tar.gz", hash = "sha256:97e50d8593c8729d3f49364b428583e044087ee3def1e010c6496db76bd65ac5"},
+    {file = "poetry_core-2.3.0-py3-none-any.whl", hash = "sha256:fc42f3854e346e4b96fb2b38d29e6873ec2ed25fbd7b8f1afba06613a966eaef"},
+    {file = "poetry_core-2.3.0.tar.gz", hash = "sha256:f6da8f021fe380d8c9716085f4dcc5d26a5120a2452e077196333892af5de307"},
 ]
 
 [[package]]
@@ -1676,4 +1676,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "adc10c90dfae70d9edebfc1ba37d0f13f6cfd27fd380101ad495c33381e372dc"
+content-hash = "3d1972b2c2f0e1634cd9ec7e68cbe7a5fd54f20c5220b2b16850a01c0a803d58"
