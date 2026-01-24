@@ -1184,7 +1184,7 @@
     estree-walker "^2.0.2"
     source-map-js "^1.2.1"
 
-"@vue/compiler-dom@3.5.26", "@vue/compiler-dom@^3.5.0":
+"@vue/compiler-dom@3.5.26":
   version "3.5.26"
   resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz#66c36b6ed8bdf43236d7188ea332bc9d078eb286"
   integrity sha512-y1Tcd3eXs834QjswshSilCBnKGeQjQXB6PqFn/1nxcQw4pmG42G8lwz+FZPAZAby6gZeHSt/8LMPfZ4Rb+Bd/A==
@@ -1192,7 +1192,7 @@
     "@vue/compiler-core" "3.5.26"
     "@vue/shared" "3.5.26"
 
-"@vue/compiler-dom@3.5.27":
+"@vue/compiler-dom@3.5.27", "@vue/compiler-dom@^3.5.0":
   version "3.5.27"
   resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.5.27.tgz#32b2bc87f0a652c253986796ace0ed6213093af8"
   integrity sha512-oAFea8dZgCtVVVTEC7fv3T5CbZW9BxpFzGGxC79xakTr6ooeEqmRuvQydIiDAkglZEAd09LgVf1RoDnL54fu5w==
@@ -1246,10 +1246,10 @@
     "@vue/compiler-dom" "3.5.27"
     "@vue/shared" "3.5.27"
 
-"@vue/language-core@3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-3.2.2.tgz#00af7f3ba584f2d4cbf17c564a00e0437c19823e"
-  integrity sha512-5DAuhxsxBN9kbriklh3Q5AMaJhyOCNiQJvCskN9/30XOpdLiqZU9Q+WvjArP17ubdGEyZtBzlIeG5nIjEbNOrQ==
+"@vue/language-core@3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-3.2.3.tgz#e9d8765e202a4ab5bc72a6ac8807e8796c03404f"
+  integrity sha512-VpN/GnYDzGLh44AI6i1OB/WsLXo6vwnl0EWHBelGc4TyC0yEq6azwNaed/+Tgr8anFlSdWYnMEkyHJDPe7ii7A==
   dependencies:
     "@volar/language-core" "2.4.27"
     "@vue/compiler-dom" "^3.5.0"
@@ -1292,12 +1292,12 @@
     "@vue/compiler-ssr" "3.5.27"
     "@vue/shared" "3.5.27"
 
-"@vue/shared@3.5.26", "@vue/shared@^3.5.0", "@vue/shared@^3.5.22":
+"@vue/shared@3.5.26", "@vue/shared@^3.5.22":
   version "3.5.26"
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.26.tgz#1e02ef2d64aced818cd31d81ce5175711dc90a9f"
   integrity sha512-7Z6/y3uFI5PRoKeorTOSXKcDj0MSasfNNltcslbFrPpcw6aXRUALq4IfJlaTRspiWIUOEZbrpM+iQGmCOiWe4A==
 
-"@vue/shared@3.5.27":
+"@vue/shared@3.5.27", "@vue/shared@^3.5.0":
   version "3.5.27"
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.27.tgz#33a63143d8fb9ca1b3efbc7ecf9bd0ab05f7e06e"
   integrity sha512-dXr/3CgqXsJkZ0n9F3I4elY8wM9jMJpP3pvRG52r6m0tu/MsAFIe6JpXVGeNMd/D9F4hQynWT8Rfuj0bdm9kFQ==
@@ -3057,12 +3057,12 @@ vue-demi@latest:
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
 
 vue-tsc@^3.0.0:
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-3.2.2.tgz#ccee54f2c2490713de75a66d9965bd9e33fe7066"
-  integrity sha512-r9YSia/VgGwmbbfC06hDdAatH634XJ9nVl6Zrnz1iK4ucp8Wu78kawplXnIDa3MSu1XdQQePTHLXYwPDWn+nyQ==
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-3.2.3.tgz#a2bc15955b5b21a2826b9a89930001fc8e369193"
+  integrity sha512-1RdRB7rQXGFMdpo0aXf9spVzWEPGAk7PEb/ejHQwVrcuQA/HsGiixIc3uBQeqY2YjeEEgvr2ShQewBgcN4c1Cw==
   dependencies:
     "@volar/typescript" "2.4.27"
-    "@vue/language-core" "3.2.2"
+    "@vue/language-core" "3.2.3"
 
 vue@^3.5.13:
   version "3.5.27"
