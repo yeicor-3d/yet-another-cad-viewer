@@ -94,13 +94,13 @@ vtk = "9.3.1"
 
 [[package]]
 name = "cadquery-ocp-proxy"
-version = "7.9.3.0"
+version = "7.9.3.1"
 description = "Proxy package to track cadquery_ocp / cadquery_ocp_novtk version"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "cadquery_ocp_proxy-7.9.3.0-py3-none-any.whl", hash = "sha256:6563d74dcd23065f094982e514e7b44afebeda5c9dc1ea2f8a56b441561d45a2"},
+    {file = "cadquery_ocp_proxy-7.9.3.1-py3-none-any.whl", hash = "sha256:8259b53668784b682fe2e4a6c1fed8293886d52bf6c3b2ecc2aec986c49e92d7"},
 ]
 
 [[package]]
