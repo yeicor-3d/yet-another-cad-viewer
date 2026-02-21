@@ -2963,9 +2963,9 @@ vue@^3.5.13:
     "@vue/shared" "3.5.28"
 
 vuetify@^3.7.4:
-  version "3.11.8"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.11.8.tgz#8d7dc3615c924a8e10e42f4652002b476d5d790e"
-  integrity sha512-4iKnntOnLFFklygZjzlVfcHrtLO8+iK4HOhiia6HP2U8v82x+ngaSCgm+epvPrGyCMfCpfuEttqD2qElrr1axw==
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.12.0.tgz#6b01bd1d1652705f0f1d5bd281a523b7785448ee"
+  integrity sha512-N1y3sxLAyrblBHJ6vFTQoTM9icwZd/jNUsmYVQTvHNQHN22XDqb0w2+ujaSoEn/JCHbtGb70tKRlB9SJ6HhVgg==
 
 walk-up-path@^4.0.0:
   version "4.0.0"
