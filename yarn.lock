@@ -405,9 +405,9 @@
     ndarray-pixels "^5.0.1"
 
 "@google/model-viewer@^4.0.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@google/model-viewer/-/model-viewer-4.1.0.tgz#c1d9e1d633845b7be93c822b570fba28850f4684"
-  integrity sha512-7WB/jS6wfBfRl/tWhsUUvDMKFE1KlKME97coDLlZQfvJD0nCwjhES1lJ+k7wnmf7T3zMvCfn9mIjM/mgZapuig==
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@google/model-viewer/-/model-viewer-4.2.0.tgz#a3518e48fd5d551b2869c72e7632989d6bec94f9"
+  integrity sha512-RjpAI5cLs9CdvPcMRsOs8Bea/lNmGTTyaPyl16o9Fv6Qn8VSpgBMmXFr/11yb0hTrsojp2dOACEcY77R8hVUVA==
   dependencies:
     "@monogrid/gainmap-js" "^3.1.0"
     lit "^3.2.1"
