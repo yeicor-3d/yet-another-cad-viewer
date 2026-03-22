@@ -19,6 +19,8 @@ jobs:
           ref: "${{ inputs.ref }}"
       - uses: "actions/setup-node@v6"
         with:
+          node-version: "lts/*"
+          check-latest: true
           cache: "yarn"
       - run: "yarn install"
       - run: "yarn build"

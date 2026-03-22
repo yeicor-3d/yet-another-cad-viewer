@@ -68,18 +68,16 @@ export default defineConfig({
 
 
 function viteStaticCopyPyodide() {
-    const PYODIDE_EXCLUDE = [
-        "!**/*.{md,html}",
-        "!**/*.d.ts",
-        "!**/*.whl",
-        "!**/node_modules",
-    ];
     // @ts-ignore
     const pyodideDir = dirname(fileURLToPath(import.meta.resolve("pyodide")));
+    const pyodideInc = [];
+    for (let glob of ["**", "!**/*.{md,html}", "!**/*.d.ts", "!**/*.whl", "!**/node_modules"]) {
+        pyodideInc.push(join(pyodideDir, glob));
+    }
     return viteStaticCopy({
         targets: wantsSmallBuild ? [] : [
             {
-                src: [join(pyodideDir, "*")].concat(PYODIDE_EXCLUDE),
+                src: pyodideInc,
                 dest: "pyodide-v" + pyodideVersion, // It would be better to use hashed names instead of folder...
             },
         ],

@@ -3,7 +3,7 @@ import encryptCode from "tanmayo7lock?raw";
 
 function encrypt(msg: string, secret: string = "hudfhgd8fghdfgh3uhuifdgh"): string {
     let exports: any = {};
-    eval(encryptCode.replace("exports.encrypt = encrypt;", "exports.LargeDataCrypto = LargeDataCrypto;\nexports.encrypt = encrypt;"));
+    (0, eval)(encryptCode.replace("exports.encrypt = encrypt;", "exports.LargeDataCrypto = LargeDataCrypto;\nexports.encrypt = encrypt;"));
     return exports.LargeDataCrypto.encrypt(msg, secret);
 }
 
