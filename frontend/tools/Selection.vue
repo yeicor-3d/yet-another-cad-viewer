@@ -9,6 +9,7 @@ import {mdiCubeOutline, mdiCursorDefaultClick, mdiFeatureSearch, mdiRuler} from 
 import type {Intersection, Material, Mesh, Object3D} from "three";
 import {Box3, Color, Raycaster, Vector3} from "three";
 import type ModelViewerWrapperT from "../viewer/ModelViewerWrapper.vue";
+import {isViewerReady} from "../viewer/viewerUtils";
 import {extrasNameKey} from "../misc/gltf";
 import {SceneMgr} from "../misc/scene";
 import {Document} from "@gltf-transform/core";
@@ -252,7 +253,8 @@ let onCameraChange = () => {
   setTimeout(waitingHandler, 100); // Wait for the camera to stop moving
 };
 let onViewerReady = (viewer: typeof ModelViewerWrapperT) => {
-  if (!viewer) return;
+  // isViewerReady guards against the async component wrapper state (before inner component resolves)
+  if (!isViewerReady(viewer)) return;
   // props.viewer.elem may not yet be available, so we need to wait for it
   viewer.onElemReady((elem: ModelViewerElement) => {
     if (hasListeners) return;
@@ -285,7 +287,9 @@ let onViewerReady = (viewer: typeof ModelViewerWrapperT) => {
     elem.addEventListener('camera-change', onCameraChange);
   });
 };
-if (props.viewer) onViewerReady(props.viewer);
+// If the viewer already exposes onElemReady it is the actual component – call right away.
+// Otherwise set up a watch so we catch the moment the async component finishes loading.
+if (isViewerReady(props.viewer)) onViewerReady(props.viewer);
 else watch(() => props.viewer, () => onViewerReady(props.viewer as any));
 
 let {sceneDocument} = inject<{ sceneDocument: ShallowRef<Document> }>('sceneDocument')!!;
