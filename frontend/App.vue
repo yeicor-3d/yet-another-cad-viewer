@@ -11,6 +11,7 @@ import {NetworkManager, NetworkUpdateEvent, NetworkUpdateEventModel} from "./mis
 import {SceneMgr} from "./misc/scene";
 import {Document} from "@gltf-transform/core";
 import type ModelViewerWrapperT from "./viewer/ModelViewerWrapper.vue";
+import {isViewerReady} from "./viewer/viewerUtils";
 import {mdiCube, mdiPlus, mdiScriptTextPlay} from '@mdi/js'
 // @ts-expect-error
 import SvgIcon from '@jamescoyle/vue-icon';
@@ -87,7 +88,7 @@ let preloadingModels = ref<Array<string>>([]);
   let sett = await settings;
   if (sett.preload.length > 0) {
     watch(viewer, (newViewer) => {
-      if (newViewer) {
+      if (isViewerReady(newViewer)) {
         newViewer.setPosterText('<tspan x="50%" dy="1.2em">Trying to load' +
             ' models from:</tspan>' + sett.preload.map((url: string) => '<tspan x="50%" dy="1.2em">- ' + url + '</tspan>').join(""));
       }
