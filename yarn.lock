@@ -2738,9 +2738,9 @@ validate-npm-package-name@^7.0.0:
   integrity sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==
 
 vite-plugin-static-copy@^3.1.1:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-3.3.0.tgz#5a95b7b21f9a726b23cd5ca3d64cdcfa6d1b6bde"
-  integrity sha512-XiAtZcev7nppxNFgKoD55rfL+ukVp/RtrnTJONRwRuzv/B2FK2h2ZRCYjvxhwBV/Oarse83SiyXBSxMTfeEM0Q==
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-3.4.0.tgz#4338cc73be3340c4c5c83dadf58a7edbeb8ccbe1"
+  integrity sha512-ekryzCw0ouAOE8tw4RvVL/dfqguXzumsV3FBKoKso4MQ1MUUrUXtl5RI4KpJQUNGqFEsg9kxl4EvDl02YtA9VQ==
   dependencies:
     chokidar "^3.6.0"
     p-map "^7.0.4"
