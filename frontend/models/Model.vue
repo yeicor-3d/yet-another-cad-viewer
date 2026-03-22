@@ -15,6 +15,7 @@ import {extrasNameKey, extrasNameValueHelpers} from "../misc/gltf";
 import {Mesh} from "@gltf-transform/core";
 import {nextTick, ref, watch} from "vue";
 import type ModelViewerWrapper from "../viewer/ModelViewerWrapper.vue";
+import {isViewerReady} from "../viewer/viewerUtils";
 import {
   mdiArrowExpand,
   mdiCircleOpacity,
@@ -404,13 +405,21 @@ function onModelLoad() {
 }
 
 // props.viewer.elem may not yet be available, so we need to wait for it
-const onViewerReady = (viewer: InstanceType<typeof ModelViewerWrapper>) => {
-  viewer?.onElemReady((elem: HTMLElement) => {
+const onViewerReady = (viewer: InstanceType<typeof ModelViewerWrapper> | null) => {
+  // isViewerReady guards against the async component wrapper state (before inner component resolves)
+  if (!isViewerReady(viewer)) return;
+  viewer.onElemReady((elem: HTMLElement) => {
     elem.addEventListener('before-render', onModelLoad);
     elem.addEventListener('camera-change', onClipPlanesChange);
   });
 };
-if (props.viewer) onViewerReady(props.viewer); else watch((() => props.viewer) as any, onViewerReady);
+// If the viewer already exposes onElemReady it is the actual component – call right away.
+// Otherwise set up a watch so we catch the moment the async component finishes loading.
+if (isViewerReady(props.viewer)) {
+  onViewerReady(props.viewer);
+} else {
+  watch((() => props.viewer) as any, onViewerReady);
+}
 </script>
 
 <template>
