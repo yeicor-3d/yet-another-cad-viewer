@@ -21,7 +21,7 @@ jobs:
           node-version: "lts/*"
           check-latest: true
           cache: "yarn"
-      - run: 'git config --global url."https://github.com/".insteadOf git@github.com: && yarn install --dev'
+      - run: "yarn install --dev"
       - run: "yarn build"
       - uses: "actions/upload-artifact@v7"
         with:
