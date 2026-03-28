@@ -9,7 +9,7 @@ description = "Yet Another CAD Viewer (server)"
 authors = [{ name = "Yeicor", email = "4929005+Yeicor@users.noreply.github.com" }]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "build123d>=0.10,<0.11",
     "pygltflib>=1.16.2",
