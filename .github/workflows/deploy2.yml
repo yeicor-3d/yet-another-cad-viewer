@@ -36,7 +36,7 @@ jobs:
         with: # Downloads all artifacts from the build job
           path: "./public"
           merge-multiple: true
-      - uses: "actions/configure-pages@v5"
+      - uses: "actions/configure-pages@v6"
       - uses: "actions/upload-pages-artifact@v4"
         with:
           path: 'public'
