@@ -9,7 +9,6 @@ permissions: # Same as deploy2.yml
   id-token: "write"
 
 jobs:
-
   update-versions:
     runs-on: "ubuntu-latest"
     outputs:
@@ -34,12 +33,8 @@ jobs:
       - uses: "actions/setup-node@v6"
       - run: "yarn version --new-version $CLEAN_VERSION --no-git-tag-version"
       # Write the new version to pyproject.toml
-      - run: "pipx install poetry"
-      - uses: "actions/setup-python@v6"
-        with:
-          python-version: "3.13"
-          cache: "poetry"
-      - run: "poetry version $CLEAN_VERSION"
+      - uses: "astral-sh/setup-uv@v7"
+      - run: "sed -i \"s/^version = .*/version = \\\"$CLEAN_VERSION\\\"/\" pyproject.toml"
       # Commit the changes and move the tag!
       - if: "steps.check_recursive.outputs.skip != 'true'"
         run: |
@@ -62,4 +57,4 @@ jobs:
     uses: "./.github/workflows/deploy2.yml"
     secrets: "inherit" # Inherit the secrets from the parent workflow
     with:
-      ref: "master"  # Ensure we are cloning the latest version of the repository
+      ref: "master" # Ensure we are cloning the latest version of the repository

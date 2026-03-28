@@ -9,7 +9,6 @@ on:
         description: "The ref (branch or tag) to build"
 
 jobs:
-
   build-frontend:
     name: "Build frontend"
     runs-on: "ubuntu-latest"
@@ -37,14 +36,13 @@ jobs:
       - uses: "actions/checkout@v6"
         with:
           ref: "${{ inputs.ref }}"
-      - run: "pipx install poetry"
-      - uses: "actions/setup-python@v6"
+      - uses: "astral-sh/setup-uv@v7"
+      - run: "YACV_SKIP_FRONTEND_BUILD=true uv build --wheel"
+      - uses: "actions/upload-artifact@v7"
         with:
-          python-version: "3.13"
-          cache: "poetry"
-      - run: "poetry lock"
-      - run: "poetry install"
-      - run: "poetry build" # Skips building frontend (not using task)
+          name: "wheel"
+          path: "dist/*.whl"
+          retention-days: 5
 
   build-logo:
     name: "Build logo"
@@ -53,14 +51,8 @@ jobs:
       - uses: "actions/checkout@v6"
         with:
           ref: "${{ inputs.ref }}"
-      - run: "pipx install poetry"
-      - uses: "actions/setup-python@v6"
-        with:
-          python-version: "3.13"
-          cache: "poetry"
-      - run: "poetry lock"
-      - run: "poetry install"
-      - run: "poetry run python yacv_server/logo.py"
+      - uses: "astral-sh/setup-uv@v7"
+      - run: "uv run python yacv_server/logo.py"
       - uses: "actions/upload-artifact@v7"
         with:
           name: "logo"
@@ -74,14 +66,8 @@ jobs:
       - uses: "actions/checkout@v6"
         with:
           ref: "${{ inputs.ref }}"
-      - run: "pipx install poetry"
-      - uses: "actions/setup-python@v6"
-        with:
-          python-version: "3.13"
-          cache: "poetry"
-      - run: "poetry lock"
-      - run: "poetry install"
-      - run: "YACV_DISABLE_SERVER=true poetry run python example/object.py"
+      - uses: "astral-sh/setup-uv@v7"
+      - run: "YACV_DISABLE_SERVER=true uv run python example/object.py"
       - uses: "actions/upload-artifact@v7"
         with:
           name: "example"
