@@ -41,7 +41,7 @@ jobs:
         with:
           path: 'public'
       - id: "deployment"
-        uses: "actions/deploy-pages@v4"
+        uses: "actions/deploy-pages@v5"
       - run: 'zip -r frontend.zip public'
       - uses: "svenstaro/upload-release-action@v2"
         with:
