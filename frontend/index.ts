@@ -3,7 +3,9 @@ import App from './App.vue'
 
 import {createVuetify} from 'vuetify';
 import * as directives from 'vuetify/lib/directives/index.mjs';
+// @ts-ignore
 import 'vuetify/dist/vuetify.css';
+
 
 // @ts-ignore
 if (__APP_NAME__) {
