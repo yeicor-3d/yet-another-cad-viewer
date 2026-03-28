@@ -46,7 +46,7 @@
     "commander": "^14.0.0",
     "generate-license-file": "^4.0.0",
     "terser": "^5.36.0",
-    "typescript": "^5.9.2",
+    "typescript": "^6.0.0",
     "vite": "^8.0.0",
     "vite-plugin-static-copy": "^4.0.0",
     "vue-tsc": "^3.0.0",

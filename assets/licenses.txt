@@ -1156,7 +1156,7 @@ third-party archives.
 
 The following npm package may be included in this product:
 
- - typescript@5.9.3
+ - typescript@6.0.2
 
 This package contains the following license:
 
@@ -2612,7 +2612,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@4.0.3
+ - vuetify@4.0.4
 
 This package contains the following license:
 
@@ -2642,16 +2642,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.30
- - @vue/compiler-dom@3.5.30
- - @vue/compiler-sfc@3.5.30
- - @vue/compiler-ssr@3.5.30
- - @vue/reactivity@3.5.30
- - @vue/runtime-core@3.5.30
- - @vue/runtime-dom@3.5.30
- - @vue/server-renderer@3.5.30
- - @vue/shared@3.5.30
- - vue@3.5.30
+ - @vue/compiler-core@3.5.31
+ - @vue/compiler-dom@3.5.31
+ - @vue/compiler-sfc@3.5.31
+ - @vue/compiler-ssr@3.5.31
+ - @vue/reactivity@3.5.31
+ - @vue/runtime-core@3.5.31
+ - @vue/runtime-dom@3.5.31
+ - @vue/server-renderer@3.5.31
+ - @vue/shared@3.5.31
+ - vue@3.5.31
 
 These packages each contain the following license:
 
@@ -2713,7 +2713,7 @@ The following npm packages may be included in this product:
 
  - ndarray-lanczos@0.3.0
  - ndarray-pixels@5.0.1
- - property-graph@4.0.0
+ - property-graph@4.1.0
 
 These packages each contain the following license:
 
