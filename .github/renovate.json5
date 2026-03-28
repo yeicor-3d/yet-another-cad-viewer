@@ -10,5 +10,6 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [ "* * * * 0,6" ]
-  }
+  },
+  "ignoreDeps": ["three"]  // Same version as required by @google/model-viewer
 }

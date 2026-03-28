@@ -40,9 +40,6 @@ export default defineConfig({
         chunkSizeWarningLimit: 1024, // KB. Three.js is big. Draco is even bigger but not likely to be used.
         sourcemap: true, // For debugging production
         rollupOptions: {
-            output: {
-                experimentalMinChunkSize: 512000, // 512KB (avoid too many small chunks)
-            },
             external: wantsSmallBuild ? [
                 // Exclude some large optional dependencies if small build is requested (for embedding in python package)
                 "pyodide",

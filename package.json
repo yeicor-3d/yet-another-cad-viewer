@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-s update-licenses && run-p type-check \"build-only {@}\" --",
+    "build": "yarn update-licenses && yarn type-check && yarn build-only",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
@@ -28,7 +28,7 @@
     "pako": "^2.1.0",
     "pyodide": "^0.29.0",
     "tanmayo7lock": "^1.0.18",
-    "three": "^0.183.0",
+    "three": "^0.182.0",
     "three-mesh-bvh": "^0.9.0",
     "three-orientation-gizmo": "git+https://github.com/jrj2211/three-orientation-gizmo.git",
     "vue": "^3.5.13",
@@ -38,18 +38,18 @@
     "@tsconfig/node24": "^24.0.0",
     "@types/node": "^24.0.0",
     "@types/pako": "^2.0.3",
-    "@types/three": "^0.183.0",
+    "@types/three": "^0.182.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^5.0.0",
     "@vue/tsconfig": "^0.9.0",
     "buffer": "^5.5.0||^6.0.0",
     "commander": "^14.0.0",
     "generate-license-file": "^4.0.0",
-    "npm-run-all2": "^8.0.0",
     "terser": "^5.36.0",
     "typescript": "^5.9.2",
     "vite": "^8.0.0",
     "vite-plugin-static-copy": "^4.0.0",
-    "vue-tsc": "^3.0.0"
+    "vue-tsc": "^3.0.0",
+    "yarn": "^1.22.22"
   }
 }
