@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yacv-server"
-version = "0.10.14"
+version = "0.10.15"
 description = "Yet Another CAD Viewer (server)"
 authors = [{ name = "Yeicor", email = "4929005+Yeicor@users.noreply.github.com" }]
 license = { text = "MIT" }
