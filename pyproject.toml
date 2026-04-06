@@ -17,23 +17,12 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["yacv_server"]
-include = [
-    "/yacv_server/frontend",
-]
+packages = [ "yacv_server" ]
+include = [ "/yacv_server/frontend" ]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "hatch_build.py"
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/yacv_server",
-    "/frontend",
-    "/src",
-    "/index.html",
-    "/vite.config.ts",
-    "/tsconfig.json",
-    "/package.json",
-    "/yarn.lock",
-    "/hatch_build.py",
-]
+include = [ "/*" ] # Include all backend and frontend files to build complete project from python sdist
+

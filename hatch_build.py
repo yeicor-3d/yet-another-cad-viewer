@@ -43,7 +43,7 @@ class CustomBuildHook(BuildHookInterface):
             # Install dependencies
             self.app.display_info("Installing frontend dependencies...")
             subprocess.run(
-                ["npx", "yarn", "install"],
+                ["npx", "yarn", "install", "--frozen-lockfile"],
                 cwd=str(project_root),
                 check=True,
             )
@@ -53,7 +53,7 @@ class CustomBuildHook(BuildHookInterface):
             env = os.environ.copy()
             env["YACV_SMALL_BUILD"] = "true"
             subprocess.run(
-                ["npx", "yarn", "build", "--outDir", str(frontend_dir)],
+                ["npx", "-y", "yarn", "build", "--outDir", str(frontend_dir)],
                 cwd=str(project_root),
                 check=True,
                 env=env,

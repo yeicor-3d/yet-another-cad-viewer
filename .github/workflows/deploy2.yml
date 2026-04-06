@@ -58,9 +58,11 @@ jobs:
           ref: "${{ inputs.ref }}"
       - uses: "actions/setup-node@v6"
         with:
+          node-version: "lts/*"
+          check-latest: true
           cache: "yarn"
       - uses: "astral-sh/setup-uv@v7"
-      - run: "uv sync"
+      - run: "uv sync --frozen"
       - run: "uv build"
       - name: "Publish to PyPI"
         env:

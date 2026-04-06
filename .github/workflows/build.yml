@@ -21,7 +21,7 @@ jobs:
           node-version: "lts/*"
           check-latest: true
           cache: "yarn"
-      - run: "yarn install --dev"
+      - run: "yarn install --frozen-lockfile --dev"
       - run: "yarn build"
       - uses: "actions/upload-artifact@v7"
         with:
@@ -37,13 +37,14 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v7"
-      - run: "YACV_SKIP_FRONTEND_BUILD=true uv build --wheel"
+      - run: "uv sync --frozen"
+      - run: "uv build"
         env:
           YACV_SKIP_FRONTEND_BUILD: "true" # Ensure the frontend build is skipped
       - uses: "actions/upload-artifact@v7"
         with:
           name: "wheel"
-          path: "dist/*.whl"
+          path: "dist/*"
           retention-days: 5
 
   build-logo:
@@ -54,9 +55,7 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v7"
-      - run: "uv run python yacv_server/logo.py"
-        env:
-          YACV_SKIP_FRONTEND_BUILD: "true" # Ensure the frontend build is skipped
+      - run: "uv run --frozen python yacv_server/logo.py"
       - uses: "actions/upload-artifact@v7"
         with:
           name: "logo"
@@ -71,9 +70,8 @@ jobs:
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v7"
-      - run: "uv run python example/object.py"
+      - run: "uv run --frozen python example/object.py"
         env:
-          YACV_SKIP_FRONTEND_BUILD: "true" # Ensure the frontend build is skipped
           YACV_DISABLE_SERVER: "true" # Ensure the server is not started during the example build
       - uses: "actions/upload-artifact@v7"
         with:
