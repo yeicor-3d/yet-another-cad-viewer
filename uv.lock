@@ -690,7 +690,7 @@ wheels = [
 
 [[package]]
 name = "yacv-server"
-version = "0.10.14"
+version = "0.10.15"
 source = { editable = "." }
 dependencies = [
     { name = "build123d" },
