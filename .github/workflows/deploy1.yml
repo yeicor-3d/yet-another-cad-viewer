@@ -33,7 +33,7 @@ jobs:
       - uses: "actions/setup-node@v6"
       - run: "yarn version --new-version $CLEAN_VERSION --no-git-tag-version"
       # Write the new version to pyproject.toml
-      - uses: "astral-sh/setup-uv@v7"
+      - uses: "astral-sh/setup-uv@v8.1.0"
       - run: "sed -i \"s/^version = .*/version = \\\"$CLEAN_VERSION\\\"/\" pyproject.toml"
       # Commit the changes and move the tag!
       - if: "steps.check_recursive.outputs.skip != 'true'"

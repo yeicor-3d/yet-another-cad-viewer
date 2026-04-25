@@ -61,7 +61,7 @@ jobs:
           node-version: "lts/*"
           check-latest: true
           cache: "yarn"
-      - uses: "astral-sh/setup-uv@v7"
+      - uses: "astral-sh/setup-uv@v8.1.0"
       - run: "uv sync --frozen"
       - run: "uv build"
       - name: "Publish to PyPI"
