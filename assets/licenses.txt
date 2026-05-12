@@ -1156,7 +1156,7 @@ third-party archives.
 
 The following npm package may be included in this product:
 
- - typescript@6.0.2
+ - typescript@6.0.3
 
 This package contains the following license:
 
@@ -1364,7 +1364,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - @babel/parser@7.29.2
+ - @babel/parser@7.29.3
 
 This package contains the following license:
 
@@ -2458,7 +2458,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - pyodide@0.29.3
+ - pyodide@0.29.4
 
 This package contains the following license:
 
@@ -2498,7 +2498,7 @@ The MIT license applies to all non-font and non-icon files.
 
 The following npm package may be included in this product:
 
- - semver@7.7.4
+ - semver@7.8.0
 
 This package contains the following license:
 
@@ -2612,7 +2612,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@4.0.5
+ - vuetify@4.0.7
 
 This package contains the following license:
 
@@ -2642,16 +2642,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.32
- - @vue/compiler-dom@3.5.32
- - @vue/compiler-sfc@3.5.32
- - @vue/compiler-ssr@3.5.32
- - @vue/reactivity@3.5.32
- - @vue/runtime-core@3.5.32
- - @vue/runtime-dom@3.5.32
- - @vue/server-renderer@3.5.32
- - @vue/shared@3.5.32
- - vue@3.5.32
+ - @vue/compiler-core@3.5.34
+ - @vue/compiler-dom@3.5.34
+ - @vue/compiler-sfc@3.5.34
+ - @vue/compiler-ssr@3.5.34
+ - @vue/reactivity@3.5.34
+ - @vue/runtime-core@3.5.34
+ - @vue/runtime-dom@3.5.34
+ - @vue/server-renderer@3.5.34
+ - @vue/shared@3.5.34
+ - vue@3.5.34
 
 These packages each contain the following license:
 
@@ -2805,13 +2805,13 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - postcss@8.5.8
+ - postcss@8.5.14
 
 This package contains the following license:
 
 The MIT License (MIT)
 
-Copyright 2013 Andrey Sitnik <andrey@sitnik.ru>
+Copyright 2013 Andrey Sitnik <andrey@sitnik.es>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -2834,7 +2834,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - nanoid@3.3.11
+ - nanoid@3.3.12
 
 This package contains the following license:
 

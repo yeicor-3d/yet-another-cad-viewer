@@ -12,8 +12,8 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "build123d>=0.10,<0.11",
-    "pygltflib>=1.16.2",
-    "pillow>=12,<12.3",
+    "pygltflib>=1.16",
+    "pillow>=11.0", # Pyodide has version 11.3, do not upgrade until ready.
 ]
 
 [tool.hatch.build.targets.wheel]

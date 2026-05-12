@@ -1,13 +1,14 @@
 import micropip
 
-# Prioritize the OCP.wasm package repository for finding the ported dependencies.
-micropip.set_index_urls(["https://yeicor.github.io/OCP.wasm", "https://pypi.org/simple"])
+# Fetch and run the upstream OCP.wasm bootstrap for build123d and its dependencies.
+# This ensures we automatically stay up-to-date with the upstream bootstrap logic.
+from pyodide.http import pyfetch
+response = await pyfetch("https://raw.githubusercontent.com/yeicor/OCP.wasm/master/build123d/bootstrap_in_pyodide.py")
+bootstrap_code = await response.string()
+exec(bootstrap_code)
+await bootstrap()
 
-# For build123d < 0.10.0, we need to install the mock the py-lib3mf package (before the main install).
-await micropip.install("lib3mf")
-micropip.add_mock_package("py-lib3mf", "2.4.1", modules={"py_lib3mf": 'from lib3mf import *'})
-
-# Install the yacv_server package, which is the main server for the OCP.wasm playground; and also preinstalls build123d.
+# Install the yacv_server package, which is the main server for the OCP.wasm playground.
 await micropip.install("yacv_server", pre=True)
 
 # Preimport the yacv_server package to ensure it is available in the global scope, and mock the ocp_vscode package.
