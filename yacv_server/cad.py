@@ -4,7 +4,7 @@ Utilities to work with CAD objects
 import hashlib
 import io
 import re
-from typing import Optional, Union, Tuple
+from typing import Any, Optional, Union, Tuple
 
 from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
@@ -19,20 +19,36 @@ CADLike = Union[CADCoreLike, any]  # build123d and cadquery types
 ColorTuple = Tuple[float, float, float, float]
 
 
-def get_color(obj: any) -> Optional[ColorTuple]:
-    """Get color from a CAD Object or any other color-like object"""
-    if 'color' in dir(obj):
-        obj = obj.color
-    if isinstance(obj, tuple):
-        c = None
-        if len(obj) == 3:
-            c = obj + (1,)
-        elif len(obj) == 4:
-            c = obj
-        # noinspection PyTypeChecker
-        return [min(max(float(x), 0), 1) for x in c]
-    if isinstance(obj, Color):
-        return obj.to_tuple()
+def get_color(obj: Any) -> Optional[ColorTuple]:
+    """Extract normalized RGBA color from various CAD/color-like objects."""
+
+    def clamp(v: Any) -> float:
+        return max(0.0, min(float(v), 1.0))
+
+    obj = getattr(obj, "color", obj)
+    wrapped = getattr(obj, "wrapped", obj)
+
+    def as_rgba(seq) -> Optional[ColorTuple]:
+        try:
+            if hasattr(seq, "__len__") and hasattr(seq, "__getitem__") and len(seq) >= 3:
+                return (clamp(seq[0]), clamp(seq[1]), clamp(seq[2]), clamp(seq[3] if len(seq) > 3 else 1.0))
+        except Exception:
+            pass
+        return None
+
+    # tuple / list / vector-like
+    if isinstance(wrapped, (tuple, list)) or hasattr(wrapped, "__getitem__"):
+        c = as_rgba(wrapped)
+        if c:
+            return c
+
+    # OCC Quantity_ColorRGBA
+    if all(hasattr(wrapped, m) for m in ("Red", "Green", "Blue", "Alpha")):
+        try:
+            return (clamp(wrapped.Red()), clamp(wrapped.Green()), clamp(wrapped.Blue()), clamp(wrapped.Alpha()))
+        except Exception:
+            pass
+
     return None
 
 
