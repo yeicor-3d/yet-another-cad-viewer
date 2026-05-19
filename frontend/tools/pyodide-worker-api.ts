@@ -2,7 +2,6 @@ import type { loadPyodide } from "pyodide";
 import type { MessageEventDataIn } from "./pyodide-worker.ts";
 
 let requestId = 0;
-const WORKER_TIMEOUT_MS = 300000; // 5 minutes timeout for long operations
 
 /** Simple API for the Pyodide worker. */
 export function newPyodideWorker(initOpts: Parameters<typeof loadPyodide>[0]) {
@@ -11,21 +10,17 @@ export function newPyodideWorker(initOpts: Parameters<typeof loadPyodide>[0]) {
 
   const commonRequestResponse = (event: MessageEventDataIn, stdout?: (msg: string) => void, stderr?: (msg: string) => void) => {
     return new Promise((resolve, reject) => {
-      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
-
       const listener = (msgEvent: MessageEvent) => {
         if (stdout && msgEvent.data?.stdout) {
-          stdout(msgEvent.data.stdout); // No clue if associated with this request, but we handle it anyway.
+          stdout(msgEvent.data.stdout);
           return;
         }
         if (stderr && msgEvent.data?.stderr) {
-          stderr(msgEvent.data.stderr); // No clue if associated with this request, but we handle it anyway.
+          stderr(msgEvent.data.stderr);
           return;
         }
-        if (msgEvent.data?.id !== event.id) return; // Ignore messages that are not for this request.
+        if (msgEvent.data?.id !== event.id) return;
 
-        // Clear timeout on response
-        if (timeoutHandle !== null) clearTimeout(timeoutHandle);
         worker.removeEventListener("message", listener);
 
         if (msgEvent.data?.error) {
@@ -39,16 +34,9 @@ export function newPyodideWorker(initOpts: Parameters<typeof loadPyodide>[0]) {
 
       worker.addEventListener("message", listener);
 
-      // Set timeout for this request
-      timeoutHandle = setTimeout(() => {
-        worker.removeEventListener("message", listener);
-        reject(new Error(`Worker timeout after ${WORKER_TIMEOUT_MS}ms`));
-      }, WORKER_TIMEOUT_MS);
-
       try {
         worker.postMessage(event);
       } catch (e) {
-        clearTimeout(timeoutHandle);
         worker.removeEventListener("message", listener);
         reject(new Error(`Failed to post message to worker: ${e}`));
       }
