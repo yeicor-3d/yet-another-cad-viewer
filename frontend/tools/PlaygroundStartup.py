@@ -29,10 +29,6 @@ debug = globals().get("_pg_debug", False)
 # Default to None if not provided
 constraints = globals().get("_pg_constraints", None)
 
-print(
-    f"Bootstrapping build123d version {build123d_version} with debug={debug} and constraints={constraints}"
-)
-
 
 async def mocked_hook():
     # Install the yacv_server package, which is the main server for the OCP.wasm playground.
