@@ -2539,7 +2539,7 @@ three@^0.182.0:
   resolved "https://registry.yarnpkg.com/three/-/three-0.182.0.tgz#535b71b4335529d0eacdb1d30eba72bada3d0b54"
   integrity sha512-GbHabT+Irv+ihI1/f5kIIsZ+Ef9Sl5A1Y7imvS5RQjWgtTPfPnZ43JmlYI7NtCRDK9zir20lQpfg8/9Yd02OvQ==
 
-tinyglobby@^0.2.12, tinyglobby@^0.2.15, tinyglobby@^0.2.17:
+tinyglobby@^0.2.12, tinyglobby@^0.2.17:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/tinyglobby/-/tinyglobby-0.2.17.tgz#562a9a6c9eb2b3b123d39719f9af5bb44fcd7631"
   integrity sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==
@@ -2612,14 +2612,14 @@ validate-npm-package-name@^7.0.0:
   integrity sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==
 
 vite-plugin-static-copy@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-4.1.0.tgz#66384688d9601e22126e4373f15b7ee116a55299"
-  integrity sha512-9XOarNV7LgP0KBB7AApxdgFikLXx3daZdqjC3AevYsL6MrUH62zphonLUs2a6LZc1HN1GY+vQdheZ8VVJb6dQQ==
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-4.1.1.tgz#7099e35ba202fc2def30bd2945cbf0790596ee8b"
+  integrity sha512-GrlA8YklrAfSyxJ4M3fdQLOo9oNkp56IM9FYgX/WtEgeIFkPwhu4wzpufBCIuNKCa6Fn77FkRdYxkHqV0FwjAw==
   dependencies:
     chokidar "^3.6.0"
     p-map "^7.0.4"
     picocolors "^1.1.1"
-    tinyglobby "^0.2.15"
+    tinyglobby "^0.2.17"
 
 vite@^8.0.0:
   version "8.0.16"
