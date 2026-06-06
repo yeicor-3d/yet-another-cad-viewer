@@ -261,11 +261,11 @@
   integrity sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==
 
 "@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.3.0.tgz#2490aee3d592543e4f9dd99e0a724e037a18d0cb"
-  integrity sha512-ZeaQfszGJ9LYwELszu45CuDQCsE26lJNNe36FVmN8xclaT6WDdCj7fwGpQXo0/l/YgAVAHX+uO7YNBW75/SRYw==
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.4.0.tgz#fd49d1fcfd61542ae19a9e824d9d65105a17abe4"
+  integrity sha512-cOPxOhHFFz5hwmix+li1+Nnq5qMV/QD3fTCsVlApxxFACtFdjkt2R/juseD4gvZ7D2c/yl6OilKH0pvI735YyQ==
   dependencies:
-    property-graph "^4.0.0"
+    property-graph "^4.1.0"
 
 "@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.3.0":
   version "4.3.0"
@@ -2253,7 +2253,7 @@ promise-worker-transferable@^1.0.4:
     is-promise "^2.1.0"
     lie "^3.0.2"
 
-property-graph@^4.0.0:
+property-graph@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/property-graph/-/property-graph-4.1.0.tgz#b81b859f5113b980c8acf29bf2f0ecf7392d9534"
   integrity sha512-AvPcP7XECNWy4LGmFQ77k7un4lSKM4eS29PTvW4ck95uYeLxXPWJM7hLuBqK91FaHqCcgJvIUCuNJjjxKE7VKQ==
