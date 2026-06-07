@@ -260,7 +260,7 @@
   resolved "https://registry.yarnpkg.com/@gar/promise-retry/-/promise-retry-1.0.3.tgz#65e726428e794bc4453948e0a41e6de4215ce8b0"
   integrity sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==
 
-"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.3.0":
+"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.3.0", "@gltf-transform/core@^4.4.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.4.0.tgz#fd49d1fcfd61542ae19a9e824d9d65105a17abe4"
   integrity sha512-cOPxOhHFFz5hwmix+li1+Nnq5qMV/QD3fTCsVlApxxFACtFdjkt2R/juseD4gvZ7D2c/yl6OilKH0pvI735YyQ==
@@ -268,12 +268,12 @@
     property-graph "^4.1.0"
 
 "@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.3.0.tgz#b0560a598fdacaf02c9c50db2bceadc12cb34f3b"
-  integrity sha512-XDAjQPYVMHa/VDpSbfCBwI+/1muwRJCaXhUpLgnUzAjn0D//PgvIAcbNm1EwBl3LIWBSwjDUCn2LiMAjp+aXVw==
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.4.0.tgz#e4966bed707f13e3652d4dc9e2505e1c1ebc7458"
+  integrity sha512-ZwEgFkkqnUR7d4m6roK9BycxxdoqJNtVyo7w5ShJ9syKBoQiXw2QrTSLwXaUAImSrEIl9Jh/wZTtvSVyviQuXg==
   dependencies:
-    "@gltf-transform/core" "^4.3.0"
-    ktx-parse "^1.0.1"
+    "@gltf-transform/core" "^4.4.0"
+    ktx-parse "^1.1.0"
 
 "@gltf-transform/functions@^4.1.0":
   version "4.3.0"
@@ -1703,7 +1703,7 @@ just-diff@^6.0.0:
   resolved "https://registry.yarnpkg.com/just-diff/-/just-diff-6.0.2.tgz#03b65908543ac0521caf6d8eb85035f7d27ea285"
   integrity sha512-S59eriX5u3/QhMNq3v/gm8Kd0w8OS6Tz2FS1NG4blv+z0MuQcBRJyFWjdovM0Rad4/P4aUPFtnkNjMjyMlMSYA==
 
-ktx-parse@^1.0.1:
+ktx-parse@^1.0.1, ktx-parse@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/ktx-parse/-/ktx-parse-1.1.0.tgz#1077c87776ddabfc32fc01f644f6ad8f8890abf8"
   integrity sha512-mKp3y+FaYgR7mXWAbyyzpa/r1zDWeaunH+INJO4fou3hb45XuNSwar+7llrRyvpMWafxSIi99RNFJ05MHedaJQ==
