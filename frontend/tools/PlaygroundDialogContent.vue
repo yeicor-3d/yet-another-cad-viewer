@@ -55,7 +55,7 @@ setupMonaco(); // Must be called before using the editor
 const outputText = ref(``);
 const pgVersion = ref("stable"); // Build123d version
 const pgDebug = ref(false); // Use debug wheels (prefer newest .dev OCP WASM wheel versions)
-const pgConstraints = ref("asdasd"); // Global package constraints (free text format)
+const pgConstraints = ref(""); // Global package constraints (free text format)
 const showConstraintsDialog = ref(false); // Show/hide constraints configuration dialog
 let currentWorkerVersion = "stable"; // Track which version the current worker was initialized with
 let currentWorkerDebug = false; // Track which debug setting the current worker was initialized with
@@ -94,6 +94,31 @@ const opacity = ref(0.9); // Opacity for the editor (overriden when settings are
 let pyodideWorker: ReturnType<typeof newPyodideWorker> | null = (import.meta as any).hot?.data?.pyodideWorker || null;
 const running = ref(true);
 
+/**
+ * Detect if a local yacv_server wheel is available alongside the frontend.
+ * First tries to read current.txt which contains the exact wheel filename.
+ */
+async function detectYacvWheelUrl(): Promise<string | undefined> {
+    const baseUrl = new URL("./yacv_wheel/", window.location.href).href;
+    try {
+        // First try to read current.txt for the exact wheel filename
+        const versionResp = await fetch(new URL("current.txt", baseUrl).href);
+        if (versionResp.ok) {
+            const wheelName = (await versionResp.text()).trim();
+            if (wheelName) {
+                const wheelUrl = new URL(wheelName, baseUrl).href;
+                const wheelResp = await fetch(wheelUrl, { method: "HEAD" });
+                if (wheelResp.ok) return wheelUrl;
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+    return undefined;
+}
+
+const yacvWheelUrlPromise = detectYacvWheelUrl();
+
 async function setupPyodide(
     first: boolean,
     loadSnapshot: Uint8Array | undefined = undefined,
@@ -101,6 +126,7 @@ async function setupPyodide(
     debug: boolean = false,
     constraints: string = "",
 ) {
+    const yacvWheelUrl = await yacvWheelUrlPromise;
     running.value = true;
     workerReady.value = false;
     try {
@@ -114,7 +140,7 @@ async function setupPyodide(
                             // Note: python wheels are downloaded from the CDN, as we can't know which ones are needed in advance to bundle them
                             // Furthermore, this lets us use the latest version of all wheels including ocp-specific ones without app updates
                             indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
-                            packages: ["micropip", "sqlite3"], // Faster load if done here
+                            packages: ["micropip"], // Faster load if done here
                             // _makeSnapshot: true, // Enable snapshotting for faster startup (still experimental: breaks loading any packages)
                         },
                         loadSnapshot ? { _loadSnapshot: loadSnapshot } : {},
@@ -133,7 +159,7 @@ async function setupPyodide(
         }
         output("Preloading packages...\n");
         try {
-            await pyodideWorker.asyncRun(playgroundStartupCode, output, output, version, debug, constraints); // Also import yacv_server and mock ocp_vscode here for faster custom code execution
+            await pyodideWorker.asyncRun(playgroundStartupCode, output, output, version, debug, constraints, yacvWheelUrl); // Also import yacv_server and mock ocp_vscode here for faster custom code execution
         } catch (e) {
             output(`ERR: Bootstrap failed: ${e}\n`);
             throw e;
@@ -249,7 +275,7 @@ function onModelData(modelData: string) {
     }
 }
 
-function resetWorker(loadSnapshot: Uint8Array | undefined = undefined) {
+async function resetWorker(loadSnapshot: Uint8Array | undefined = undefined) {
     try {
         if (pyodideWorker) {
             pyodideWorker.terminate(); // Terminate existing worker
@@ -257,7 +283,7 @@ function resetWorker(loadSnapshot: Uint8Array | undefined = undefined) {
         }
         workerReady.value = false;
         outputText.value = ``; // Clear output text
-        setupPyodide(false, loadSnapshot, pgVersion.value, pgDebug.value, pgConstraints.value); // Reinitialize Pyodide with current settings
+        await setupPyodide(false, loadSnapshot, pgVersion.value, pgDebug.value, pgConstraints.value); // Reinitialize Pyodide with current settings
     } catch (e) {
         output(`ERR: Failed to reset worker: ${e}\n`);
         running.value = false;
@@ -519,7 +545,7 @@ onMounted(() => {
                             href="https://micropip.pyodide.org/en/stable/project/api.html#micropip.install"
                             target="_blank"
                             rel="noopener"
-                            style="color: #90caf9; text-decoration: underline"
+                            style="text-decoration: underline"
                             >docs</a
                         >):<br />
                         <code>svgpathtools == 1.7.1<br />yacv_server &gt;= 0.3.0, &lt; 10.4.0<br />font-fetcher != 1.2.3</code><br />
@@ -567,13 +593,27 @@ onMounted(() => {
     background-color: #00000000; /* Transparent background */
 }
 
-.v-toolbar.popup > * {
-    overflow-x: auto;
+.popup-card-text {
+    background-color: rgb(var(--v-theme-surface)); /* Use Vuetify theme surface color */
+    opacity: v-bind(opacity);
 }
 
-.popup-card-text {
-    background-color: #1e1e1e; /* Matches the Monaco editor background */
-    opacity: v-bind(opacity);
+.playground-console {
+    background-color: rgb(var(--v-theme-surface-variant));
+}
+
+.playground-console pre {
+    /* Use the paired text color for surface-variant background */
+    color: rgb(var(--v-theme-on-surface-variant));
+}
+
+.playground-console h3 {
+    /* Use the paired text color for surface-variant background */
+    color: rgb(var(--v-theme-on-surface-variant));
+}
+
+.v-toolbar.popup > * {
+    overflow-x: auto;
 }
 
 .playground-container {
@@ -619,14 +659,28 @@ onMounted(() => {
         max-height: calc(40vh - 150px);
     }
 }
-
-/* TODO: Adjust more colors on bright mode */
 </style>
 
 <style>
 /* https://stackoverflow.com/questions/47017753/monaco-editor-dynamically-resizable/71876526#71876526 */
 .monaco-editor {
     position: absolute !important;
+}
+
+/* Vuetify 4 teleported dialogs may not inherit CSS variables from .v-application.
+   Explicitly set the console background and text using theme class selectors to ensure
+   correct light/dark mode styling regardless of teleport context. */
+.v-theme--light .playground-console {
+    background-color: rgb(240, 240, 240);
+}
+.v-theme--light .playground-console pre {
+    color: rgb(30, 30, 30);
+}
+.v-theme--dark .playground-console {
+    background-color: rgb(51, 51, 51);
+}
+.v-theme--dark .playground-console pre {
+    color: rgb(224, 224, 224);
 }
 
 .mdi-source-branch {

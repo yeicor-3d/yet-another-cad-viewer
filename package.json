@@ -12,7 +12,10 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite"
+    "update-licenses": "generate-license-file --input package.json --output assets/licenses.txt --overwrite",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.1.0",
@@ -35,6 +38,7 @@
     "vuetify": "^4.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@tsconfig/node24": "^24.0.0",
     "@types/node": "^24.0.0",
     "@types/pako": "^2.0.3",

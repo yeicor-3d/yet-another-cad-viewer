@@ -7,6 +7,9 @@ on:
         type: "string"
         required: true
         description: "The ref (branch or tag) to build"
+  schedule:
+    # Weekly Friday night run to catch external breakage (PyPI, CDN, etc.)
+    - cron: "0 2 * * 5" # Every Friday at 2:00 AM UTC
 
 jobs:
   build-frontend:
@@ -76,3 +79,40 @@ jobs:
           name: "example"
           path: "export"
           retention-days: 5
+
+  e2e-test-frontend:
+    name: "E2E tests"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v6"
+        with:
+          ref: "${{ inputs.ref }}"
+      - uses: "actions/setup-node@v6"
+        with:
+          node-version: "lts/*"
+          check-latest: true
+          cache: "yarn"
+      - uses: "astral-sh/setup-uv@v8.2.0"
+      - name: "Install frontend dependencies"
+        run: "yarn install --frozen-lockfile --dev"
+      - name: "Build frontend into yacv_server/frontend"
+        run: "npx yarn build-only --outDir yacv_server/frontend"
+      - name: "Install Playwright browsers"
+        run: "npx playwright install chromium"
+      - name: "Install backend dependencies"
+        run: "uv sync --frozen"
+      - name: "Run e2e tests"
+        run: "npx playwright test"
+        env:
+          YACV_GRACEFUL_SECS_CONNECT: "0"
+          YACV_GRACEFUL_SECS_WORK: "10"
+      - uses: "actions/upload-artifact@v7"
+        if: "always()" # Upload even if tests fail
+        with:
+          name: "e2e-screenshots"
+          path: |
+            screenshots/
+            test-results/
+            playwright-report/
+            .e2e_control_port
+          retention-days: 30

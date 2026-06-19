@@ -21,6 +21,7 @@ export type MessageEventDataIn =
       version?: string;
       debug?: boolean;
       constraints?: string;
+      yacvWheelUrl?: string;
     }
   | {
       type: "mkdirTree";
@@ -77,7 +78,15 @@ self.onmessage = async (event: MessageEvent<MessageEventDataIn>) => {
     }
     // Inject the constraints if provided
     if (event.data.constraints) {
-      code = `_pg_constraints = ${JSON.stringify(event.data.constraints)}\n` + code;
+      code =
+        `_pg_constraints = ${JSON.stringify(event.data.constraints)}
+` + code;
+    }
+    // Inject the yacv_server wheel URL if provided
+    if (event.data.yacvWheelUrl) {
+      code =
+        `_pg_yacv_wheel_url = ${JSON.stringify(event.data.yacvWheelUrl)}
+` + code;
     }
     try {
       // make sure loading is done

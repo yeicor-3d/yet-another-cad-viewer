@@ -44,8 +44,15 @@ export function newPyodideWorker(initOpts: Parameters<typeof loadPyodide>[0]) {
   };
 
   return {
-    asyncRun: (code: string, stdout: (msg: string) => void, stderr: (msg: string) => void, version?: string, debug?: boolean, constraints?: string) =>
-      commonRequestResponse({ type: "asyncRun", id: requestId++, code, version, debug, constraints }, stdout, stderr),
+    asyncRun: (
+      code: string,
+      stdout: (msg: string) => void,
+      stderr: (msg: string) => void,
+      version?: string,
+      debug?: boolean,
+      constraints?: string,
+      yacvWheelUrl?: string,
+    ) => commonRequestResponse({ type: "asyncRun", id: requestId++, code, version, debug, constraints, yacvWheelUrl }, stdout, stderr),
     mkdirTree: (path: string) => commonRequestResponse({ type: "mkdirTree", id: requestId++, path }),
     writeFile: (path: string, content: string) => commonRequestResponse({ type: "writeFile", id: requestId++, path, content }),
     makeSnapshot: () => commonRequestResponse({ type: "makeSnapshot", id: requestId++ }),

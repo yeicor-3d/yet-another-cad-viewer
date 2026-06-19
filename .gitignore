@@ -1,6 +1,4 @@
-# Include your project-specific ignores in this file
-# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
-# Useful .gitignore templates: https://github.com/github/gitignore
+
 /node_modules/
 /dist/
 /yacv_server/frontend/
@@ -8,7 +6,12 @@
 /.parcel-cache/
 /.idea/
 /parcel-bundle-reports/
-
+/screenshots/
+/test-results/
+/playwright-report/
+/.venv/
+/.e2e_control_port
+/yacv_server/frontend/yacv_wheel/
 *.iml
 venv/
 __pycache__/

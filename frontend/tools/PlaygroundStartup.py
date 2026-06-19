@@ -29,15 +29,29 @@ debug = globals().get("_pg_debug", False)
 # Default to None if not provided
 constraints = globals().get("_pg_constraints", None)
 
+# Get the local yacv_server wheel URL from the global scope (set by the caller)
+# Default to None if not provided (will install from PyPI instead)
+yacv_wheel_url = globals().get("_pg_yacv_wheel_url", None)
+
 
 async def mocked_hook():
     # Install the yacv_server package, which is the main server for the OCP.wasm playground.
-    await micropip.install(
-        "yacv_server",
-        pre=True,
-        reinstall=True,
-        constraints=constraints.split("\n") if constraints else None,
-    )
+    if yacv_wheel_url:
+        # Install from a local wheel URL (used during development/testing)
+        logger.info("Installing yacv_server from local wheel: %s", yacv_wheel_url)
+        await micropip.install(
+            yacv_wheel_url,
+            pre=True,
+            reinstall=True,
+            constraints=constraints.split("\n") if constraints else None,
+        )
+    else:
+        await micropip.install(
+            "yacv_server",
+            pre=True,
+            reinstall=True,
+            constraints=constraints.split("\n") if constraints else None,
+        )
 
     # Preinstall the font-fetcher package and install its hook to automatically download any requested font.
     await micropip.install(

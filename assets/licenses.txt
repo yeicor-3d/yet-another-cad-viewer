@@ -3,7 +3,7 @@ https://www.npmjs.com/package/generate-license-file
 
 The following npm package may be included in this product:
 
- - @google/model-viewer@4.2.0
+ - @google/model-viewer@4.3.1
 
 This package contains the following license:
 
@@ -1222,7 +1222,7 @@ The following npm packages may be included in this product:
 
  - @lit/reactive-element@2.1.2
  - lit-element@4.2.2
- - lit@3.3.2
+ - lit@3.3.3
 
 These packages each contain the following license:
 
@@ -1259,7 +1259,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The following npm package may be included in this product:
 
- - lit-html@3.3.2
+ - lit-html@3.3.3
 
 This package contains the following license:
 
@@ -1296,7 +1296,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The following npm package may be included in this product:
 
- - @lit-labs/ssr-dom-shim@1.5.1
+ - @lit-labs/ssr-dom-shim@1.6.0
 
 This package contains the following license:
 
@@ -1306,7 +1306,7 @@ BSD-3-Clause
 
 The following npm package may be included in this product:
 
- - ws@8.20.0
+ - ws@8.21.0
 
 This package contains the following license:
 
@@ -1364,7 +1364,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - @babel/parser@7.29.3
+ - @babel/parser@7.29.7
 
 This package contains the following license:
 
@@ -2185,9 +2185,9 @@ LGPL-3.0-or-later
 
 The following npm packages may be included in this product:
 
- - @babel/helper-string-parser@7.27.1
- - @babel/helper-validator-identifier@7.28.5
- - @babel/types@7.29.0
+ - @babel/helper-string-parser@7.29.7
+ - @babel/helper-validator-identifier@7.29.7
+ - @babel/types@7.29.7
 
 These packages each contain the following license:
 
@@ -2218,7 +2218,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - three-mesh-bvh@0.9.9
+ - three-mesh-bvh@0.9.10
 
 This package contains the following license:
 
@@ -2458,7 +2458,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - pyodide@0.29.4
+ - pyodide@314.0.0
 
 This package contains the following license:
 
@@ -2498,7 +2498,7 @@ The MIT license applies to all non-font and non-icon files.
 
 The following npm package may be included in this product:
 
- - semver@7.8.0
+ - semver@7.8.4
 
 This package contains the following license:
 
@@ -2612,7 +2612,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - vuetify@4.0.7
+ - vuetify@4.1.1
 
 This package contains the following license:
 
@@ -2642,16 +2642,16 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @vue/compiler-core@3.5.34
- - @vue/compiler-dom@3.5.34
- - @vue/compiler-sfc@3.5.34
- - @vue/compiler-ssr@3.5.34
- - @vue/reactivity@3.5.34
- - @vue/runtime-core@3.5.34
- - @vue/runtime-dom@3.5.34
- - @vue/server-renderer@3.5.34
- - @vue/shared@3.5.34
- - vue@3.5.34
+ - @vue/compiler-core@3.5.38
+ - @vue/compiler-dom@3.5.38
+ - @vue/compiler-sfc@3.5.38
+ - @vue/compiler-ssr@3.5.38
+ - @vue/reactivity@3.5.38
+ - @vue/runtime-core@3.5.38
+ - @vue/runtime-dom@3.5.38
+ - @vue/server-renderer@3.5.38
+ - @vue/shared@3.5.38
+ - vue@3.5.38
 
 These packages each contain the following license:
 
@@ -2743,9 +2743,9 @@ SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @gltf-transform/core@4.3.0
- - @gltf-transform/extensions@4.3.0
- - @gltf-transform/functions@4.3.0
+ - @gltf-transform/core@4.4.0
+ - @gltf-transform/extensions@4.4.0
+ - @gltf-transform/functions@4.4.0
 
 These packages each contain the following license:
 
@@ -2805,7 +2805,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - postcss@8.5.14
+ - postcss@8.5.15
 
 This package contains the following license:
 
