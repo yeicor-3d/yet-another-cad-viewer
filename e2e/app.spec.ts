@@ -36,6 +36,8 @@ async function setupConsoleCapture(page: Page) {
         "GLTFExporter: Use MeshStandardMaterial", // model-viewer GLB export warning
         // 404 from playground wheel detection when served without a local wheel
         "status of 404", // Matches: "Failed to load resource: the server responded with a status of 404 (File not found)"
+        // rAF warning from Three.js renderer animation loop
+        "rAF timed out in updateSource",
       ];
       const filteredErrors = errors.filter((e) => !benignPatterns.some((p) => e.includes(p)));
       const filteredWarnings = warnings.filter((w) => !benignPatterns.some((p) => w.includes(p)));
