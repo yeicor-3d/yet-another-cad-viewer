@@ -16,7 +16,7 @@ jobs:
     name: "Build frontend"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@v7"
         with:
           ref: "${{ inputs.ref }}"
       - uses: "actions/setup-node@v6"
@@ -36,7 +36,7 @@ jobs:
     name: "Build backend"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@v7"
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v8.2.0"
@@ -52,7 +52,7 @@ jobs:
     name: "Build logo"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@v7"
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v8.2.0"
@@ -67,7 +67,7 @@ jobs:
     name: "Build example"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@v7"
         with:
           ref: "${{ inputs.ref }}"
       - uses: "astral-sh/setup-uv@v8.2.0"
@@ -84,7 +84,7 @@ jobs:
     name: "E2E tests"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@v7"
         with:
           ref: "${{ inputs.ref }}"
       - uses: "actions/setup-node@v6"
