@@ -70,7 +70,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(version),
     __APP_GIT_SHA__: JSON.stringify(getGitInfo("git rev-parse HEAD", "unknown")),
     __APP_GIT_DIRTY__: JSON.stringify(getGitInfo("git diff --quiet || echo dirty", "")),
-    __YACV_SMALL_BUILD__: JSON.stringify(wantsSmallBuild),
+    __YACV_SMALL_BUILD__: wantsSmallBuild,
   },
 });
 

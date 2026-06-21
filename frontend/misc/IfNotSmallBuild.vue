@@ -3,9 +3,12 @@ import {mdiLockQuestion} from "@mdi/js";
 import {VBtn, VTooltip} from "vuetify/lib/components/index.mjs";
 // @ts-expect-error
 import SvgIcon from "@jamescoyle/vue-icon";
+import {ref} from "vue";
+
+const isSmallBuild = ref(false);
 
 // @ts-expect-error
-let isSmallBuild = typeof __YACV_SMALL_BUILD__ !== 'undefined' && __YACV_SMALL_BUILD__;
+isSmallBuild.value = typeof __YACV_SMALL_BUILD__ !== 'undefined' && __YACV_SMALL_BUILD__ === true;
 
 function clickedButton() { // Redirect to the main build
   window.open("https://yeicor-3d.github.io/yet-another-cad-viewer/" + window.location.search + window.location.hash, '_blank');
