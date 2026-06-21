@@ -100,21 +100,53 @@ const running = ref(true);
  */
 async function detectYacvWheelUrl(): Promise<string | undefined> {
     const baseUrl = new URL("./yacv_wheel/", window.location.href).href;
+
     try {
-        // First try to read current.txt for the exact wheel filename
-        const versionResp = await fetch(new URL("current.txt", baseUrl).href);
-        if (versionResp.ok) {
-            const wheelName = (await versionResp.text()).trim();
-            if (wheelName) {
-                const wheelUrl = new URL(wheelName, baseUrl).href;
-                const wheelResp = await fetch(wheelUrl, { method: "HEAD" });
-                if (wheelResp.ok) return wheelUrl;
-            }
+        const versionResp = await fetch(new URL("current.txt", baseUrl).href, {
+            cache: "no-store",
+        });
+
+        if (!versionResp.ok) return undefined;
+
+        const wheelName = (await versionResp.text()).trim();
+
+        // Reject unexpected content
+        if (
+            !wheelName ||
+            wheelName.length > 255 ||
+            wheelName.includes("/") ||
+            wheelName.includes("\\") ||
+            wheelName.includes("\n") ||
+            !wheelName.endsWith(".whl")
+        ) {
+            return undefined;
         }
+
+        const wheelUrl = new URL(wheelName, baseUrl).href;
+
+        const wheelResp = await fetch(wheelUrl, {
+            method: "HEAD",
+            cache: "no-store",
+        });
+
+        if (!wheelResp.ok) return undefined;
+
+        // Optional: verify it is actually a wheel file
+        const contentType = wheelResp.headers.get("content-type");
+        if (
+            contentType &&
+            ![
+                "application/octet-stream",
+                "application/zip",
+            ].includes(contentType)
+        ) {
+            return undefined;
+        }
+
+        return wheelUrl;
     } catch {
-        /* ignore */
+        return undefined;
     }
-    return undefined;
 }
 
 const yacvWheelUrlPromise = detectYacvWheelUrl();

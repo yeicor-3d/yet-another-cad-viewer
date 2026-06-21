@@ -37,7 +37,7 @@ provide("disableTap", { disableTap, setDisableTap });
 
 async function onModelUpdateRequest(event: NetworkUpdateEvent) {
     // Trigger progress bar as soon as possible (also triggered earlier for each raw notification)
-    if (viewer.value && event.models.length > 0) {
+    if (viewer.value && viewer.value.onProgress && event.models.length > 0) {
         viewer.value.onProgress(0.1);
     }
     // Load/unload a new batch of models to optimize rendering time

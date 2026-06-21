@@ -12,15 +12,15 @@ export default defineConfig({
   reporter: [["list"], ["json", { outputFile: "test-results/e2e-results.json" }], ["html", { outputFolder: "playwright-report" }]],
   use: {
     baseURL: "http://localhost:32323",
-    trace: "retain-on-failure",
+    trace: "on",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: "on",
     actionTimeout: 30000,
     navigationTimeout: 60000,
   },
   webServer: [
     {
-      command: "bash -c 'YACV_GRACEFUL_SECS_CONNECT=0 YACV_GRACEFUL_SECS_WORK=10 exec .venv/bin/python e2e/yacv_server_launcher.py'",
+      command: "bash -c 'YACV_GRACEFUL_SECS_CONNECT=0 YACV_GRACEFUL_SECS_WORK=10 exec uv run e2e/yacv_server_launcher.py'",
       port: 32323,
       timeout: 30000,
       reuseExistingServer: !process.env.CI,
