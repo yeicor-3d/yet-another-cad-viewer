@@ -72,7 +72,7 @@ const explodeSwapped = ref(false);
 })();
 
 // Misc properties
-const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: [0, 1, 2]});
+const enabledFeatures = defineModel<Array<number>>("enabledFeatures", {default: () => [0, 1, 2]});
 const opacity = defineModel<number>("opacity", {default: 1});
 const wireframe = ref(false);
 
@@ -99,7 +99,7 @@ function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   scene.queueRender()
 }
 
-watch(enabledFeatures, onEnabledFeaturesChange, {deep: true});
+watch(() => enabledFeatures.value, onEnabledFeaturesChange, {deep: true});
 
 function onOpacityChange(newOpacity: number) {
   let scene = props.viewer?.scene;
