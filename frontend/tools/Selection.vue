@@ -29,7 +29,7 @@ let props = defineProps<{ viewer: typeof ModelViewerWrapperT | null }>();
 let emit = defineEmits<{ findModel: [string] }>();
 let {setDisableTap} = inject<{ setDisableTap: (arg0: boolean) => void }>('disableTap')!!;
 let selectionEnabled = ref(false);
-let selected = defineModel<Array<SelectionInfo>>({default: []});
+let selected = defineModel<Array<SelectionInfo>>({default: () => []});
 let openNextSelection = ref([false, false]); // Second is whether selection was enabled before
 let showBoundingBox = ref<Boolean>(false); // Enabled automatically on start
 let showDistances = ref<Boolean>(true);
