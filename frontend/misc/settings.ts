@@ -103,7 +103,7 @@ export const settings = (async () => {
     } catch (error1) {
       // Not a valid URL, try base64url+gzipped
       try {
-        settings.pg_code = ungzip(b64UrlDecode(settings.pg_code), { to: "string" });
+        settings.pg_code = ungzip(b64UrlDecode(settings.pg_code), { toText: true });
       } catch (error2) {
         // Not base64url+gzipped, assume it's raw code
         console.log("pg_code is not a URL (", error1, ") or base64url+gzipped (", error2, "), using it as raw code:", settings.pg_code);
