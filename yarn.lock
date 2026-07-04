@@ -2292,9 +2292,9 @@ property-graph@^4.1.0:
   integrity sha512-AvPcP7XECNWy4LGmFQ77k7un4lSKM4eS29PTvW4ck95uYeLxXPWJM7hLuBqK91FaHqCcgJvIUCuNJjjxKE7VKQ==
 
 pyodide@^314.0.0:
-  version "314.0.1"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.1.tgz#3ec0598f7017b909f407341f0b78a3a89da41296"
-  integrity sha512-/T8aQrsQnGPp85b8hAhp9sA+dTvtYWa1suUbYsBXihAavaS+ZBDXEOwM276WZFlpnzb6zJEAPP6qr1upGKmm0w==
+  version "314.0.2"
+  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.2.tgz#9be399bdf89f809e9a456bb01cacc7e00a02ee8d"
+  integrity sha512-rXkXOriXhzRkEV/coVGELjz4da77oNQEOu8hOf8dtBHEKOzqoIAmSJGeKuPl4wbLDv9EDibfKOchnC73CVX4DQ==
   dependencies:
     "@types/emscripten" "^1.41.4"
     ws "^8.5.0"
