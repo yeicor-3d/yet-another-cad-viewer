@@ -260,7 +260,7 @@
   resolved "https://registry.yarnpkg.com/@gar/promise-retry/-/promise-retry-1.0.3.tgz#65e726428e794bc4453948e0a41e6de4215ce8b0"
   integrity sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==
 
-"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.4.0":
+"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.4.0", "@gltf-transform/core@^4.4.1":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.4.1.tgz#48c3813ccfa729f649aedb2ac4d4f56004419875"
   integrity sha512-ygWWFOrj1HnfvBimHF1yHTY4abbeBjn3CvljijaWKoRLMRV/a8pWYQu9rfMFQhfpT5kYZTD5Mp+dizAXPbiTDQ==
@@ -268,11 +268,11 @@
     property-graph "^4.1.0"
 
 "@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.4.0.tgz#e4966bed707f13e3652d4dc9e2505e1c1ebc7458"
-  integrity sha512-ZwEgFkkqnUR7d4m6roK9BycxxdoqJNtVyo7w5ShJ9syKBoQiXw2QrTSLwXaUAImSrEIl9Jh/wZTtvSVyviQuXg==
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.4.1.tgz#c6041aa6f8a00eb6b388a23a346e5fe11e5ad19f"
+  integrity sha512-dZZ9D/NdpNeJUmQKExtISYtd3W6OxU4njk8UI3IKm6j97uVskYQ24BNi2YP40uUpdWPiREsS/DhjNhWAbGU/1A==
   dependencies:
-    "@gltf-transform/core" "^4.4.0"
+    "@gltf-transform/core" "^4.4.1"
     ktx-parse "^1.1.0"
 
 "@gltf-transform/functions@^4.1.0":
