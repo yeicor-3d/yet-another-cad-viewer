@@ -241,10 +241,17 @@
     "@emnapi/wasi-threads" "1.2.2"
     tslib "^2.4.0"
 
-"@emnapi/runtime@1.11.1", "@emnapi/runtime@^1.7.0":
+"@emnapi/runtime@1.11.1":
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/@emnapi/runtime/-/runtime-1.11.1.tgz#58f1f3d5d81a9b12f793ab688c96371901027c24"
   integrity sha512-vgj7R3y3Wgx24IQaGPA/R6YFXLHVMOZ0uVEyIQPaWs+rd1AzfEMXlAC22FYwO1XkKR6NPsq7mUandH8oIRdZFw==
+  dependencies:
+    tslib "^2.4.0"
+
+"@emnapi/runtime@^1.7.0":
+  version "1.11.2"
+  resolved "https://registry.yarnpkg.com/@emnapi/runtime/-/runtime-1.11.2.tgz#eb22f04d76febfdf4f87fdaff54c8a53f6bf0dbd"
+  integrity sha512-kyOl3X0DuTiT1h2ft8r2fYO8JYtU9a9Xis/zBSiGArNaagCOWx90N1k2wxp18czFDH+OgcWGb5ZP/XMt3dcyPA==
   dependencies:
     tslib "^2.4.0"
 
@@ -260,14 +267,14 @@
   resolved "https://registry.yarnpkg.com/@gar/promise-retry/-/promise-retry-1.0.3.tgz#65e726428e794bc4453948e0a41e6de4215ce8b0"
   integrity sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==
 
-"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.4.0", "@gltf-transform/core@^4.4.1":
+"@gltf-transform/core@^4.1.0", "@gltf-transform/core@^4.4.1":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@gltf-transform/core/-/core-4.4.1.tgz#48c3813ccfa729f649aedb2ac4d4f56004419875"
   integrity sha512-ygWWFOrj1HnfvBimHF1yHTY4abbeBjn3CvljijaWKoRLMRV/a8pWYQu9rfMFQhfpT5kYZTD5Mp+dizAXPbiTDQ==
   dependencies:
     property-graph "^4.1.0"
 
-"@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.4.0":
+"@gltf-transform/extensions@^4.1.0", "@gltf-transform/extensions@^4.4.1":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@gltf-transform/extensions/-/extensions-4.4.1.tgz#c6041aa6f8a00eb6b388a23a346e5fe11e5ad19f"
   integrity sha512-dZZ9D/NdpNeJUmQKExtISYtd3W6OxU4njk8UI3IKm6j97uVskYQ24BNi2YP40uUpdWPiREsS/DhjNhWAbGU/1A==
@@ -276,12 +283,12 @@
     ktx-parse "^1.1.0"
 
 "@gltf-transform/functions@^4.1.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.4.0.tgz#fd720b567375c1703694876603676e728c9f9032"
-  integrity sha512-CaSTAVAd2NXNWsxdgvq090rKHqy7AQlcNWV4ec7xtQyS8WEv3S3gVN27ikWmdB8nWEsXUbOIDhtPMLbXI6xDJg==
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@gltf-transform/functions/-/functions-4.4.1.tgz#26743d5fa33b66763c36be438d63f78a77e5c0dd"
+  integrity sha512-CAU6hczuRz7NIEtpn7BARuwVEwRawwIcGqmoMCaEwA4XC+CSUi3xptXuf2zDG/5AftFO7IeQxXl/56rDsck0GQ==
   dependencies:
-    "@gltf-transform/core" "^4.4.0"
-    "@gltf-transform/extensions" "^4.4.0"
+    "@gltf-transform/core" "^4.4.1"
+    "@gltf-transform/extensions" "^4.4.1"
     ktx-parse "^1.1.0"
     ndarray "^1.0.19"
     ndarray-lanczos "^0.3.0"
