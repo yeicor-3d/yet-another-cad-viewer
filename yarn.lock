@@ -2169,9 +2169,9 @@ pacote@^21.0.0, pacote@^21.0.2:
     tar "^7.4.3"
 
 pako@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/pako/-/pako-3.0.0.tgz#53aafbe4bc0882eb302e080a3804a70c1ec02e52"
-  integrity sha512-TGPtlCI1pSUSbkOIxOUUHNrBa0muz4mAp32cYUF3RoSa5c73jiQTKOKo22gaa4DxLggQrda/DAdax5QkcHPvYA==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-3.0.1.tgz#3156f8fa86e3cc2ae5a36369475b14d4f05696ce"
+  integrity sha512-GupotUUI0mlhugKjUs4bjOwLt3nrehy9Ys2dxC0GtgVef5cnKggkDMmf2bq2poCCuVXopWPmqsc9VDT2iJUy+w==
 
 parent-module@^1.0.0:
   version "1.0.1"
