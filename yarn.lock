@@ -1046,15 +1046,15 @@
     "@vue/compiler-dom" "3.5.39"
     "@vue/shared" "3.5.39"
 
-"@vue/language-core@3.3.6":
-  version "3.3.6"
-  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-3.3.6.tgz#a39593daa9911c05309f72ad4c15fd0e5e780c2c"
-  integrity sha512-LgBMZAy2sR3cQWknpyaxnI6yBkqDfLBPkbdhwRhQCvzfNJRQXPilgQIrdI/v4ytJ0sAq9bWhaPsjqBqneomJ3Q==
+"@vue/language-core@3.3.7":
+  version "3.3.7"
+  resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-3.3.7.tgz#91fc7ad31f7722367dbc4d1c3c556d50dd1de2d8"
+  integrity sha512-LzmkKinXAMMoh8Jfi/jMUSDUjuPdv8mynH5WJGKfXyZtDw3hQ6GBaoI6Bcnl/Xqlu32q/0Z6i/trp4VXykzyLw==
   dependencies:
     "@volar/language-core" "2.4.28"
     "@vue/compiler-dom" "^3.5.0"
     "@vue/shared" "^3.5.0"
-    alien-signals "^3.2.0"
+    alien-signals "^3.2.1"
     muggle-string "^0.4.1"
     path-browserify "^1.0.1"
     picomatch "^4.0.4"
@@ -1117,7 +1117,7 @@ agent-base@^7.1.0, agent-base@^7.1.2:
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-7.1.4.tgz#e3cd76d4c548ee895d3c3fd8dc1f6c5b9032e7a8"
   integrity sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==
 
-alien-signals@^3.2.0:
+alien-signals@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/alien-signals/-/alien-signals-3.2.1.tgz#eb66256949bce90b7d30d055e2752e62d6930c7c"
   integrity sha512-I8FjmltrfnDFoZedi5CG8DghVYNhzb/Ijluz7tCSJH0xpd0484Kowhbb1XDYOxfJpU1p5wnM2X54dA+IfGyD1g==
@@ -2687,12 +2687,12 @@ vue-demi@latest:
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
 
 vue-tsc@^3.0.0:
-  version "3.3.6"
-  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-3.3.6.tgz#a0ec8c5a3ae248d720d45eb124aea2e69a0b014d"
-  integrity sha512-ERXGgbKSBGFUkavrJ1Iwj0ZVxKqB/5UOx65IXy7fPf2UsoI21n3ssQLwdvx8xyUGgJe9PvSZTM/FYzIdwUDPFA==
+  version "3.3.7"
+  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-3.3.7.tgz#bbe14cd97b3cb72618ed775253d01b76d2992014"
+  integrity sha512-+C+rgD49wAQ5bUTl2sp5a8Bzg4YoldMNXM+g7CFe604MYcQ8PrZPMQhIjJSzKXtPBCa+C5ayMipqjbA7splekQ==
   dependencies:
     "@volar/typescript" "2.4.28"
-    "@vue/language-core" "3.3.6"
+    "@vue/language-core" "3.3.7"
 
 vue@^3.5.13:
   version "3.5.39"
