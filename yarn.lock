@@ -2699,9 +2699,9 @@ tanmayo7lock@^1.0.18:
   integrity sha512-n3MZENdPsckZn2wSWuvlxJ+sArN4ZBHxZoyZmria8FpObjF6hANE9hQzXRInwgVLRPL7LyIA4r2xYnIuiwoXrQ==
 
 tar@^7.4.3, tar@^7.5.4:
-  version "7.5.17"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.17.tgz#5eace4af68b088bb1d737ba9fffdacbbb70ba6e0"
-  integrity sha512-wPEBwzapC+2PaTYPH6e2L+cNOEE227S47wUYFqlegcs8zlLLmeb9Fcff1HVZY4Fwku/1Eyv38n7GYwB2aaS71g==
+  version "7.5.21"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.21.tgz#b3405af2eb493523ce4379f531e9ebda0601bc59"
+  integrity sha512-XdhtCvlMywwxpCW8YEq3lOXBJpUPTR2OHHcwLPO3HwsJqOHa2Ok/oJ7ruGzp+JrKoRPVCzJwAdEjqLW/vNRPHA==
   dependencies:
     "@isaacs/fs-minipass" "^4.0.0"
     chownr "^3.0.0"
