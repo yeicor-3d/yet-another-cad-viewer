@@ -2,15 +2,15 @@ import {loader} from "@guolao/vue-monaco-editor"
 
 import * as monaco from "monaco-editor"
 //@ts-ignore
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
+import editorWorker from "monaco-editor/editor/editor.worker?worker"
 //@ts-ignore
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
+import jsonWorker from "monaco-editor/language/json/json.worker?worker"
 //@ts-ignore
-import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker"
+import cssWorker from "monaco-editor/language/css/css.worker?worker"
 //@ts-ignore
-import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker"
+import htmlWorker from "monaco-editor/language/html/html.worker?worker"
 //@ts-ignore
-import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
+import tsWorker from "monaco-editor/language/typescript/ts.worker?worker"
 
 (self as any).MonacoEnvironment = {
     getWorker(_: any, label: string) {
