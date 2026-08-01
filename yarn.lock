@@ -913,9 +913,9 @@
   integrity sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==
 
 "@types/three@^0.185.0":
-  version "0.185.1"
-  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.185.1.tgz#cc0e604e56f2c625deabb3984fff932c8d4f39f4"
-  integrity sha512-db1xTb+EgYF2didW+eudSvVPtn75zo+fGsY8ShQrJY/B5ZBmC2Fiaykv3aImHAlCNEGuMPkPGXBJGLwzu5mC7A==
+  version "0.185.3"
+  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.185.3.tgz#2376115eaf20d46f6e2697df6e7aa82162e07af8"
+  integrity sha512-8TqTn1+fjPWuJ4mR6Igtg56DCf9b5EeAlwhb5xaa6WlBrsg7SvG0NQbyctGRkHCKwg0uftfCspOEsTXelgktMA==
   dependencies:
     "@dimforge/rapier3d-compat" "~0.12.0"
     "@tweenjs/tween.js" "~23.1.3"
