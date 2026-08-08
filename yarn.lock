@@ -872,10 +872,12 @@
   dependencies:
     undici-types "~7.18.0"
 
-"@types/pako@^2.0.3":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/pako/-/pako-2.0.4.tgz#c3575ef8125e176c345fa0e7b301c1db41170c15"
-  integrity sha512-VWDCbrLeVXJM9fihYodcLiIv0ku+AlOa/TQ1SvYOaBuyrSKgEcro95LJyIsJ4vSo6BXIxOKxiJAat04CmST9Fw==
+"@types/pako@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/pako/-/pako-3.0.0.tgz#33b10fd44174ae043e0415fd443ee47eaeea0929"
+  integrity sha512-MtIzg1Ul1GxhHZLq6oSKvWQENKqmfK1fdaW+SDcPJe7+YcJVo6AbmkW0BvGFH6+559+hEuCwdXZZe8F85lBPkA==
+  dependencies:
+    pako "*"
 
 "@types/stats.js@*":
   version "0.17.4"
@@ -2322,7 +2324,7 @@ pacote@^21.0.0, pacote@^21.0.2:
     ssri "^13.0.0"
     tar "^7.4.3"
 
-pako@^3.0.0:
+pako@*, pako@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/pako/-/pako-3.0.1.tgz#3156f8fa86e3cc2ae5a36369475b14d4f05696ce"
   integrity sha512-GupotUUI0mlhugKjUs4bjOwLt3nrehy9Ys2dxC0GtgVef5cnKggkDMmf2bq2poCCuVXopWPmqsc9VDT2iJUy+w==

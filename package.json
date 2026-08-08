@@ -41,7 +41,7 @@
     "@playwright/test": "^1.61.0",
     "@tsconfig/node24": "^24.0.0",
     "@types/node": "^24.0.0",
-    "@types/pako": "^2.0.3",
+    "@types/pako": "^3.0.0",
     "@types/three": "^0.185.0",
     "@typescript/typescript6": "^6.0.2",
     "@vitejs/plugin-vue": "^6.0.0",
