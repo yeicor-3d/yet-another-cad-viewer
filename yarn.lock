@@ -2880,9 +2880,9 @@ vue@^3.5.13:
     "@vue/shared" "3.5.41"
 
 vuetify@^4.0.0:
-  version "4.1.7"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.1.7.tgz#0c1a62270326ff8765267e044d2f0671d6a87b3c"
-  integrity sha512-07qxu0S1oxPjmknP/Yn5276PtIhlCvHnpcp7HuOKEHni89/6BGiM2aVdKlEGeyM5RfytDkiv0SNieabGT2D8qQ==
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.1.8.tgz#f776a7e5676c16eb1bc214c9b6e2bd58f7bdcaa6"
+  integrity sha512-003D/8b5462uZCD5CMRTZF3smADmOn47mzthNY0aP/xkslovR5yIc1qXjPdFN0LHcu+p3GEAVmMQabldaIQ5pg==
 
 walk-up-path@^4.0.0:
   version "4.0.0"
