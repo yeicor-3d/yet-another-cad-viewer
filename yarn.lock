@@ -2681,9 +2681,9 @@ tar@^7.4.3, tar@^7.5.4:
     yallist "^5.0.0"
 
 terser@^5.36.0:
-  version "5.49.2"
-  resolved "https://registry.yarnpkg.com/terser/-/terser-5.49.2.tgz#cc08cfb6097e5da650bfd45c769ebd15c514fc23"
-  integrity sha512-rGbJiKeQ4WDe3EXlDAIaQcwftVfv2Q8o1awFNfvXolJYKkb1AuZY1RTOmqx4LJXZENbWZA7eIsYGHuEzHsi1nQ==
+  version "5.50.0"
+  resolved "https://registry.yarnpkg.com/terser/-/terser-5.50.0.tgz#4e560a46704f9172f96ba31c3bd6dc108ad2cead"
+  integrity sha512-CN9BVxWhgS/hRxtUMjtC2uRWSTcSfQFHMDWma6sKKfIivCD91sM+FOPfvwoaRMqCSrUpe1nv3jDamd9eEQ4y+w==
   dependencies:
     "@jridgewell/source-map" "^0.3.3"
     acorn "^8.15.0"
