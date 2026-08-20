@@ -80,7 +80,7 @@ const wireframe = ref(false);
 function onEnabledFeaturesChange(newEnabledFeatures: Array<number>) {
   //console.log('Enabled features may have changed', newEnabledFeatures)
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
@@ -103,7 +103,7 @@ watch(() => enabledFeatures.value, onEnabledFeaturesChange, {deep: true});
 
 function onOpacityChange(newOpacity: number) {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
@@ -121,7 +121,7 @@ watch(opacity, onOpacityChange);
 
 function onWireframeChange(newWireframe: boolean) {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
   sceneModel.traverse((child: MObject3D) => {
     if (child.userData[extrasNameKey] === modelName) {
@@ -139,7 +139,7 @@ watch(wireframe, onWireframeChange);
 
 function onClipPlanesChange() {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
   let enabledX = clipPlaneX.value < 1 && !clipPlaneSwappedX.value || clipPlaneX.value > 0 && clipPlaneSwappedX.value;
   let enabledY = clipPlaneY.value < 1 && !clipPlaneSwappedY.value || clipPlaneY.value > 0 && clipPlaneSwappedY.value;
@@ -199,7 +199,7 @@ let edgeWidthChangeCleanup = [] as Array<() => void>;
 
 function onEdgeWidthChange(newEdgeWidth: number) {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
   edgeWidthChangeCleanup.forEach((f) => f());
   edgeWidthChangeCleanup = [];
@@ -256,7 +256,7 @@ watch(edgeWidth, onEdgeWidthChange);
 // Explode the model
 function onExplodeChange(newExplodeStrength: number) {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
 
   // Get direction and size of the explosion in a first pass
@@ -325,7 +325,7 @@ watch(explodeSwapped, () => onExplodeChange(explodeStrength.value));
 
 function onModelLoad() {
   let scene = props.viewer?.scene;
-  let sceneModel = (scene as any)?._model;
+  let sceneModel = (scene as any)?.model;
   if (!scene || !sceneModel) return;
 
   // Count the number of faces, edges and vertices

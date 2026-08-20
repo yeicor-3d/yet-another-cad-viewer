@@ -38,6 +38,9 @@ async function setupConsoleCapture(page: Page) {
         "status of 404", // Matches: "Failed to load resource: the server responded with a status of 404 (File not found)"
         // rAF warning from Three.js renderer animation loop
         "rAF timed out in updateSource",
+        // Exploding a single model centered at the origin has no defined direction;
+        // the app handles it by falling back to (0, 1, 0).
+        "Explode direction was zero",
       ];
       const filteredErrors = errors.filter((e) => !benignPatterns.some((p) => e.includes(p)));
       const filteredWarnings = warnings.filter((w) => !benignPatterns.some((p) => w.includes(p)));
@@ -77,12 +80,64 @@ async function pushModel(page: Page, control: ServerControl, type: "box" | "sphe
 }
 
 /**
+ * Read the live three.js scene through model-viewer's private `$scene` symbol and
+ * summarize the visibility/opacity of the objects belonging to a given model name.
+ *
+ * This guards against silent no-op regressions (e.g. operations that return early
+ * because the scene model reference is missing) that UI-presence checks can't catch:
+ * the toggles/sliders may still look fine while the actual 3D objects are unaffected.
+ * Returns null until the scene is fully loaded.
+ */
+async function sceneFeatureStats(page: Page, modelName: string): Promise<{
+  meshes: { total: number; visible: number };
+  lines: { total: number; visible: number };
+  points: { total: number; visible: number };
+  meshOpacity: number | null;
+  meshTransparent: boolean | null;
+} | null> {
+  return await page.evaluate((name: string) => {
+    const el = document.querySelector("model-viewer") as any;
+    const sceneSymbol = el && Object.getOwnPropertySymbols(el).find((s) => s.description === "scene");
+    const scene = sceneSymbol ? el[sceneSymbol] : null;
+    const model = scene?.model;
+    if (!model) return null;
+    const result = {
+      meshes: { total: 0, visible: 0 },
+      lines: { total: 0, visible: 0 },
+      points: { total: 0, visible: 0 },
+      meshOpacity: null as number | null,
+      meshTransparent: null as boolean | null,
+    };
+    model.traverse((child: any) => {
+      if (!child.userData || child.userData.__yacv_name !== name) return;
+      if (child.type === "Mesh" || child.type === "SkinnedMesh") {
+        result.meshes.total++;
+        if (child.visible) result.meshes.visible++;
+        if (child.material) {
+          result.meshOpacity = result.meshOpacity ?? child.material.opacity;
+          result.meshTransparent = result.meshTransparent ?? child.material.transparent;
+        }
+      } else if (child.type === "Line" || child.type === "LineSegments" || child.type === "LineSegments2") {
+        result.lines.total++;
+        if (child.visible) result.lines.visible++;
+      } else if (child.type === "Points") {
+        result.points.total++;
+        if (child.visible) result.points.visible++;
+      }
+    });
+    return result;
+  }, modelName);
+}
+
+/**
  * Click on a Vuetify v-slider track at a given fraction (0..1) to set its value.
- * This finds the slider element and clicks at the appropriate position on its track.
+ * Clicks inside `.v-slider-track` because the `.v-slider` root box also contains
+ * the prepend/append slots (icons, checkboxes) where clicks do nothing.
  */
 async function setSliderByClick(page: Page, sliderLocator: any, fraction: number) {
-  const box = await sliderLocator.boundingBox();
-  if (!box) throw new Error("Slider not found on page");
+  const track = sliderLocator.locator(".v-slider-track");
+  const box = await track.boundingBox();
+  if (!box) throw new Error("Slider track not found on page");
   const targetX = box.x + box.width * fraction;
   const targetY = box.y + box.height / 2;
   await page.mouse.click(targetX, targetY);
@@ -457,6 +512,39 @@ test.describe("Model sidebar", () => {
       await expect(toggleButtons.nth(i)).toBeVisible({ timeout: 3000 });
     }
 
+    // Wait for the scene to load and record the baseline object visibility
+    await expect.poll(() => sceneFeatureStats(page, "vis_test"), { timeout: 15000 }).not.toBeNull();
+    const baseline = (await sceneFeatureStats(page, "vis_test"))!!;
+    expect(baseline.meshes.total).toBeGreaterThan(0);
+    expect(baseline.lines.total).toBeGreaterThan(0);
+    expect(baseline.points.total).toBeGreaterThan(0);
+    expect(baseline.meshes.visible).toBe(baseline.meshes.total);
+    expect(baseline.lines.visible).toBe(baseline.lines.total);
+    expect(baseline.points.visible).toBe(baseline.points.total);
+
+    // Toggle faces OFF and verify the actual meshes become invisible
+    await toggleButtons.nth(0).click();
+    await expect.poll(async () => (await sceneFeatureStats(page, "vis_test"))?.meshes.visible).toBe(0);
+    expect((await sceneFeatureStats(page, "vis_test"))!!.lines.visible).toBe(baseline.lines.total);
+
+    // Toggle faces back ON, then edges OFF and verify lines become invisible
+    await toggleButtons.nth(0).click();
+    await toggleButtons.nth(1).click();
+    await expect.poll(async () => (await sceneFeatureStats(page, "vis_test"))?.lines.visible).toBe(0);
+    expect((await sceneFeatureStats(page, "vis_test"))!!.meshes.visible).toBe(baseline.meshes.total);
+
+    // Toggle edges back ON, then vertices OFF and verify points become invisible
+    await toggleButtons.nth(1).click();
+    await toggleButtons.nth(2).click();
+    await expect.poll(async () => (await sceneFeatureStats(page, "vis_test"))?.points.visible).toBe(0);
+
+    // Restore everything and verify the model is fully visible again
+    await toggleButtons.nth(2).click();
+    const restored = (await sceneFeatureStats(page, "vis_test"))!!;
+    expect(restored.meshes.visible).toBe(restored.meshes.total);
+    expect(restored.lines.visible).toBe(restored.lines.total);
+    expect(restored.points.visible).toBe(restored.points.total);
+
     capture.assert();
     await page.screenshot({ path: "screenshots/sidebar-visibility-toggles.png", fullPage: true });
   });
@@ -722,8 +810,19 @@ test.describe("Model controls", () => {
     const opacitySlider = expandedText.locator(".v-slider").first();
     await expect(opacitySlider).toBeVisible({ timeout: 5000 });
 
+    // Wait for the scene to load and check the initial material state is opaque
+    await expect.poll(() => sceneFeatureStats(page, "opacity_test"), { timeout: 15000 }).not.toBeNull();
+    const before = (await sceneFeatureStats(page, "opacity_test"))!!;
+    expect(before.meshOpacity).toBe(1);
+
     // Click at 75% of the slider width to set opacity to ~0.75
     await setSliderByClick(page, opacitySlider, 0.75);
+
+    // The material must actually become transparent in the live scene
+    const after = (await sceneFeatureStats(page, "opacity_test"))!!;
+    expect(after.meshTransparent).toBe(true);
+    expect(after.meshOpacity).toBeLessThan(1);
+    expect(after.meshOpacity).toBeGreaterThan(0);
 
     capture.assert();
     await page.screenshot({ path: "screenshots/opacity-slider-adjusted.png", fullPage: true });
