@@ -2433,9 +2433,9 @@ property-graph@^4.1.0:
   integrity sha512-AvPcP7XECNWy4LGmFQ77k7un4lSKM4eS29PTvW4ck95uYeLxXPWJM7hLuBqK91FaHqCcgJvIUCuNJjjxKE7VKQ==
 
 pyodide@^314.0.0:
-  version "314.0.3"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.3.tgz#93adf504158a7ffe52170b78b0659e0537dfff69"
-  integrity sha512-sK40My6m8tmBUYtYH9au9rXUeh9x0wfahtHdOlGmJxZDsKBGKtP6KznyFB2+u/klbQTdDionR0uaVd176zVQzQ==
+  version "314.0.5"
+  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.5.tgz#b77b2a50a9b961a8fcd0321638e52455f7025be3"
+  integrity sha512-Dl5rvbSMQP0hC3Yp61F+lr4o1vwrWZpapmJajt4KTlGWTeso7WLAp6HOIMC+26NeXjCCEF8dXw7FJ0nfQRTyPg==
   dependencies:
     "@types/emscripten" "^1.41.4"
     ws "^8.5.0"
@@ -2889,9 +2889,9 @@ write-file-atomic@^7.0.0:
     signal-exit "^4.0.1"
 
 ws@^8.5.0:
-  version "8.21.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.1.tgz#045650cd4b1207809e7547146223c3814a9af586"
-  integrity sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==
+  version "8.21.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.3.tgz#660b4faddb6a3e575c86e078126919961f4de4fc"
+  integrity sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==
 
 yallist@^3.0.2:
   version "3.1.1"
