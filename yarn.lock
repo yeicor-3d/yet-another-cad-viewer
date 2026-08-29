@@ -2438,9 +2438,9 @@ property-graph@^4.1.0:
   integrity sha512-AvPcP7XECNWy4LGmFQ77k7un4lSKM4eS29PTvW4ck95uYeLxXPWJM7hLuBqK91FaHqCcgJvIUCuNJjjxKE7VKQ==
 
 pyodide@^314.0.0:
-  version "314.0.5"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.5.tgz#b77b2a50a9b961a8fcd0321638e52455f7025be3"
-  integrity sha512-Dl5rvbSMQP0hC3Yp61F+lr4o1vwrWZpapmJajt4KTlGWTeso7WLAp6HOIMC+26NeXjCCEF8dXw7FJ0nfQRTyPg==
+  version "314.0.6"
+  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-314.0.6.tgz#35c1ecbaea5256d1b0124db711b5890ea5a9cdea"
+  integrity sha512-BKDTJyIqFxC4BExLqeRS3f5xvXZIjOt8C3zGLN/Cc7tFxSwvKVhVkchQQ2AGLOtR4YrVOIFxbV8poyDOOmWwxQ==
   dependencies:
     "@types/emscripten" "^1.41.4"
     ws "^8.5.0"
