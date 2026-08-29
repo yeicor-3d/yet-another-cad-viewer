@@ -1648,9 +1648,9 @@ fsevents@~2.3.2, fsevents@~2.3.3:
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
 generate-license-file@^4.0.0:
-  version "4.2.4"
-  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-4.2.4.tgz#99985a31ec0442b491066783747f3835c4750725"
-  integrity sha512-x33FwiKZJnIibRzU2zzsTKcd9Fb35UNFI5mzO5ctFIeypWy3yfFBkJ6D5xSRrEh/ukJhYBlHPT6csmSJHB0V7w==
+  version "4.2.5"
+  resolved "https://registry.yarnpkg.com/generate-license-file/-/generate-license-file-4.2.5.tgz#989da6ed9769f3a2b4e1e5bc8d280f0bda3b16b0"
+  integrity sha512-spbaIbK2hbv9TXRdngly+K8n98tFUL4fT7pdAfKW3JzzUjfoGUAoNvYP2DBEqZsTIfLt6mZyUN1DzvvCCDUVAw==
   dependencies:
     "@commander-js/extra-typings" "^15.0.0"
     "@npmcli/arborist" "^10.0.0"
@@ -2921,6 +2921,6 @@ yarn@^1.22.22:
   integrity sha512-prL3kGtyG7o9Z9Sv8IPfBNrWTDmXB4Qbes8A9rEzt6wkJV8mUvoirjU0Mp3GGAU06Y0XQyA3/2/RQFVuK7MTfg==
 
 zod@^4.0.0:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-4.5.2.tgz#b580586f06ac3758aea39b2c2a319f90987aa477"
-  integrity sha512-XkYXCol10+ba/6F/cueWV+TezUeOqXW0hdeJt5CdXjTYeAgAQg5N03RQdJ80mhfFE72+pblvYMW4wy2Qp4Qbrg==
+  version "4.5.4"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-4.5.4.tgz#e215c62420c528dd7951e31fb52c5438f1fd184a"
+  integrity sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==
