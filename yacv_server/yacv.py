@@ -298,6 +298,7 @@ class YACV:
             if obj_color is not None:
                 _kwargs['color_obj'] = obj_color  # Only applies to highest-dimensional objects
             _kwargs['texture'] = _read_texture_uri(getattr(obj, 'yacv_texture', None) or kwargs.get('texture', None))
+            _kwargs['_name'] = name  # Include name in hash to distinguish identical-topology shapes (e.g. mirrored STEP instances)
             if not isinstance(obj, bytes):
                 obj = _preprocess_cad(obj, **_kwargs)
             _hash = _hashcode(obj, **_kwargs)
