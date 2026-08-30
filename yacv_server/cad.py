@@ -25,8 +25,32 @@ def get_color(obj: Any) -> Optional[ColorTuple]:
     def clamp(v: Any) -> float:
         return max(0.0, min(float(v), 1.0))
 
-    obj = getattr(obj, "color", obj)
+    if obj is None:
+        return None
+
+    # Handle build123d / CadQuery shape objects with a color attribute
+    color_attr = getattr(obj, "color", None)
+    if color_attr is not None:
+        obj = color_attr
+
+    # OCC Quantity_ColorRGBA / Quantity_Color
     wrapped = getattr(obj, "wrapped", obj)
+
+    # OCP Quantity_ColorRGBA has GetRGB() returning Quantity_Color and Alpha()
+    if hasattr(wrapped, "GetRGB") and hasattr(wrapped, "Alpha"):
+        try:
+            rgb = wrapped.GetRGB()
+            return (clamp(rgb.Red()), clamp(rgb.Green()), clamp(rgb.Blue()), clamp(wrapped.Alpha()))
+        except Exception:
+            pass
+
+    # OCP Quantity_Color (or direct Red/Green/Blue methods)
+    if all(hasattr(wrapped, m) for m in ("Red", "Green", "Blue")):
+        try:
+            alpha = getattr(wrapped, "Alpha", lambda: 1.0)()
+            return (clamp(wrapped.Red()), clamp(wrapped.Green()), clamp(wrapped.Blue()), clamp(alpha))
+        except Exception:
+            pass
 
     def as_rgba(seq) -> Optional[ColorTuple]:
         try:
@@ -42,10 +66,30 @@ def get_color(obj: Any) -> Optional[ColorTuple]:
         if c:
             return c
 
-    # OCC Quantity_ColorRGBA
-    if all(hasattr(wrapped, m) for m in ("Red", "Green", "Blue", "Alpha")):
+    # build123d Color or other iterable color objects
+    if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
         try:
-            return (clamp(wrapped.Red()), clamp(wrapped.Green()), clamp(wrapped.Blue()), clamp(wrapped.Alpha()))
+            c = as_rgba(list(obj))
+            if c:
+                return c
+        except Exception:
+            pass
+
+    # Hex string format (#RRGGBB or #RRGGBBAA) or named color string
+    if isinstance(obj, str):
+        if obj.startswith("#") and len(obj) in (7, 9):
+            try:
+                r = int(obj[1:3], 16) / 255.0
+                g = int(obj[3:5], 16) / 255.0
+                b = int(obj[5:7], 16) / 255.0
+                a = int(obj[7:9], 16) / 255.0 if len(obj) == 9 else 1.0
+                return (clamp(r), clamp(g), clamp(b), clamp(a))
+            except Exception:
+                pass
+        try:
+            from build123d import Color
+            c = Color(obj)
+            return get_color(c)
         except Exception:
             pass
 

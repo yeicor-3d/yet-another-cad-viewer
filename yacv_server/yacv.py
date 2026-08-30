@@ -168,9 +168,12 @@ class YACV:
         self.server_thread.start()
         logger.info('Server started (requested)...')
         # Wait for the server to be ready before returning
-        while not self.startup_complete.wait():
+        while not self.startup_complete.wait(timeout=5.0):
             time.sleep(0.01)
-        logger.info('Server started (received)...')
+        if self.server is not None:
+            logger.info('Server started (received)...')
+        else:
+            logger.warning('Server could not be started or port in use, continuing without local server.')
 
     # noinspection PyUnusedLocal
     def stop(self, *args):
@@ -217,13 +220,19 @@ class YACV:
     def _run_server(self):
         """Runs the web server"""
         logger.info('Starting server in %s mode...', self.protocol.name)
-        self.server = ThreadingHTTPServer(
-            (os.getenv('YACV_HOST', 'localhost'), int(os.getenv('YACV_PORT', 32323))),
-            lambda a, b, c: HTTPHandler(a, b, c, yacv=self))
-        # noinspection HttpUrlsUsage
-        logger.info(f'Serving at http://{self.server.server_name}:{self.server.server_port}')
-        self.startup_complete.set()
-        self.server.serve_forever()
+        try:
+            self.server = ThreadingHTTPServer(
+                (os.getenv('YACV_HOST', 'localhost'), int(os.getenv('YACV_PORT', 32323))),
+                lambda a, b, c: HTTPHandler(a, b, c, yacv=self))
+            # noinspection HttpUrlsUsage
+            logger.info(f'Serving at http://{self.server.server_name}:{self.server.server_port}')
+        except Exception as e:
+            logger.error('Failed to start HTTP server: %s', e)
+            self.server = None
+        finally:
+            self.startup_complete.set()
+        if self.server is not None:
+            self.server.serve_forever()
 
     def _show_event(self, event: UpdatesApiFullData):
         """Handles a show event by publishing it to the show events buffer (and special handling for stderr protocol)."""
