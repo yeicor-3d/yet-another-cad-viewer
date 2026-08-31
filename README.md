@@ -34,6 +34,7 @@ demo [here](https://yeicor-3d.github.io/yet-another-cad-viewer/?preload=logo.glb
 - [cq-studio](https://github.com/ccazabon/cq-studio) provides an alternative workflow that detects file changes instead
   of relying on an interactive environment like Jupyter for hot-reloading.
   Uses the same backend and frontend behind the scenes.
+- [yacv-watch](https://codeberg.org/nickbp/yacv-watch) is a wrapper script for yacv-server that enables live updates while letting you use your editor of choice (Emacs, Vim, Notepad, or anything else). Similar to cq-studio, but focuses on build123d rather than cadquery.
 - [build123d-docker](https://github.com/derhuerst/build123d-docker/pkgs/container/build123d) provides docker images for
   Yet Another CAD Viewer and other projects, with automatic updates.
 - [OCP.wasm](https://github.com/yeicor/OCP.wasm/) ports OCP (OpenCASCADE for Python) and supporting libraries to
