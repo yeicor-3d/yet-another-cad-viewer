@@ -1279,6 +1279,11 @@
   resolved "https://registry.yarnpkg.com/@vue/tsconfig/-/tsconfig-0.9.1.tgz#6aa901e9f89242b26e1e564c98747278df6882e5"
   integrity sha512-buvjm+9NzLCJL29KY1j1991YYJ5e6275OiK+G4jtmfIb+z4POywbdm0wXusT9adVWqe0xqg70TbI7+mRx4uU9w==
 
+"@vuetify/v0@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@vuetify/v0/-/v0-1.2.1.tgz#26232ebca8e915393211c2cdbdac923f2c9c4f37"
+  integrity sha512-lFBUeMmQiKbFR7JXC1Z74Z2dvvGLCqt/Wd9JQqg4falICTvHtlkulYqaHbtmByGV9eR7cbG1ohN1+7OQLLSPfg==
+
 abbrev@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-5.0.0.tgz#bab70805adca6637a33eeecdb8b7b5474d6d6425"
@@ -2875,9 +2880,11 @@ vue@^3.5.13:
     "@vue/shared" "3.5.42"
 
 vuetify@^4.0.0:
-  version "4.1.12"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.1.12.tgz#160132836a272ccf9fb7d424bdf6a8d0c02c2e42"
-  integrity sha512-WXGbnuzqUGPZM7nF38C3jiucaLRutHZOICVW0wg1dyXppW11i+su/IT20nK+1o86nsgTdedejeEv53cJUrI30A==
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.2.0.tgz#001953236cec9376695fc9db8f06860ca0f769ff"
+  integrity sha512-KaMbAl57GG/zdLdL9dcMqEZligIK3jYvkPkpx+RS9DufD/TOfWKnlDTOUzoYlvmhT/3LfJ/usAt1bSoWfYX4JA==
+  dependencies:
+    "@vuetify/v0" "^1.2.1"
 
 walk-up-path@^4.0.0:
   version "4.0.0"
