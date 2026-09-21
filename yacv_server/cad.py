@@ -8,9 +8,16 @@ from typing import Any, Optional, Union, Tuple
 
 from OCP.TopExp import TopExp
 from OCP.TopLoc import TopLoc_Location
-from OCP.TopTools import TopTools_IndexedMapOfShape
 from OCP.TopoDS import TopoDS_Shape
 from build123d import Compound, Color
+
+try:
+    # OCP >= 8.0 (OCCT 8.0): TopTools_* typedefs were replaced by
+    # NCollection instantiations exposed under OCP.collections.
+    # See https://github.com/gumyr/build123d (dev branch) for the same migration.
+    from OCP.collections import IndexedMap_TopoDS_Shape_TopTools_ShapeMapHasher as _IndexedMapOfShape
+except ImportError:  # OCP < 8.0 (e.g. 7.x)
+    from OCP.TopTools import TopTools_IndexedMapOfShape as _IndexedMapOfShape
 
 from yacv_server.gltf import GLTFMgr
 
@@ -258,7 +265,7 @@ def _hashcode(obj: Union[bytes, CADCoreLike], **extras) -> str:
         obj.DumpJson(sub_data)
         hasher.update(sub_data.getvalue())
     elif isinstance(obj, TopoDS_Shape):
-        map_of_shapes = TopTools_IndexedMapOfShape()
+        map_of_shapes = _IndexedMapOfShape()
         TopExp.MapShapes_s(obj, map_of_shapes)
         for i in range(1, map_of_shapes.Extent() + 1):
             sub_shape = map_of_shapes.FindKey(i)
