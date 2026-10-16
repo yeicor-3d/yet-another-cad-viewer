@@ -2870,9 +2870,9 @@ vue@^3.5.13:
     "@vue/shared" "3.5.43"
 
 vuetify@^4.0.0:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.2.3.tgz#a59d2e9b7291031561e2bda1a98b00b05225e601"
-  integrity sha512-guUzwFh5LhIKgt0iBaxo1d7UJg2X3P6L4OhnthGwXeGLO/sIOzpn1E2E9uh5bYPm5CgeARuuFmIaG50QPoeNKQ==
+  version "4.2.6"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.2.6.tgz#29e88f02e0a689ec39bb44f4fc9f247ed2be40c0"
+  integrity sha512-W91vPxyJT7Br2wc3Iu2fUzC1YRZCTGxtrvywxnf7vGZF6Cfz2QvTvKvXmwMreie8oCHW6kA9yw7auCgQuwBUjQ==
   dependencies:
     "@vuetify/v0" "^1.2.1"
 
