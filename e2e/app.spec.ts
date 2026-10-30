@@ -1023,6 +1023,9 @@ test.describe("Additional model controls", () => {
 
 test.describe("Playground URL demo", () => {
   test.setTimeout(600000); // 10 minutes max
+  // These tests download Pyodide, build123d and the demo code from external
+  // services, so retry once in CI to absorb transient network failures.
+  test.describe.configure({ retries: process.env.CI ? 1 : 0 });
 
   /**
    * Check the playground console for fatal error patterns and fail fast.
@@ -1049,6 +1052,23 @@ test.describe("Playground URL demo", () => {
     return text;
   }
 
+  /**
+   * Wait until a model is loaded, failing as soon as the playground console
+   * reports a fatal error. Without this, a failed Pyodide bootstrap would only
+   * be noticed after the whole (multi-minute) model timeout elapsed.
+   */
+  async function waitForModelOrFatalError(page: Page, popupCard: any, timeoutMs: number): Promise<void> {
+    const noModel = page.locator("text=No model loaded");
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      await checkPlaygroundConsole(page, popupCard);
+      if (!(await noModel.isVisible().catch(() => false))) return;
+      await page.waitForTimeout(2000);
+    }
+    await checkPlaygroundConsole(page, popupCard); // Last chance to report the real cause
+    throw new Error(`Timed out after ${Math.round(timeoutMs / 1000)}s waiting for the model to load`);
+  }
+
   test("loads the URL playground demo with base64 code and creates models in-browser", async ({ page }) => {
     const capture = await setupConsoleCapture(page);
 
@@ -1072,16 +1092,9 @@ test.describe("Playground URL demo", () => {
     // Take a screenshot showing the playground has loaded (editor + console visible)
     await page.screenshot({ path: "screenshots/playground-url-loading.png", fullPage: true });
 
-    // Wait for "No model loaded" to disappear. If it doesn't within the timeout,
-    // check the console for fatal errors and fail with a clear message.
-    await expect(page.locator("text=No model loaded"))
-      .not.toBeVisible({ timeout: 300000 })
-      .catch(async (err) => {
-        // If the model didn't load, check for fatal errors in the console
-        await checkPlaygroundConsole(page, popupCard);
-        // Re-throw if no fatal error found (it was just slow)
-        throw err;
-      });
+    // Wait for the model to load, failing fast if the playground console
+    // reports a fatal error (e.g. a broken upstream dependency).
+    await waitForModelOrFatalError(page, popupCard, 300000);
     await page.waitForTimeout(1000);
 
     // Verify the model viewer is visible
@@ -1114,14 +1127,9 @@ test.describe("Playground URL demo", () => {
 
     await page.screenshot({ path: "screenshots/playground-url-toy-truck-loading.png", fullPage: true });
 
-    // Wait for model to appear, catching timeout and checking for errors
-    // The toy truck is a complex model that may take a while to build in Pyodide
-    await expect(page.locator("text=No model loaded"))
-      .not.toBeVisible({ timeout: 500000 })
-      .catch(async (err) => {
-        await checkPlaygroundConsole(page, popupCard);
-        throw err;
-      });
+    // Wait for the model to load, failing fast on fatal console errors.
+    // The toy truck is a complex model that may take a while to build in Pyodide.
+    await waitForModelOrFatalError(page, popupCard, 500000);
     await page.waitForTimeout(1000);
 
     await page.screenshot({ path: "screenshots/playground-url-toy-truck-loaded.png", fullPage: true });

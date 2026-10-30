@@ -1,9 +1,23 @@
 import logging
+import os
+import sys
 
 # Set up logging for this script
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logging.getLogger("build123d").setLevel(logging.WARNING)  # Too noisy at INFO level
+
+# Pyodide runs on Emscripten, which does not provide every POSIX-only function of
+# the `os` module. Some pure-Python dependencies import them unconditionally at
+# import time (e.g. platformdirs>=4.14 does `from os import geteuid`, pulled in by
+# build123d -> threejs_materials -> platformdirs), which otherwise breaks every
+# playground run with an ImportError. There is no real uid/gid in the browser, so
+# alias the missing functions to Pyodide's closest equivalents (or 0 as a last
+# resort) to keep those imports working.
+if sys.platform == "emscripten":
+    for _name, _fallback in (("geteuid", "getuid"), ("getegid", "getgid")):
+        if not hasattr(os, _name):
+            setattr(os, _name, getattr(os, _fallback, lambda: 0))
 
 import micropip
 

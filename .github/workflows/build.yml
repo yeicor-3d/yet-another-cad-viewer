@@ -11,10 +11,22 @@ on:
     # Weekly Friday night run to catch external breakage (PyPI, CDN, etc.)
     - cron: "0 2 * * 5" # Every Friday at 2:00 AM UTC
 
+# Builds only need to read the repository. Deployments (deploy1/deploy2) grant
+# the write permissions they need, and callers cannot be exceeded here.
+permissions:
+  contents: "read"
+
+# Cancel superseded pull request runs, but never cancel pushes, scheduled runs
+# or release builds (deploy2 calls this workflow and must not be interrupted).
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: "${{ github.event_name == 'pull_request' }}"
+
 jobs:
   build-frontend:
     name: "Build frontend"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 20
     steps:
       - uses: "actions/checkout@v7"
         with:
@@ -35,6 +47,7 @@ jobs:
   build-backend:
     name: "Build backend"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 20
     steps:
       - uses: "actions/checkout@v7"
         with:
@@ -51,6 +64,7 @@ jobs:
   build-logo:
     name: "Build logo"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 20
     steps:
       - uses: "actions/checkout@v7"
         with:
@@ -66,6 +80,7 @@ jobs:
   build-example:
     name: "Build example"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 20
     steps:
       - uses: "actions/checkout@v7"
         with:
@@ -83,6 +98,7 @@ jobs:
   e2e-test-frontend:
     name: "E2E tests"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 60 # Pyodide downloads + retried playground tests can be slow; bound hangs
     steps:
       - uses: "actions/checkout@v7"
         with:
