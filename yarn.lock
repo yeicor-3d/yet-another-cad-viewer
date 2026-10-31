@@ -2316,9 +2316,9 @@ pacote@^22.0.0:
     tar "^7.4.3"
 
 pako@*, pako@^3.0.0:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/pako/-/pako-3.0.2.tgz#b983206a36914f169ca9ea0f6bf702fc5ba1ac71"
-  integrity sha512-uBv6IT2aT1A78iU6dpNEbf6+CyhlV/6g9JlJs9kpgjFGFhruIICVRysF/W0SLzXg5+hCl+KroH7e4YUyfEmgLg==
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-3.0.3.tgz#c8cc604432e09f01a505abc2dbd3800db71a17d5"
+  integrity sha512-tmrebBBYI5FOw8QICGwJNqE8fotC8R+gwcxOvoFNv+GKehOI6Lc6YBolNcQNnC4v96l1wt7rh102ifD4kVeZAQ==
 
 parse-conflict-json@^6.0.0:
   version "6.0.0"
