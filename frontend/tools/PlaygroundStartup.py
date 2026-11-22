@@ -96,3 +96,13 @@ micropip.add_mock_package(
     modules={"ocp_vscode": "from yacv_server import *; show_object = show"},
 )
 show_object = show
+
+# build123d's dev examples now use the standalone `ocp_viewer` package instead
+# of `ocp_vscode` (see gumyr/build123d commit "Make OCP Viewer the viewer the
+# docs and examples use"). The playground already has its own viewer, so mock
+# that package too and route its helpers to yacv_server.
+micropip.add_mock_package(
+    "ocp-viewer",
+    "0.0.0",
+    modules={"ocp_viewer": "from yacv_server import show, show_all\nshow_object = show"},
+)
