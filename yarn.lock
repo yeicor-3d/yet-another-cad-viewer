@@ -1131,6 +1131,11 @@
     path-browserify "^1.0.1"
     vscode-uri "^3.0.8"
 
+"@vscode/diff@0.0.2-145":
+  version "0.0.2-145"
+  resolved "https://registry.yarnpkg.com/@vscode/diff/-/diff-0.0.2-145.tgz#e7980d81e30a8408033d36f1daadff056761855d"
+  integrity sha512-atPcmNrAU4B8OsbrmqYlHbZREt//m8z52o400YA8uuvq3Be5wnmIhLoLqhMum7Jv7kRC0FE+m3WAUbaZF681wg==
+
 "@vue/babel-helper-vue-transform-on@2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@vue/babel-helper-vue-transform-on/-/babel-helper-vue-transform-on-2.0.1.tgz#3cadaa769fda53b61f193ab63668ccc5c7dfe244"
@@ -1635,10 +1640,10 @@ diff@^8.0.2:
   resolved "https://registry.yarnpkg.com/diff/-/diff-8.0.4.tgz#4f5baf3188b9b2431117b962eb20ba330fadf696"
   integrity sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==
 
-dompurify@3.4.15:
-  version "3.4.15"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.15.tgz#30351b34513894f428c13bddb28bff0a027ae804"
-  integrity sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==
+dompurify@3.4.17:
+  version "3.4.17"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.17.tgz#074bbb24eaa419535ac19ffe7f663104b0e1543d"
+  integrity sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -2167,12 +2172,13 @@ minizlib@^3.0.1, minizlib@^3.1.0:
   dependencies:
     minipass "^7.1.2"
 
-monaco-editor@^0.57.0:
-  version "0.57.0"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.57.0.tgz#9889fb51ddc27fe90e6da0e96c237c852adc4654"
-  integrity sha512-5BkI9KGoqrNvBGUe15/QlZq3OooZ8WLg1AxTpaqHRCP3HNpzPPZKE2EDz8M7c+VRmCeUw1Brp4cx/PWm3kI/5A==
+monaco-editor@^0.58.0:
+  version "0.58.0"
+  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.58.0.tgz#d0d8b439b377c46829daf1cf7a06510c7afcabb2"
+  integrity sha512-Lj5hlfT4zdM5GSG9VxTHslWnwibGBvO6d9Mq/+9zmb1CkTZnib4+uAZUKl1zg+tMHRgY2OGax6hHKZNBtldR1g==
   dependencies:
-    dompurify "3.4.15"
+    "@vscode/diff" "0.0.2-145"
+    dompurify "3.4.17"
     marked "14.0.0"
 
 ms@^2.1.3:
