@@ -1918,9 +1918,9 @@ isexe@^4.0.0:
   integrity sha512-FFUtZMpoZ8RqHS3XeXEmHWLA4thH+ZxCv2lOiPIn1Xc7CxrqhWzNSDzD+/chS/zbYezmiwWLdQC09JdQKmthOw==
 
 js-base64@^3.7.7:
-  version "3.9.7"
-  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.7.tgz#1e785286e6be004a60b976e165d9b82a6e86d942"
-  integrity sha512-UT2XYOCbXOXYoymbytretRDFnb6E6vYPqC1blehA/alnG6vRC0mNTQ6ijXYAPtiCG9o1FDNJXJvQtCwbChFDRQ==
+  version "3.9.8"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.8.tgz#7242146acfccdf4d091a5f083b635bdd57d225a9"
+  integrity sha512-7NWSBPIxE0LY7ShjVwJYA2YnuzNghaxIj6S6hUbbAOqTf89Kp5UoJCVQ+3rKy1Wa+oK76bGtg/d8kgmTlXQtlw==
 
 js-tokens@^4.0.0:
   version "4.0.0"
